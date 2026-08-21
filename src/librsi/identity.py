@@ -7,7 +7,10 @@ from collections.abc import Iterator, Mapping, Sequence
 from typing import Any, TypeAlias
 
 FrozenScalar: TypeAlias = None | bool | int | float | str
-FrozenValue: TypeAlias = FrozenScalar | tuple["FrozenValue", ...] | "FrozenMap"
+# Recursive aliases involving FrozenMap cannot be evaluated before FrozenMap exists at
+# runtime on every supported Python version. Runtime validation in freeze() enforces the
+# exact recursive shape; the alias intentionally stays permissive for public annotations.
+FrozenValue: TypeAlias = Any
 
 
 class FrozenMap(Mapping[str, FrozenValue]):
