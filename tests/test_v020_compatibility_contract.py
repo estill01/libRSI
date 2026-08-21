@@ -3,9 +3,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
-
 import librsi
+import pytest
 from librsi import CommandObservation, RSIKernel, RSITransitionError
 
 
