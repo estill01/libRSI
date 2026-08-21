@@ -14,13 +14,13 @@ The architecture tracker and extension Block documents define **what must be bui
 | `ready` | Required predecessor contracts are satisfied and the Block is available to take. |
 | `in-progress` | Implementation is actively underway but the Block has not met all acceptance criteria. |
 | `blocked` | A concrete dependency or decision prevents progress. |
-| `in-review` | Intended implementation is complete enough for review/integration, but acceptance is not yet established. |
-| `implemented` | Intended implementation is present, but full Block acceptance or maintained verification is pending. |
-| `verified` | All maintained Block acceptance criteria are satisfied by current implementation and retained verification evidence. |
+| `in-review` | Intended implementation is complete enough for review/integration, but acceptance is not yet established on the authoritative branch. |
+| `implemented` | Intended implementation is present on the authoritative branch, but full Block acceptance or maintained verification is pending. |
+| `verified` | All maintained Block acceptance criteria are satisfied by the authoritative implementation and retained verification evidence. |
 | `deferred` | Work is intentionally postponed despite otherwise being in scope. |
 | `superseded` | The Block or implementation path was replaced by a later maintained design/Block. |
 
-`implemented` and `verified` are deliberately distinct. A commit, PR, passing local test, or merge is not by itself proof that a Block's complete acceptance contract is satisfied.
+`implemented` and `verified` are deliberately distinct. A commit, PR, passing branch CI, or merge is not by itself proof that a Block's complete acceptance contract is satisfied.
 
 ## Accounting rules
 
@@ -35,14 +35,14 @@ For every status change beyond `not-started`, retain enough exact evidence to re
 
 Detailed records are required for active, blocked, implemented, or verified Blocks. Empty per-Block boilerplate is intentionally omitted for `not-started` Blocks; the summary table is authoritative for their status.
 
-A Block may only be marked `verified` after its maintained acceptance criteria have been checked against the current implementation. If an implementation is later invalidated, retain the historical evidence in the update log and move the Block to the appropriate new status.
+A Block may only be marked `verified` after its maintained acceptance criteria have been checked against the authoritative implementation. Branch CI is pre-integration evidence; after merge, authoritative-branch verification closes the Block.
 
 ## Program summary
 
 | Block | Short name | Status | Owner / workstream | Branch / PR | Last updated |
 |---:|---|---|---|---|---|
-| 0 | Architecture contract / namespace plan / legacy baseline | `verified` | Architecture / integration | `feat/block-0-architecture-baseline` / PR #1 | 2026-08-21 |
-| 1 | Canonical immutable records / identity | `ready` | — | — | 2026-08-21 |
+| 0 | Architecture contract / namespace plan / legacy baseline | `in-review` | Architecture / integration | `feat/block-0-architecture-baseline` / PR #1 | 2026-08-21 |
+| 1 | Canonical immutable records / identity | `not-started` | — | — | — |
 | 2 | Hypothesis / experiment integrity repair | `not-started` | — | — | — |
 | 3 | General epistemic model | `not-started` | — | — | — |
 | 4 | Generic experiments / metrics / evaluation | `not-started` | — | — | — |
@@ -75,7 +75,7 @@ A Block may only be marked `verified` after its maintained acceptance criteria h
 
 ## Block 0 — Architecture contract, namespace plan, and legacy baseline
 
-**Status:** `verified`  
+**Status:** `in-review`  
 **Owner / workstream:** Architecture / integration  
 **Branch:** `feat/block-0-architecture-baseline`  
 **PR:** #1, `Block 0: architecture contract and 0.2 compatibility baseline`  
@@ -94,13 +94,15 @@ Block 0 implementation commits:
 - `ee383123740bce1180629315f6b9284e137c9d83` — rooted libRSI `0.2.0` compatibility fixture.
 - `ce7d43ea7c73d87c411fbc81ce1a4f07ded77db6` — executable `0.2.0` public-policy compatibility regression suite.
 - `f504bd9fd042b5e83a7de853a38900775c0969d1` — link maintained architecture contract from implementation-program index.
-- `eec9fc1b27e095d0311668281af17af8e0abc560` — final Ruff-compatible test formatting used by the successful verification run.
+- `eec9fc1b27e095d0311668281af17af8e0abc560` — Ruff-compatible test formatting used by the first successful verification run.
+- `4e92ff5cd7c0845303a37edaccf3a707f5318229` — harden compatibility export coverage while preserving additive future APIs.
 
-### Verification evidence
+### Pre-integration verification evidence
 
-- GitHub Actions CI run `32518645629` against commit `eec9fc1b27e095d0311668281af17af8e0abc560`: **success** across the maintained Python 3.11, 3.12, and 3.13 matrix.
+- GitHub Actions CI run `32518645629` against commit `eec9fc1b27e095d0311668281af17af8e0abc560`: **success** across Python 3.11, 3.12, and 3.13.
+- GitHub Actions CI run `32518800468` against the prior status-accounting head: **success** across the full maintained matrix.
 - The CI workflow includes Ruff lint, Ruff formatting check, mypy, pytest with branch coverage, package build, and Python 3.11 wheel smoke test.
-- The existing repository tests remained in the same CI invocation as the new compatibility baseline.
+- The existing repository tests run together with the new compatibility baseline.
 
 ### Acceptance reconciliation
 
@@ -110,29 +112,18 @@ Block 0 implementation commits:
 - `Target != Knowledge != Intent` is explicit.
 - Candidate implementation is distinct from authoritative application.
 - Every current `0.2.0` module has an explicit future semantic owner.
-- No libRSI dependency on Software Factory or another high-level consumer was introduced; the required dependency direction is documented as consumer → libRSI.
+- No libRSI dependency on Software Factory or another high-level consumer was introduced; the required dependency direction is consumer → libRSI.
 - Executable regression fixtures cover representative `0.2.0` public exports, identities, checkpoint, reflection/hypothesis/evidence, command-experiment, program, portfolio, review, selection, and selector-policy behavior.
-- Full maintained CI passed.
 
-**Remaining for Block 0:** None. Any future architecture change must be made as an explicit maintained architecture revision rather than silently redefining this completed Block.
+**Remaining for Block 0:** Merge/integrate the reviewed implementation into the authoritative branch and confirm authoritative-branch CI. Once that succeeds, mark Block 0 `verified` and Block 1 `ready`.
 
 ### Update log
 
 - **2026-08-21:** Architecture and parallelization planning documents created; Block remained `in-progress` because namespace ownership and legacy regression baseline were missing.
 - **2026-08-21:** Added the maintained architecture contract and executable `0.2.0` compatibility baseline on `feat/block-0-architecture-baseline`.
-- **2026-08-21:** PR #1 CI initially exposed only test import-formatting issues; corrected them without changing the baseline semantics.
-- **2026-08-21:** CI run `32518645629` passed the full matrix. Block 0 marked `verified`; Block 1 becomes `ready`.
-
----
-
-## Block 1 — Canonical immutable domain records and identity model
-
-**Status:** `ready`  
-**Owner / workstream:** Unassigned  
-**Branch / PR:** —  
-**Verification evidence:** Block 0 predecessor is `verified`.  
-**Last updated:** 2026-08-21  
-**Notes / remaining:** Available to begin. The architecture contract and `0.2.0` compatibility baseline are now the migration guardrails for this work.
+- **2026-08-21:** PR #1 CI initially exposed only test import-formatting issues; corrected them without changing baseline semantics.
+- **2026-08-21:** Full branch CI passed.
+- **2026-08-21:** Review corrected premature `verified` accounting and strengthened legacy-export coverage without preventing additive future APIs. Block is `in-review` pending authoritative integration.
 
 ---
 
@@ -140,4 +131,4 @@ Block 0 implementation commits:
 
 - **2026-08-21:** Initialized the architecture-expansion implementation program and parallelization plan.
 - **2026-08-21:** Added maintained Block 20A covering the libRSI service/API/server and MCP server surface.
-- **2026-08-21:** Block 0 verified by PR #1 and successful CI run `32518645629`; Block 1 moved to `ready`.
+- **2026-08-21:** Block 0 implementation completed on feature branch and remains `in-review` until authoritative integration and CI.
