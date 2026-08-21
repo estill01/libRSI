@@ -1,0 +1,55 @@
+{
+  "baseline": {
+    "version": "0.2.0",
+    "main_commit": "d96cc666c7800681dfdde2f991f841b09155dfe8"
+  },
+  "roots": {
+    "hypothesis_root": "6f05191f36060745ef7a79ad0a5e02d194c40a0a8dda56bbbd9666a62304c698",
+    "reflection_root": "b106ac4d12cc68cd10f860a9e532422f174121b2951aba902e2892fe09e6a443",
+    "experiment_root": "73a82adc32d918f7a4df28ca9c40664d9ff140f5421ed1f76591fb1de08d50dc",
+    "experiment_pass_evidence_root": "dd32fe95906649abd6b053dd63736086319b81a828c247007d70be3ed24ed1aa",
+    "checkpoint_root": "b9195c363bdc3605a551dc335d33286d556eb921cb0c287d50babe983bae5edb",
+    "program_root": "f147bff16bc9ff1656d9e04af8805dec04b602473f9758d15c958cd4e6ad2568",
+    "selection_review_root": "65adf45d949c5b059c9dfb735e2d217825b5dd8c969805be3803a2dead77da50",
+    "selector_candidate_root": "49b57bacd1d6a1ab42f2d5ccc18ae8c1bab007e72a124059c91f91599baf648e"
+  },
+  "hypothesis": {
+    "initial_confidence": 0.5,
+    "support_confidence": 0.64,
+    "support_status": "testing",
+    "counterexample_confidence_after_support": 0.5,
+    "counterexample_status": "weakened"
+  },
+  "experiment": {
+    "pass_disposition": "passed",
+    "pass_evidence_type": "support",
+    "pass_evidence_weight": 0.7,
+    "fail_disposition": "failed",
+    "fail_evidence_type": "counterexample",
+    "invalid_disposition": "invalid",
+    "invalid_evidence_type": "null",
+    "invalid_evidence_weight": 0.0
+  },
+  "legacy_exports": [
+    "CheckpointDecision",
+    "CheckpointPolicy",
+    "CommandExperimentInput",
+    "CommandObservation",
+    "ExperimentEvaluation",
+    "ExperimentPolicy",
+    "ExperimentRunner",
+    "HypothesisPolicy",
+    "HypothesisProposal",
+    "HypothesisUpdate",
+    "PolicyEvaluationUpdate",
+    "PortfolioPolicy",
+    "PortfolioTransition",
+    "ProgramPolicy",
+    "ReflectionPolicy",
+    "RSIKernel",
+    "RSITransitionError",
+    "ReviewPolicy",
+    "SelectionPolicy",
+    "SelectorPolicy"
+  ]
+}
