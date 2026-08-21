@@ -37,7 +37,7 @@ For every status change beyond `not-started`, update the corresponding Block rec
 
 When a Block is implemented by multiple commits, append the material commits rather than replacing history with only the newest SHA. If a prior implementation is reverted or superseded, retain that history in the Block's update log and identify the authoritative replacement.
 
-A Block may only be marked `verified` when its acceptance criteria in `architecture-expansion-implementation-tracker.md` have been checked against the current authoritative code/state. Process evidence alone is insufficient.
+A Block may only be marked `verified` when its acceptance criteria in `architecture-expansion-implementation-tracker.md` or its maintained extension Block document have been checked against the current authoritative code/state. Process evidence alone is insufficient.
 
 ## Program summary
 
@@ -64,6 +64,7 @@ A Block may only be marked `verified` when its acceptance criteria in `architect
 | 18 | Batteries-included local runtime / Python API | `not-started` | — | — | — |
 | 19 | Outcome API / serialization / events | `not-started` | — | — | — |
 | 20 | CLI / external-agent protocol | `not-started` | — | — | — |
+| 20A | Server / service API / MCP server | `not-started` | — | — | 2026-08-21 |
 | 21 | Provider / reasoner integrations | `not-started` | — | — | — |
 | 22 | Software target support / Software Factory consumer | `not-started` | — | — | — |
 | 23 | End-to-end dogfoods | `not-started` | — | — | — |
@@ -334,6 +335,22 @@ A Block may only be marked `verified` when its acceptance criteria in `architect
 
 ---
 
+## Block 20A — libRSI Server, Service API, and MCP Server
+
+**Status:** `not-started`  
+**Owner / workstream:** —  
+**Branch / PR:** —  
+**Implementation commits:** —  
+**Verification evidence:** —  
+**Last updated:** 2026-08-21  
+**Notes / remaining:** Full implementation and acceptance contract is maintained in `server-mcp-implementation-block.md`. The server must remain a transport/interface layer over the canonical libRSI runtime rather than introducing a separate workflow, state, evidence, or persistence model.
+
+### Update log
+
+- **2026-08-21:** Added Block 20A to cover a transport-independent libRSI service, HTTP/JSON server, local/remote MCP server, explicit durable run handles, capability/authority reporting, concurrency/restart behavior, and basic service/MCP dogfoods. Status initialized as `not-started`.
+
+---
+
 ## Block 21 — Provider integrations, beginning with a reasoner adapter
 
 **Status:** `not-started`  
@@ -399,3 +416,4 @@ A Block may only be marked `verified` when its acceptance criteria in `architect
 Use this section only for program-level events that affect multiple Blocks, dependency interpretation, or the authoritative execution plan. Block-local progress belongs in the relevant Block record.
 
 - **2026-08-21:** Initialized implementation accounting on `docs/implementation-trackers`. Block 0 marked `in-progress` based only on the architecture and parallel implementation documentation; no code Block is claimed implemented or verified.
+- **2026-08-21:** Added Block 20A as a maintained program extension covering the libRSI server/service/API/MCP surface. It is tracked in this ledger and specified in `server-mcp-implementation-block.md`.
