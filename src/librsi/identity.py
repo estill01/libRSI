@@ -4,6 +4,7 @@ import hashlib
 import json
 import math
 from collections.abc import Iterator, Mapping, Sequence
+from types import MappingProxyType
 from typing import Any, TypeAlias
 
 FrozenScalar: TypeAlias = None | bool | int | float | str
@@ -14,29 +15,27 @@ FrozenValue: TypeAlias = Any
 
 
 class FrozenMap(Mapping[str, FrozenValue]):
-    """Small deeply immutable mapping for canonical semantic data.
+    """Deeply immutable, deterministic mapping for canonical semantic data.
 
-    Keys are normalized into lexical order and every nested value is frozen. The
-    representation is intentionally JSON-shaped so identity generation and durable
-    serialization do not depend on process-local object behavior.
+    Sorted items provide stable hashing/iteration while an immutable index keeps normal
+    mapping lookup O(1). Every nested value is recursively frozen into the canonical
+    JSON-shaped value model.
     """
 
-    __slots__ = ("_items",)
+    __slots__ = ("_items", "_data")
 
     def __init__(self, value: Mapping[str, Any] | None = None) -> None:
         source = value or {}
         if any(not isinstance(key, str) for key in source):
             raise TypeError("canonical mappings require string keys")
         self._items = tuple((key, freeze(source[key])) for key in sorted(source))
+        self._data = MappingProxyType(dict(self._items))
 
     def __getitem__(self, key: str) -> FrozenValue:
-        for candidate, value in self._items:
-            if candidate == key:
-                return value
-        raise KeyError(key)
+        return self._data[key]
 
     def __iter__(self) -> Iterator[str]:
-        return (key for key, _ in self._items)
+        return iter(self._data)
 
     def __len__(self) -> int:
         return len(self._items)
