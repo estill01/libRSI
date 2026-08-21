@@ -179,8 +179,6 @@ def _decode_value(value: Any) -> Any:
         root = value.get("root")
         if not isinstance(record_type, str) or not isinstance(root, str):
             raise ValueError("serialized record reference is incomplete")
-        if record_type == "evidence":
-            return EvidenceRef(root)
         return RecordRef(record_type, root)
     if schema == _MAP_SCHEMA:
         items = value.get("items")
