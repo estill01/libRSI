@@ -13,7 +13,9 @@ _FIXTURE = json.loads(
 )
 
 
-def test_v020_public_exports_remain_available() -> None:
+def test_v020_package_identity_and_public_exports_are_frozen() -> None:
+    assert librsi.__version__ == _FIXTURE["baseline"]["version"]
+    assert list(librsi.__all__) == _FIXTURE["legacy_exports"]
     for name in _FIXTURE["legacy_exports"]:
         assert hasattr(librsi, name), name
 
