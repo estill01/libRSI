@@ -53,9 +53,7 @@ def _record_graph() -> list[SemanticRecord]:
         },
     )
     claim = Claim(
-        statement=(
-            "The scheduler preserves FIFO order for equal-priority work"
-        ),
+        statement="The scheduler preserves FIFO order for equal-priority work",
         kind="behavior",
         target=target,
         scope={"component": "queue"},
@@ -79,9 +77,7 @@ def _record_graph() -> list[SemanticRecord]:
         statement="Lock contention contributes to p95 queue latency",
         target=target,
         causal_model={"cause": "global lock contention"},
-        predictions=(
-            {"metric": "p95_ms", "direction": "decrease"},
-        ),
+        predictions=({"metric": "p95_ms", "direction": "decrease"},),
         source_refs=(question.ref,),
         confidence=0.6,
     )
@@ -145,9 +141,7 @@ def _record_graph() -> list[SemanticRecord]:
     intervention = Intervention(
         target=target,
         kind="software.objective",
-        specification={
-            "objective": "narrow the scheduler critical section"
-        },
+        specification={"objective": "narrow the scheduler critical section"},
         rationale={"hypothesis_root": hypothesis.root},
         expected_effects={"p95_ms": "decrease"},
         constraints=(constraint,),
@@ -181,10 +175,7 @@ def _record_graph() -> list[SemanticRecord]:
         lineage=(evaluation.ref, candidate.ref),
     )
     derived_claim = Claim(
-        statement=(
-            "The candidate reduced p95 queue latency under the "
-            "benchmark workload"
-        ),
+        statement="The candidate reduced p95 queue latency under the benchmark workload",
         kind="observational",
         target=target,
         lineage=(claim.ref, evidence.ref),
