@@ -3,10 +3,10 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import librsi
 import pytest
-from librsi import CommandObservation, RSIKernel, RSITransitionError
 
+import librsi
+from librsi import CommandObservation, RSIKernel, RSITransitionError
 
 _FIXTURE = json.loads(
     (Path(__file__).parent / "fixtures" / "v020_contract.json").read_text(encoding="utf-8")
