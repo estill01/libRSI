@@ -42,8 +42,8 @@ A Block may only be marked `verified` after its maintained acceptance criteria h
 | Block | Short name | Status | Owner / workstream | Branch / PR | Last updated |
 |---:|---|---|---|---|---|
 | 0 | Architecture contract / namespace plan / legacy baseline | `verified` | Architecture / integration | PR #3 | 2026-08-21 |
-| 1 | Canonical immutable records / identity | `ready` | — | — | 2026-08-21 |
-| 2 | Hypothesis / experiment integrity repair | `not-started` | — | — | — |
+| 1 | Canonical immutable records / identity | `verified` | Canonical records / identity | PR #5 | 2026-08-21 |
+| 2 | Hypothesis / experiment integrity repair | `ready` | — | — | 2026-08-21 |
 | 3 | General epistemic model | `not-started` | — | — | — |
 | 4 | Generic experiments / metrics / evaluation | `not-started` | — | — | — |
 | 5 | Target / snapshot / currentness model | `not-started` | — | — | — |
@@ -120,12 +120,58 @@ A Block may only be marked `verified` after its maintained acceptance criteria h
 
 ## Block 1 — Canonical immutable domain records and identity model
 
+**Status:** `verified`  
+**Owner / workstream:** Canonical records / identity  
+**Authoritative implementation:** `1528c7ecc5eec0e44136ceb8b54e3fa09bb5bf74` on `main`  
+**PR:** #5, `Block 1: canonical immutable domain records and identity model`  
+**Last updated:** 2026-08-21
+
+### Material implementation
+
+- `1528c7ecc5eec0e44136ceb8b54e3fa09bb5bf74` — squash-merge the complete Block 1 canonical record/identity substrate from PR #5 onto `main`.
+
+### Verification evidence
+
+- PR #5 GitHub Actions CI run `32525534734`: **success** across Python 3.11, 3.12, and 3.13 after the final performance/robustness review.
+- The maintained CI workflow passed Ruff lint/formatting, mypy, pytest with branch coverage, package build, and Python 3.11 wheel smoke testing.
+- `tests/test_canonical_records.py` exercises a complete target → epistemic → experiment → evidence/evaluation → intervention/candidate → outcome object graph and round-trips every record deterministically.
+- Tests cover deep immutability, detachment from mutable inputs, identity stability under mapping order changes, exclusion of presentation metadata from roots, root changes for identity-bearing changes, exact reference mismatch failures, tamper detection, malformed schema/version/root rejection, non-finite/unsupported canonical values, and serialization-marker collision resistance.
+- The pre-existing `0.2.0` compatibility suite remained passing, so Block 1 is additive rather than a silent legacy break.
+
+### Acceptance reconciliation
+
+- Complete immutable records are provided for `TargetRef`, `TargetSnapshot`, `Claim`, `Question`, `Goal`, `Constraint`, `Hypothesis`, `Evidence`, `EvidenceRef`, `ExperimentSpec`, `Trial`, `Observation`, `Measurement`, `Evaluation`, `Intervention`, `Candidate`, `Outcome`, and `ArtifactRef`, with common `SemanticRecord` and exact `RecordRef` infrastructure.
+- All semantically material record fields are retained in the records; identity is a stable SHA-256 root over deterministic canonical identity data.
+- Every record carries exact lineage as typed content-addressed references.
+- Durable serialization carries an explicit record schema and per-record schema version and integrity-checks the stored root during reconstruction.
+- Presentation metadata is preserved in serialization but explicitly excluded from semantic identity; nested record identity depends on exact record references rather than presentation metadata.
+- Deep immutable `FrozenMap` values canonicalize mapping order, reject ambiguous/non-JSON-shaped values, and provide immutable O(1) lookup while retaining deterministic ordering/hashing.
+- User data mappings are wrapped during durable serialization so values that resemble libRSI record/reference schema envelopes cannot be misinterpreted during deserialization.
+- Exact references bind both record type and root and fail closed when required against a different semantic object.
+- All Block 1 records reconstruct from their durable serialized representation without an external synchronized dictionary, and deterministic reserialization reproduces the same bytes/root.
+- Existing hypothesis/experiment policies were deliberately not migrated to these records; that referential-integrity migration remains Block 2 as planned.
+
+**Remaining for Block 1:** None. Block 2 may now migrate the current policy APIs onto these canonical records while preserving the Block 0 compatibility baseline.
+
+### Update log
+
+- **2026-08-21:** Implemented the canonical record substrate and public additive exports on `feat/block-1-canonical-records`.
+- **2026-08-21:** CI first exposed formatting-only issues; those were corrected without weakening the configured quality gates.
+- **2026-08-21:** Second-pass review hardened generic reference validation and wrapped user mappings to prevent collisions with libRSI serialization markers.
+- **2026-08-21:** Semantic round-trip testing exposed an `EvidenceRef` convenience-subclass reconstruction mismatch; deserialization was corrected to preserve generic `RecordRef` semantics and let typed containers promote references contextually.
+- **2026-08-21:** Final review optimized `FrozenMap` lookup from linear to immutable O(1) indexing without changing identity/hash semantics.
+- **2026-08-21:** Final PR #5 CI run `32525534734` passed and PR #5 was squash-merged as `1528c7ecc5eec0e44136ceb8b54e3fa09bb5bf74`. Block 1 is `verified` on the authoritative implementation.
+
+---
+
+## Block 2 — Repair current hypothesis and experiment referential integrity
+
 **Status:** `ready`  
 **Owner / workstream:** Unassigned  
 **Branch / PR:** —  
-**Verification evidence:** Block 0 predecessor is `verified` on `main`.  
+**Verification evidence:** Block 1 predecessor is `verified` on `main`.  
 **Last updated:** 2026-08-21  
-**Notes / remaining:** Available to begin. The architecture contract and `0.2.0` compatibility baseline are the migration guardrails for this work.
+**Notes / remaining:** Available to begin. Block 2 should migrate the existing hypothesis and experiment policy APIs onto the canonical records without collapsing the broader Block 3 epistemic-policy work into this migration.
 
 ---
 
@@ -150,3 +196,4 @@ A Block may only be marked `verified` after its maintained acceptance criteria h
 - **2026-08-21:** Added maintained Block 20A covering the libRSI service/API/server and MCP server surface.
 - **2026-08-21:** Squash-merged the internal implementation program to `main` as `2c056ca9a62c1daaaeb401c0ffdcbc2b02be937b`.
 - **2026-08-21:** Reviewed, hardened, CI-verified, and squash-merged Block 0 to `main` as `bd3815d51a326dc7f5ace8f54ce462c34e251605`; Block 1 moved to `ready`.
+- **2026-08-21:** Implemented, twice reviewed, hardened, CI-verified, and squash-merged Block 1 to `main` as `1528c7ecc5eec0e44136ceb8b54e3fa09bb5bf74`; Block 2 moved to `ready`.
