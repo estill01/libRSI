@@ -14,7 +14,14 @@ from .models import (
     ExperimentDisposition,
     ExperimentEvaluation,
 )
-from .records import Evidence, ExperimentSpec, Hypothesis, TargetRef, TargetSnapshot
+from .records import (
+    Evidence,
+    ExperimentSpec,
+    Hypothesis,
+    RecordRef,
+    TargetRef,
+    TargetSnapshot,
+)
 
 _COMMAND_CRITERIA = frozenset({"accepted_exit_codes", "stdout_contains", "stderr_not_contains"})
 
@@ -28,6 +35,14 @@ def _require_text(value: str, label: str) -> str:
     return normalized
 
 
+def _optional_mapping(value: Mapping[str, Any] | None, label: str) -> Mapping[str, Any]:
+    if value is None:
+        return {}
+    if not isinstance(value, Mapping):
+        raise TypeError(f"{label} must be a mapping")
+    return value
+
+
 def _normalize_command(command: Sequence[str]) -> tuple[str, ...]:
     if isinstance(command, (str, bytes, bytearray)) or not isinstance(command, Sequence):
         raise TypeError("command experiment argv must be a sequence of strings")
@@ -35,6 +50,15 @@ def _normalize_command(command: Sequence[str]) -> tuple[str, ...]:
     if not normalized:
         raise ValueError("command experiment requires a nonempty argv")
     return normalized
+
+
+def _measurement_names(value: Sequence[str]) -> tuple[str, ...]:
+    if isinstance(value, (str, bytes, bytearray)) or not isinstance(value, Sequence):
+        raise TypeError("requested measurements must be a sequence of strings")
+    measurements = tuple(_require_text(item, "requested measurement") for item in value)
+    if not measurements:
+        raise ValueError("command experiments require at least one requested measurement")
+    return measurements
 
 
 def _string_sequence(value: Any, label: str) -> tuple[str, ...]:
@@ -78,7 +102,7 @@ def _validate_command_criteria(
     return accepted_codes, required_stdout, forbidden_stderr
 
 
-def _validate_observation(observation: CommandObservation) -> None:
+def _validate_observation(observation: CommandObservation, *, expected_input_root: str) -> None:
     if not isinstance(observation, CommandObservation):
         raise TypeError("command evaluation requires a CommandObservation")
     if not isinstance(observation.invalid, bool):
@@ -89,6 +113,55 @@ def _validate_observation(observation: CommandObservation) -> None:
         raise TypeError("command observation exit_code must be an integer or None")
     if not isinstance(observation.stdout, str) or not isinstance(observation.stderr, str):
         raise TypeError("command observation stdout and stderr must be strings")
+    if observation.exact_input_root is None:
+        raise ValueError("canonical command observations require the exact input root")
+    if not isinstance(observation.exact_input_root, str):
+        raise TypeError("command observation exact_input_root must be a string")
+    if observation.exact_input_root != expected_input_root:
+        raise ValueError("command observation does not match the exact experiment input")
+
+
+def _command_spec_context(
+    spec: ExperimentSpec,
+) -> tuple[
+    RecordRef,
+    tuple[str, ...],
+    str,
+    tuple[int, ...],
+    tuple[str, ...],
+    tuple[str, ...],
+]:
+    if not isinstance(spec, ExperimentSpec):
+        raise TypeError("command execution requires an ExperimentSpec")
+    if spec.kind != "command":
+        raise RSITransitionError("experiment is not a command experiment")
+    if spec.target_snapshot is None:
+        raise ValueError("canonical command experiments require a target snapshot")
+    if not spec.design:
+        raise ValueError("canonical command experiments require a nonempty design")
+    _measurement_names(spec.requested_measurements)
+
+    hypothesis_refs = tuple(ref for ref in spec.lineage if ref.record_type == "hypothesis")
+    if len(hypothesis_refs) != 1:
+        raise ValueError("canonical command experiments require exactly one hypothesis reference")
+
+    accepted_codes, required_stdout, forbidden_stderr = _validate_command_criteria(spec.criteria)
+    command = spec.inputs.get("command")
+    cwd = spec.inputs.get("cwd")
+    if not isinstance(command, tuple):
+        raise ValueError("command ExperimentSpec is missing canonical argv")
+    argv = _normalize_command(command)
+    if not isinstance(cwd, str):
+        raise ValueError("command ExperimentSpec is missing canonical cwd")
+    working_directory = _require_text(cwd, "command working directory")
+    return (
+        hypothesis_refs[0],
+        argv,
+        working_directory,
+        accepted_codes,
+        required_stdout,
+        forbidden_stderr,
+    )
 
 
 @dataclass(frozen=True)
@@ -98,6 +171,8 @@ class ExperimentPolicy:
     The canonical Block 2 path is ``design_command`` → ``prepare_command`` →
     ``evaluate_command``. Evaluation consumes the immutable ``ExperimentSpec`` itself;
     there is no evaluation-time criteria argument that can replace the reviewed design.
+    The returned host execution input and host observation also carry the exact spec root,
+    preventing an observation from one command/spec from being evaluated as another.
 
     ``command_input`` and ``evaluate_command_result`` remain deprecated ``0.2.0``
     compatibility wrappers. They intentionally preserve their historical signatures and
@@ -144,12 +219,16 @@ class ExperimentPolicy:
             raise ValueError("experiment target snapshot does not match the hypothesis target")
         if not isinstance(design, Mapping) or not design:
             raise ValueError("experiment design is required")
+
         _validate_command_criteria(success_criteria)
         argv = _normalize_command(command)
         working_directory = _require_text(cwd, "command working directory")
-        measurement_names = tuple(requested_measurements)
-        if not measurement_names:
-            raise ValueError("command experiments require at least one requested measurement")
+        parameters = _optional_mapping(inputs, "command experiment inputs")
+        environment_requirements = _optional_mapping(
+            environment,
+            "command experiment environment",
+        )
+        measurement_names = _measurement_names(requested_measurements)
 
         return ExperimentSpec(
             experiment_id=_require_text(experiment_id, "experiment id"),
@@ -160,27 +239,18 @@ class ExperimentPolicy:
             inputs={
                 "command": list(argv),
                 "cwd": working_directory,
-                "parameters": inputs or {},
+                "parameters": parameters,
             },
-            environment=environment or {},
+            environment=environment_requirements,
             requested_measurements=measurement_names,
             lineage=(hypothesis.ref,),
         )
 
     @staticmethod
     def prepare_command(spec: ExperimentSpec) -> CommandExperimentInput:
-        """Materialize host execution input from an exact command spec."""
+        """Materialize host execution input from a fully bound command spec."""
 
-        if not isinstance(spec, ExperimentSpec):
-            raise TypeError("command preparation requires an ExperimentSpec")
-        if spec.kind != "command":
-            raise RSITransitionError("experiment is not a command experiment")
-        command = spec.inputs.get("command")
-        cwd = spec.inputs.get("cwd")
-        if not isinstance(command, tuple):
-            raise ValueError("command ExperimentSpec is missing canonical argv")
-        argv = _normalize_command(command)
-        working_directory = _require_text(cwd, "command working directory")
+        _, argv, working_directory, _, _, _ = _command_spec_context(spec)
         return CommandExperimentInput(spec.root, argv, working_directory)
 
     def evaluate_command(
@@ -189,28 +259,22 @@ class ExperimentPolicy:
         spec: ExperimentSpec,
         observation: CommandObservation,
     ) -> Evidence:
-        """Interpret a command observation using only the criteria bound in ``spec``.
+        """Interpret an exactly correlated observation using the criteria in ``spec``.
 
         The resulting evidence names the exact hypothesis version from the experiment
         lineage, the exact experiment spec as its source, and the exact target snapshot.
         Infrastructure-invalid observations become zero-weight null evidence.
         """
 
-        if not isinstance(spec, ExperimentSpec):
-            raise TypeError("command evaluation requires an ExperimentSpec")
-        if spec.kind != "command":
-            raise RSITransitionError("experiment is not a command experiment")
-        if spec.target_snapshot is None:
-            raise ValueError("canonical command experiments require a target snapshot")
-        hypothesis_refs = tuple(ref for ref in spec.lineage if ref.record_type == "hypothesis")
-        if len(hypothesis_refs) != 1:
-            raise ValueError(
-                "canonical command experiments require exactly one hypothesis reference"
-            )
-        accepted_codes, required_stdout, forbidden_stderr = _validate_command_criteria(
-            spec.criteria
-        )
-        _validate_observation(observation)
+        (
+            hypothesis_ref,
+            _,
+            _,
+            accepted_codes,
+            required_stdout,
+            forbidden_stderr,
+        ) = _command_spec_context(spec)
+        _validate_observation(observation, expected_input_root=spec.root)
         self._validate_evidence_weight()
 
         passed = (
@@ -237,6 +301,7 @@ class ExperimentPolicy:
             evidence_type=evidence_type,
             data={
                 "experiment_root": spec.root,
+                "observation_input_root": observation.exact_input_root,
                 "passed": passed,
                 "disposition": disposition,
                 "exit_code": observation.exit_code,
@@ -244,7 +309,7 @@ class ExperimentPolicy:
                 "stderr": observation.stderr,
                 "criteria": thaw(spec.criteria),
             },
-            subject_refs=hypothesis_refs,
+            subject_refs=(hypothesis_ref,),
             source_refs=(spec.ref,),
             target_snapshot=spec.target_snapshot,
             weight=evidence_weight,
