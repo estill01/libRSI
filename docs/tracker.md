@@ -240,7 +240,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 5 | Targets, snapshots, and currentness | 1, 4 | `accepted` |
 | 6 | Persistent knowledge and SQLite store | 1, 5 | `accepted` |
 | 7 | Durable semantic Run/Event/Action engine | 1, 6 | `accepted` |
-| 8 | Capability protocols and neutral dispatch | 7 | `not-started` |
+| 8 | Capability protocols and neutral dispatch | 7 | `in-progress` |
 | 9 | Provider-neutral reasoner contract | 3, 7, 8 | `not-started` |
 | 10 | Validation workflow and result | 3–9 | `not-started` |
 | 11 | Investigation workflow and result | 10 | `not-started` |
@@ -1067,7 +1067,7 @@ Stop before capability resolution and automatic dispatch.
 
 ## Block 8 — Capability protocols and control-plane-neutral dispatch
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 
