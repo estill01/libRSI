@@ -13,11 +13,13 @@ It owns the portable part of recursive self-improvement:
 - reviewed candidate selection and outcome confidence validation; and
 - historical, forward-shadow, independent-review, activation, and rollback gates
   for changes to the selector itself;
+- complete immutable semantic records and exact content-addressed references;
 - evidence-bound reflection and falsifiable hypothesis identities;
+- exact hypothesis-to-evidence subject binding for canonical updates;
 - configurable support, counterexample, boundary, confounder, and null-evidence
   updates; and
-- experiment design validation, exact input roots, deterministic success-criteria
-  interpretation, and hypothesis evidence classification.
+- immutable command experiment specifications whose design, criteria, target,
+  inputs, environment, measurements, and hypothesis reference are all identity-bound.
 
 ## Package structure
 
@@ -27,17 +29,48 @@ It owns the portable part of recursive self-improvement:
 - `reviews.py` — independent-actor rules;
 - `selections.py` — candidate selection and outcome confidence;
 - `selector_policies.py` — evaluation and rollback of selector self-changes;
-- `hypotheses.py` — reflection identities and hypothesis evidence updates;
-- `experiments.py` — pure experiment input and result interpretation;
+- `records.py` — canonical semantic records, exact references, and durable serialization;
+- `hypotheses.py` — canonical hypothesis creation/evidence updates plus legacy wrappers;
+- `experiments.py` — immutable command specs, host execution inputs, and evidence interpretation;
 - `ports.py` — typed host interfaces such as `ExperimentRunner`;
-- `identity.py`, `models.py`, and `errors.py` — shared primitives; and
+- `identity.py`, `models.py`, and `errors.py` — shared primitives and compatibility models; and
 - `kernel.py` — a small composition root, not a second implementation.
+
+The canonical hypothesis/command-experiment path is:
+
+```text
+TargetRef + TargetSnapshot
+        ↓
+HypothesisPolicy.create(...)
+        ↓ exact Hypothesis
+ExperimentPolicy.design_command(...)
+        ↓ immutable ExperimentSpec
+ExperimentPolicy.prepare_command(...)
+        ↓ host-owned execution
+ExperimentPolicy.evaluate_command(spec=..., observation=...)
+        ↓ exact Evidence
+HypothesisPolicy.apply(hypothesis=..., evidence=...)
+        ↓ new Hypothesis version
+```
+
+`evaluate_command()` has no evaluation-time criteria argument. The exact criteria are
+read from the immutable `ExperimentSpec`, so the historical “criterion A at design /
+criterion B at evaluation” integrity failure is not representable on the canonical
+path. Resulting evidence names the exact hypothesis version, experiment spec, and
+target snapshot; attempting to apply it to another or stale hypothesis version fails
+closed.
+
+The historical `propose()`, `apply_evidence()`, `command_input()`, and
+`evaluate_command_result()` methods remain available as deprecated `0.2.0`
+compatibility wrappers. They preserve legacy hashes and behavior but should not be
+used by new orchestration code when exact referential integrity matters.
 
 It intentionally owns no database schema, filesystem mutation, Git operation,
 subprocess, model/provider call, or product-specific ontology. A host records policy
 decisions in its existing authoritative store and executes experiments and effects
-through governed adapters. Invalid experiment execution is classified as null
-evidence; infrastructure failure is never treated as falsification.
+through governed adapters. Invalid experiment execution is classified as zero-weight
+null evidence; infrastructure failure is never treated as falsification on the
+canonical command path.
 
 ```python
 from librsi import RSIKernel
