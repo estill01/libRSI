@@ -246,7 +246,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 11 | Investigation workflow and result | 10 | `accepted` |
 | 12 | Intervention and candidate lifecycle | 5, 11 | `accepted` |
 | 13 | Goals, constraints, and evaluation contracts | 5, 12 | `completed` |
-| 14 | Comparative evaluation and selection | 4, 12, 13 | `not-started` |
+| 14 | Comparative evaluation and selection | 4, 12, 13 | `in-progress` |
 | 15 | Complete improvement workflow and result | 10–14 | `not-started` |
 | 16 | Application, verification, and rollback | 15 | `not-started` |
 | 17 | Generalized RSI and self-change governance | 7, 16 | `not-started` |
@@ -1817,7 +1817,7 @@ Stop before ranking or accepting candidates.
 
 ## Block 14 — Comparative evaluation, candidate selection, and search boundary
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 
@@ -1849,6 +1849,7 @@ Select the evidence-supported candidate, Pareto set, or none through explicit ev
 ### Deliverables and recorded state
 
 - Evaluation/selection records and policy, search protocol boundary, comparison matrices, and regression tests.
+- Capability framing: a thin pass/fail or aggregate-score selector was rejected because it would conceal objective, uncertainty, and guardrail semantics. The selected structured level owns typed evidence-bound multi-objective comparison, minimum meaningful effects, explicit uncertainty and risk, Pareto and none-accepted outcomes, and exact selection provenance while keeping candidate generation proposal-only. A full optimizer/search platform was rejected as duplicative and outside this Block's authority.
 
 ### Resource and economy contract
 
