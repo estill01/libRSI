@@ -82,6 +82,7 @@ The current library performs no persistence or external effects. See
 integration boundary. The maintained implementation plan evolves this deterministic
 core toward higher-level validation, investigation, improvement, and RSI workflows
 without making libRSI a general-purpose agent/orchestration infrastructure platform.
+Maintainers should begin with the canonical [`docs/tracker.md`](docs/tracker.md).
 
 ## Development guarantees
 

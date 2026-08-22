@@ -452,18 +452,24 @@ The executable baseline lives in `tests/test_v020_compatibility_contract.py` wit
 
 ## 15. Implementation-planning authority
 
-The implementation program is maintained across:
+`../tracker.md` is the sole live Block inventory and the authoritative source for
+current status, execution order, acceptance, and completion evidence. The following
+documents are preserved inputs to that canonical tracker, not competing live queues:
 
-- `architecture-expansion-implementation-tracker.md` — primary 0–25 Block definitions;
-- `parallel-implementation-plan.md` — dependency/workstream execution strategy;
-- `scope-boundaries-and-early-dogfood-revision.md` — normative scope/order amendments;
-- maintained extension Block documents such as `server-mcp-implementation-block.md`;
-- `implementation-status.md` — current implementation accounting only.
+- `architecture-expansion-implementation-tracker.md` — predecessor 0–25 Block definitions;
+- `parallel-implementation-plan.md` — predecessor dependency/workstream strategy;
+- `scope-boundaries-and-early-dogfood-revision.md` — normative scope/order source;
+- extension sources such as `server-mcp-implementation-block.md`;
+- `implementation-status.md` — historical evidence through predecessor Block 2.
+
+The canonical tracker records the exact source hashes, dispositions, and Block-number
+migration needed to interpret those documents. Forward-looking work and status changes
+must use canonical Block identities and be recorded in `../tracker.md`.
 
 The scope/dogfood revision specifically requires:
 
 - early non-software target/capability/validation/intervention/improvement sentinels rather than waiting until the final cross-domain Block;
-- incremental Software Factory consumption as contracts freeze rather than waiting until final Block 22 acceptance;
+- incremental Software Factory consumption as contracts freeze rather than waiting until canonical Block 23 acceptance;
 - external optimizers/orchestrators/experiment platforms as replaceable implementations rather than core semantic owners;
 - a semantic runtime rather than a competing generic workflow engine;
 - workflow result contracts before late projection/schema stabilization;

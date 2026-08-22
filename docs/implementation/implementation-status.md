@@ -1,10 +1,18 @@
 # libRSI Implementation Status Ledger
 
+> Historical evidence ledger. Canonical live Block identity and status moved to
+> [`../tracker.md`](../tracker.md). This file preserves accepted evidence through
+> predecessor Block 2 and the pre-migration future-status snapshot. Historical
+> `verified` maps to canonical `accepted`; historical Block 20A maps to canonical
+> Block 21, and predecessor Blocks 21–25 map to canonical Blocks 22–26.
+
 **Companion to:** `architecture-expansion-implementation-tracker.md`, `parallel-implementation-plan.md`, `architecture-contract.md`, and maintained extension Block documents  
 **Baseline:** `main` at `d96cc666c7800681dfdde2f991f841b09155dfe8`  
-**Purpose:** Canonical implementation accounting for the architecture-expansion program.
+**Purpose:** Preserved detailed implementation evidence for the architecture-expansion program.
 
-The architecture tracker and extension Block documents define **what must be built and accepted**. This file records **what is actually ready, underway, implemented, and verified**, with exact repository references.
+The canonical tracker defines **what must be built and accepted** and owns live
+status. This file preserves the exact repository references recorded before the
+canonical migration.
 
 ## Status model
 
@@ -33,9 +41,11 @@ For every status change beyond `not-started`, retain enough exact evidence to re
 - last-updated date;
 - remaining work or blocker when not `verified`.
 
-The summary table is authoritative for every Block's current status. Detailed records are required for `ready`, active, blocked, implemented, or verified Blocks; repetitive empty records are intentionally omitted for `not-started` Blocks.
-
-A Block may only be marked `verified` after its maintained acceptance criteria have been checked against the authoritative implementation. If later work invalidates a prior acceptance condition, retain the historical evidence in the update log and move the Block to the appropriate current status.
+The summary table below is a preserved pre-migration snapshot, not a live status
+authority. `../tracker.md` owns every current status and all future status changes.
+Historical `verified` claims remain evidence only for the accepted canonical Blocks
+to which the migration maps them; if later work invalidates an acceptance condition,
+retain this history and update only the canonical tracker.
 
 ## Program summary
 
