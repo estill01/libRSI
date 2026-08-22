@@ -1,0 +1,1966 @@
+# libRSI Architecture Expansion Implementation Tracker
+
+- Tracker status: `active`
+- Tracker sequence: Blocks 0–26
+- Repository: `https://github.com/estill01/libRSI`
+- Governing objective: evolve libRSI into a domain-neutral, evidence-driven validation, investigation, improvement, and governed recursive-self-improvement library.
+- Canonical status owner: this file.
+- First eligible Block: 3.
+
+## 1. Purpose and intended outcome
+
+Evolve the current deterministic policy kernel into a batteries-included but
+replaceable semantic engine that can validate claims, investigate questions,
+improve targets, and govern self-change while preserving exact provenance,
+resumability, candidate/application separation, and host-neutral execution.
+
+Completion means:
+
+- the same canonical engine completes validation, investigation, improvement,
+  application/verification/rollback, and governed self-change workflows;
+- externally driven, managed, and hybrid control produce semantically equivalent
+  state and outcomes;
+- a Software Factory consumer and a deterministic non-software target both use
+  the engine without leaking their ontologies into the core; and
+- the public Python, CLI, service, and MCP projections are versioned, tested,
+  documented, installable, and backed by the same runtime authority.
+
+### Mission frame
+
+- Primary outcome: a reusable libRSI product whose evidence semantics and
+  improvement lifecycle work across hosts and domains.
+- Observable completion: every Block is accepted at a current pushed revision,
+  the terminal verification matrix passes, public examples execute from the
+  built wheel, and the two required cross-host dogfoods produce current outcomes.
+- Ordinary effect classes needed: library code and schemas, reference SQLite and
+  local adapters, tests and dogfoods, consumer integration, documentation,
+  package builds, scoped Git commits, and pushes to the configured remote.
+- Hard direct authority or safety boundaries: no PyPI publication, hosted-model
+  spend, production deployment, external credential use, or irreversible target
+  application without separate authority; authoritative application remains
+  capability-gated and defaults off.
+- Material goal alteration or reversal: making software/Git fundamental to the
+  core, creating a second lifecycle or evidence authority, dropping control-plane
+  neutrality, or redefining the product as a generic orchestration platform.
+
+### Target-product capability frame
+
+- Applicability: `consequential`.
+- Applicability rationale: this program changes public feature behavior,
+  canonical representations, architecture strategy, operating model, persistence,
+  and external integration surfaces.
+- Direct product sources: `README.md` and
+  `docs/implementation/architecture-contract.md` at
+  `91ab1976b9cd56985e2dbd5b1ab522081672a5cf`, plus the maintained scope revision
+  and predecessor program listed in the source map below.
+- Product thesis and intended effect: users should progress from `validate` to
+  `investigate` to `improve` and use governed recursion only when the improvement
+  machinery itself is a target.
+- Protected capabilities: exact identity/provenance, invalid-execution neutrality,
+  target currentness, candidate/application separation, externally driven use,
+  zero-dependency low-level APIs, `0.2.x` compatibility until explicit migration,
+  and consumer-to-libRSI dependency direction.
+- Architecture strategy: own semantic contracts and deterministic transitions;
+  expose replaceable protocols; ship thin local defaults and optional transport or
+  provider adapters without rebuilding generic infrastructure platforms.
+- Requested capability: complete reusable validation, investigation, improvement,
+  application, and RSI workflows with durable outcomes and multiple control planes.
+- Proportionality: the plan builds the semantic owners and minimum reference
+  implementations needed for a useful package, while delegating generic models,
+  optimizers, schedulers, storage platforms, and transports to mature adapters.
+- Tradeoffs: batteries-included operation adds persistence and optional dependencies;
+  strict identity/currentness increases schema discipline; staged compatibility
+  delays interface stabilization but prevents premature public commitments.
+- Uncertainty: the final open-source license and any hosted provider chosen for the
+  optional adapter remain external decisions; neither blocks Blocks 3–25.
+
+## 2. Target architecture and authority boundaries
+
+```text
+TargetSnapshot + Claim/Question/Goal/Constraint
+                    ↓
+        Knowledge + Experiment/Evidence
+                    ↓
+     deterministic Run/Event/Action engine
+                    ↓
+ Validation → Investigation → Improvement → governed RSI
+                    ↓
+       canonical Outcome and event projections
+                    ↓
+ Python / CLI / Service / HTTP / MCP / host adapters
+```
+
+Canonical records and deterministic transitions own semantic truth. `KnowledgeStore`
+owns reusable epistemic persistence; the runtime store owns run/event/action state.
+Capability implementations execute work but cannot promote their own outputs to
+truth, selection, application, or self-change authority. Software Factory and other
+hosts import libRSI; libRSI never imports them. Transport/session state is never a
+second lifecycle owner.
+
+## 3. Existing owners to reuse
+
+| Concern | Existing owner | Treatment |
+|---|---|---|
+| Canonical identity and serialization | `src/librsi/identity.py`, `src/librsi/records.py` | Reuse and extend only through owning Blocks. |
+| Hypotheses and evidence updates | `src/librsi/hypotheses.py` | Adapt behind generic aggregation without weakening exact references. |
+| Command experiments | `src/librsi/experiments.py`, `src/librsi/ports.py` | Preserve as an adapter over generic experiment semantics. |
+| Currentness and materiality | `src/librsi/checkpoints.py` | Reuse in target/runtime currentness owners. |
+| Search lanes and review gates | `src/librsi/portfolios.py`, `reviews.py`, `selections.py` | Extend; do not create parallel governance ledgers. |
+| Self-change seed policies | `src/librsi/selector_policies.py` | Generalize in Block 17 through ordinary intervention/evidence records. |
+| Composition | `src/librsi/kernel.py` | Retain as the low-level deterministic API, not the public workflow facade. |
+| Repository quality gates | `.github/workflows/ci.yml`, `pyproject.toml` | Reuse for all focused and mapped validation. |
+| Historical implementation proof | `docs/implementation/implementation-status.md` | Preserve as evidence; canonical live status is in this tracker. |
+
+## 4. Prior-work and source-adaptation map
+
+The hashes below identify the exact predecessor/source bytes inspected at
+`91ab1976b9cd56985e2dbd5b1ab522081672a5cf`. Later routing-only edits that point
+those documents back to this canonical tracker do not replace or silently revise
+the recorded source snapshot.
+
+| Source or predecessor | Exact revision/hash | Disposition | Owning Block | Remaining work |
+|---|---|---|---:|---|
+| Architecture contract | `7fe76f9e6744e7049ea4f508ecd73a704e188dc63a1fbed5a99573a9d52c3190` | reuse | 0 | Preserve as the architecture authority. |
+| Historical 0–25 tracker | `9d4d73b05db19ff1a57f1f2998399f2a65475d331580e6670a2a0f24490e346c` | replace as active route; preserve as historical source | 0–26 | Execute through this full-contract tracker. |
+| Scope/dogfood amendment | `2a746a63a670f43abc3f937d6d05be9bae90969f9ccacce96bff5cd0063c1b0e` | adopt | 3–26 | Integrated into Block scope and acceptance below. |
+| Server/MCP extension | `19e144439bfc912c1ad8d8d39dfcdc52cb1efa324578376cd6af26fbcfb39775` | adopt and renumber | 21 | Implement after runtime/outcome/CLI contracts stabilize. |
+| Parallel plan | `8e09ae2417e8c16b2726af9767729985506b5712f26740e7618d18cac581d717` | advisory | 3–26 | Scheduling never changes range or acceptance. |
+| Historical status ledger | `a59a6a283c163d886cba15b317ea532b32e5e4b4937a49857801ce9c94dcd289` | preserve evidence | 0–2 | Future status/evidence records follow this tracker. |
+
+### Status and numbering migration
+
+- Historical `verified` for predecessor Blocks 0–2 maps to canonical `accepted`.
+- Historical `ready` for predecessor Block 3 maps to `not-started`; eligibility is
+  derived from accepted dependencies and does not imply implementation work.
+- Predecessor Blocks 0–20 retain their numbers.
+- Predecessor Block 20A becomes Block 21.
+- Predecessor Blocks 21, 22, 23, 24, and 25 become Blocks 22, 23, 24, 25, and 26.
+- No accepted Block is renumbered, reopened, split, merged, or credited with new work.
+
+## 5. Scope, non-goals, and proportionality
+
+### In scope
+
+- Canonical semantic records, epistemics, experiments, targets/currentness,
+  knowledge, durable runtime transitions, capabilities, workflows, outcomes,
+  application/rollback, self-change governance, and required public projections.
+- Thin SQLite/local defaults, optional reasoner/server/MCP adapters, incremental
+  Software Factory consumption, and deterministic non-software dogfoods.
+
+### Out of scope
+
+- A generic agent framework, scheduler, worker fleet, tracing platform, artifact
+  platform, vector database, MLOps suite, optimizer implementation, coding agent,
+  API gateway, UI, notification service, or production multi-tenant control plane.
+- Automatic application authority, hidden model/provider authority, or a second
+  lifecycle/knowledge/evidence ledger created by an adapter or transport.
+
+### Proportionality
+
+Each Block must use the narrowest existing semantic owner and add only the reference
+implementation required by its acceptance. External systems remain replaceable behind
+protocols. A concrete failure may widen only its affected proof or owner; optional
+hardening without a reproduced in-scope failure is omitted.
+
+## 6. Block execution contract
+
+1. The requested range is the complete current tracker, Blocks 0–26 and the
+   observable completion outcome. Blocks 0–2 are accepted history; implementation
+   resumes at Block 3.
+2. Execute one eligible Block at a time in dependency order. A Block Stop is an
+   internal checkpoint and never contracts this full-tracker request.
+3. Before implementation-producing work, change the table row and Block status from
+   `not-started` to `in-progress`; preserve unrelated work and inspect the live tree.
+4. Reuse exact accepted records, fixtures, and validation evidence after a cheap
+   currentness check. Do not rebuild or rerun unchanged producers for confidence.
+5. Implement through the stated owner, run focused proof first, finish mutating
+   review, freeze the candidate, then run mapped proof and exact-revision review.
+6. Accept a Block only when every acceptance and negative-test condition has current
+   evidence. Record the scoped commit and non-force push posture before advancing.
+7. If input is genuinely non-delegable, isolate its descendant closure and continue
+   every independent Block or subject; `blocked` is forbidden while safe work exists.
+8. Licensing is the only forecast legal decision: prepare the Block 26 decision
+   packet when the release candidate exists. Do not infer an open-source grant.
+9. No Block may publish to PyPI, deploy a server, spend hosted-model budget, or apply
+   to an authoritative external target without separate current authority.
+
+### Continuation-first license gate
+
+- Decision needed: the user must select the exact public license grant (the planned
+  packet compares MIT and Apache-2.0) or explicitly select no license.
+- Why it is non-delegable: choosing an open-source license grants legal rights to
+  recipients and cannot be inferred from repository visibility or a request that the
+  repository be public; distributed copies retain the grant after later changes.
+- Earliest decision packet: prepare it in Block 26 after the public API, artifact
+  contents, and compatibility/migration position are frozen.
+- Exact blocked subset: without that answer, do not add a `LICENSE`, license
+  classifier or reuse-right claim; do not accept the license-dependent Block 26
+  acceptance clause or declare the tracker complete.
+- Safe continuation: execute all work in Blocks 3–25 and all license-independent
+  Block 26 work, including API/docs/build/examples/migration validation, artifact
+  inspection, and preparation of the decision packet.
+- Forbidden effects remain forbidden regardless of the answer: no PyPI publication,
+  GitHub Release, production deployment, or public announcement without separate
+  current authority.
+- Authoritative revisit trigger: a direct user selection of the exact license or an
+  explicit no-license choice. Until then, Block 26 remains `in-progress` or
+  `completed-with-open-items`, and safe work continues rather than marking the whole
+  program blocked.
+
+### Completion-evidence template
+
+```markdown
+### Completion evidence
+
+- Repository commit: `<sha>`
+- External/domain revision or root: `<value or not-applicable with reason>`
+- Inputs: `<paths, IDs, versions, hashes>`
+- Outputs: `<paths, IDs, versions, hashes>`
+- Focused validation: `<commands and results>`
+- Mapped validation: `<commands and results>`
+- Candidate freeze: `<commit/content root and currentness>`
+- Remediation closure: `<finding/change/proof rows or not-applicable>`
+- Resource posture: `<bounds and actual use>`
+- Independent review: `<review identity/root or not-applicable>`
+- Retained open work: `<items or none>`
+- Decision/continuation posture: `<bounded decision state or not-applicable>`
+- Post-block audit: `<accepted, reopened, or blocked with reason>`
+- Git durability: `<commit and push posture>`
+```
+
+## 7. Status and required order
+
+| Block | Scope | Depends on | Status |
+|---:|---|---|---|
+| 0 | Architecture contract and compatibility baseline | — | `accepted` |
+| 1 | Canonical immutable records and identity | 0 | `accepted` |
+| 2 | Hypothesis/experiment referential integrity | 1 | `accepted` |
+| 3 | General epistemics and aggregation | 1, 2 | `not-started` |
+| 4 | Generic experiments, metrics, and evaluation | 1, 3 | `not-started` |
+| 5 | Targets, snapshots, and currentness | 1, 4 | `not-started` |
+| 6 | Persistent knowledge and SQLite store | 1, 5 | `not-started` |
+| 7 | Durable semantic Run/Event/Action engine | 1, 6 | `not-started` |
+| 8 | Capability protocols and neutral dispatch | 7 | `not-started` |
+| 9 | Provider-neutral reasoner contract | 3, 7, 8 | `not-started` |
+| 10 | Validation workflow and result | 3–9 | `not-started` |
+| 11 | Investigation workflow and result | 10 | `not-started` |
+| 12 | Intervention and candidate lifecycle | 5, 11 | `not-started` |
+| 13 | Goals, constraints, and evaluation contracts | 5, 12 | `not-started` |
+| 14 | Comparative evaluation and selection | 4, 12, 13 | `not-started` |
+| 15 | Complete improvement workflow and result | 10–14 | `not-started` |
+| 16 | Application, verification, and rollback | 15 | `not-started` |
+| 17 | Generalized RSI and self-change governance | 7, 16 | `not-started` |
+| 18 | Local runtime and high-level Python facade | 6, 8, 15–17 | `not-started` |
+| 19 | Outcome serialization and external projections | 10, 11, 15–18 | `not-started` |
+| 20 | CLI and external-agent protocol | 7, 19 | `not-started` |
+| 21 | Service, HTTP, and MCP projections | 7, 8, 19, 20 | `not-started` |
+| 22 | Optional provider/backend integrations | 9, 18–20 | `not-started` |
+| 23 | Software Factory consumer integration | 5, 8, 12, 15–20 | `not-started` |
+| 24 | End-to-end architecture dogfoods | 10, 11, 15–23 | `not-started` |
+| 25 | Comprehensive cross-domain proof | 24 | `not-started` |
+| 26 | Public API, docs, packaging, migration, release gate | 21–25 | `not-started` |
+
+Required execution order for this single-writer run:
+
+`0 → 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12 → 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24 → 25 → 26`
+
+## Block 0 — Architecture contract, namespace plan, and legacy baseline
+
+Status: `accepted`
+
+### Objective
+
+Freeze the architecture, ownership, control-plane, domain-neutrality, and `0.2.0`
+compatibility contracts before semantic expansion.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: one maintained architecture contract and executable compatibility baseline.
+- Potential capability loss or regression: premature doctrine could constrain useful implementation paths.
+- Protected-capability effect: preserves all `0.2.0` low-level exports and host-neutrality.
+- Architecture and operating-model effect: establishes canonical semantic ownership without implementing later workflows.
+- Tradeoff and source evidence: accepted contract at `bd3815d51a326dc7f5ace8f54ce462c34e251605`; later scope revision narrows infrastructure ownership without reopening this Block.
+
+### Inputs and dependencies
+
+- Baseline `d96cc666c7800681dfdde2f991f841b09155dfe8`.
+
+### Required work
+
+- Preserved accepted work: architecture contract, namespace plan, module ownership map, and rooted compatibility fixtures.
+
+### Scope and non-goals
+
+- In scope: architecture and compatibility contract only.
+- Not in scope: Block 1+ semantic implementation.
+
+### Deliverables and recorded state
+
+- `docs/implementation/architecture-contract.md` and `tests/fixtures/v020_contract.json` with compatibility tests.
+
+### Resource and economy contract
+
+Not applicable: accepted documentation and deterministic fixture proof are reused.
+
+### QA and independent review
+
+Accepted PR #3 and CI run `32520018410`; later work must preserve the baseline.
+
+### Acceptance
+
+- Architecture owners and invariants are explicit; compatibility tests and the pre-existing suite pass; no reverse Software Factory dependency exists.
+
+### Negative tests
+
+- Reject removal or drift of a legacy public export without an explicit migration contract.
+
+### Completion evidence
+
+- Repository commit: `bd3815d51a326dc7f5ace8f54ce462c34e251605`.
+- Focused and mapped validation: PR #3 CI `32520018410`, Python 3.11–3.13.
+- Post-block audit: accepted; detailed evidence remains in the historical status ledger.
+- Git durability: merged and present in current `main` history.
+
+### Stop
+
+Stop before canonical record implementation.
+
+## Block 1 — Canonical immutable domain records and identity model
+
+Status: `accepted`
+
+### Objective
+
+Provide complete immutable semantic records with deterministic identity, lineage, and lossless serialization.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: durable canonical records instead of dictionary/hash placeholders.
+- Potential capability loss or regression: stricter constructors can reject previously tolerated ambiguous input.
+- Protected-capability effect: presentation metadata remains non-identity-bearing and compatibility wrappers remain additive.
+- Architecture and operating-model effect: makes exact records the shared substrate for every later owner.
+- Tradeoff and source evidence: accepted commits `1528c7e` and `0fc0fb2`; strictness is preferred over silent semantic coercion.
+
+### Inputs and dependencies
+
+- Accepted Block 0 contract.
+
+### Required work
+
+- Preserved accepted work in `identity.py` and `records.py`, including typed references, immutable values, schema versions, and reconstruction.
+
+### Scope and non-goals
+
+- In scope: generic record/identity substrate.
+- Not in scope: migrating hypothesis and experiment policies, owned by Block 2.
+
+### Deliverables and recorded state
+
+- Canonical record family, deterministic serialization, and record-hardening regression tests.
+
+### Resource and economy contract
+
+Not applicable: reuse accepted exact fixtures and CI evidence.
+
+### QA and independent review
+
+PRs #5 and #7 supplied implementation and independent post-merge hardening.
+
+### Acceptance
+
+- Identity changes only with identity-bearing content; round trips preserve semantics; ambiguous values and reference mismatches fail closed.
+
+### Negative tests
+
+- Reject tampered roots, non-finite values, ambiguous coercions, mutable nested state, and reference-type/root mismatches.
+
+### Completion evidence
+
+- Repository commits: `1528c7ecc5eec0e44136ceb8b54e3fa09bb5bf74` and `0fc0fb2a2da70dabda4a5b2da2eacb09e357aede`.
+- Focused and mapped validation: CI runs `32525534734` and `32551045555`.
+- Post-block audit: accepted; no new work credited by this migration.
+- Git durability: merged and present in current `main` history.
+
+### Stop
+
+Stop before policy migration or generic epistemic aggregation.
+
+## Block 2 — Hypothesis and experiment referential integrity
+
+Status: `accepted`
+
+### Objective
+
+Bind hypotheses, experiment criteria, execution input, observations, evidence, and target snapshots by exact immutable identity.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: criteria substitution and stale-evidence application become unrepresentable on the canonical path.
+- Potential capability loss or regression: callers must echo exact input roots and supply complete canonical records.
+- Protected-capability effect: invalid execution remains null evidence; legacy scalar APIs remain compatibility wrappers.
+- Architecture and operating-model effect: establishes the exact epistemic/experiment boundary later generalization must preserve.
+- Tradeoff and source evidence: accepted commits `73539e8` and `a394360`; additional caller discipline buys reproducible evidence lineage.
+
+### Inputs and dependencies
+
+- Accepted Block 1 records and identity semantics.
+
+### Required work
+
+- Preserved accepted canonical hypothesis creation/application and command experiment design/preparation/evaluation.
+
+### Scope and non-goals
+
+- In scope: referential integrity and compatibility wrappers.
+- Not in scope: generic Claim aggregation or general metric/trial ontology.
+
+### Deliverables and recorded state
+
+- Exact hypothesis/evidence references, immutable command specs, correlated observations, and regression tests.
+
+### Resource and economy contract
+
+Not applicable: reuse accepted deterministic tests and current CI.
+
+### QA and independent review
+
+PRs #10 and #12 supplied implementation and independent exactness hardening.
+
+### Acceptance
+
+- Evaluation consumes only criteria in the exact spec; stale evidence, target mismatch, and observation/input mismatch fail closed; invalid runs preserve confidence.
+
+### Negative tests
+
+- Reject empty predictions, degenerate criteria, normalized-away argv/cwd differences, malformed specs, and mismatched exact roots.
+
+### Completion evidence
+
+- Repository commits: `73539e88f4add2bb62345b824f5df034810f450a` and `a3943609f283bce5d9c0ca248a53115a8b5c30c7`.
+- Focused and mapped validation: CI runs `32554375281` and `32554825264`.
+- Post-block audit: accepted; no Block 3 or 4 work is inferred.
+- Git durability: merged and present in current `main` history.
+
+### Stop
+
+Stop before general epistemic aggregation.
+
+## Block 3 — General epistemic model and pluggable aggregation
+
+Status: `not-started`
+
+### Objective
+
+Make Claims and Hypotheses reusable outside improvement loops through explicit evidence relationships and replaceable aggregation policy.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: general claims, coexistence of conflicting evidence, and policy-selectable belief aggregation.
+- Potential capability loss or regression: generic abstraction could weaken Block 2 exact identity or compatibility behavior.
+- Protected-capability effect: exact hypothesis/evidence/target provenance and null-evidence neutrality remain mandatory.
+- Architecture and operating-model effect: epistemic truth moves behind an `EvidenceAggregator` contract rather than one hard-coded scalar update.
+- Tradeoff and source evidence: architecture contract sections 2 and 9 plus scope revision Block 3; use one built-in linear policy before optional models.
+
+### Inputs and dependencies
+
+- Accepted Blocks 1–2 and current `records.py`, `hypotheses.py`, and compatibility fixtures.
+
+### Required work
+
+- Define claim kinds/status and canonical evidence relationships.
+- Add provenance/currentness validation and an `EvidenceAggregator` protocol.
+- Move existing linear confidence behavior behind a built-in aggregator without changing compatibility outputs.
+
+### Scope and non-goals
+
+- In scope: semantic epistemics and aggregation.
+- Not in scope: general experiment metrics/trials, persistence, reasoner calls, or workflow orchestration.
+
+### Deliverables and recorded state
+
+- Epistemic records/policies/protocols, public exports, focused tests, and migration-compatible built-in aggregation.
+
+### Resource and economy contract
+
+Use deterministic in-memory fixtures; no provider calls or broad dogfoods. Run focused epistemic tests before the full package suite.
+
+### QA and independent review
+
+Review exact provenance, compatibility, contradictory evidence, and aggregator authority at the frozen candidate revision.
+
+### Acceptance
+
+- Claims validate independently of improvement; conflicting evidence coexists with provenance; pluggable aggregation produces typed state; current linear behavior remains available.
+
+### Negative tests
+
+- Reject evidence for a different claim/target snapshot, unsupported relationship kinds, aggregator output with invalid state, and infrastructure failure treated as counterevidence.
+
+### Completion evidence
+
+Pending.
+
+### Stop
+
+Stop before generic metric, trial, and experiment execution semantics.
+
+## Block 4 — Generic experiments, measurements, metrics, and evaluation
+
+Status: `not-started`
+
+### Objective
+
+Represent domain-neutral experiments and deterministic evaluation beyond command success.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: explicit metrics, trials, validity, repeated measurement, baselines, candidates, and decision rules.
+- Potential capability loss or regression: overgeneralization could turn libRSI into an experiment-tracking platform or break command exactness.
+- Protected-capability effect: exact specs/input correlation and invalid-run neutrality remain intact.
+- Architecture and operating-model effect: commands become one adapter over experiment ontology; external backends may execute/project without owning interpretation.
+- Tradeoff and source evidence: architecture contract sections 2, 6, and 9 plus scope revision Block 4; ship semantics, not dashboards or registries.
+
+### Inputs and dependencies
+
+- Blocks 1 and 3; Block 2 command compatibility contract.
+
+### Required work
+
+- Implement `Metric`, `Measurement`, `Trial`, dispositions, decision rules, and experiment evaluation.
+- Support baseline/candidate, repetitions, validity requirements, seeds, budgets, and minimum meaningful effects.
+- Adapt current command execution to the generic spec without changing exact argv/cwd behavior.
+
+### Scope and non-goals
+
+- In scope: experiment ontology and deterministic evaluation.
+- Not in scope: MLOps, dashboards, model/artifact registries, or generic backend infrastructure.
+
+### Deliverables and recorded state
+
+- Generic records/policies, command adapter, public exports, focused tests, and backend projection protocol if acceptance requires it.
+
+### Resource and economy contract
+
+Use small deterministic trial matrices; widen only when a supported metric/validity edge fails. No external experiment service is required.
+
+### QA and independent review
+
+Review criterion identity, invalid versus negative outcomes, repeated-trial semantics, and command compatibility before mapped validation.
+
+### Acceptance
+
+- Claims can be tested without candidate changes; repeated trials remain distinct; invalid trials do not count negative; baseline/candidate and required metric directions work; external execution can preserve canonical identity.
+
+### Negative tests
+
+- Reject malformed metrics, non-finite measurements, invalid decision rules, mixed spec/result identity, and passing execution that violates a guardrail.
+
+### Completion evidence
+
+Pending.
+
+### Stop
+
+Stop before target lifecycle/currentness and knowledge persistence.
+
+## Block 5 — Targets, snapshots, multi-component identity, and currentness
+
+Status: `not-started`
+
+### Objective
+
+Represent exact opaque and multi-component targets and check evidence currentness without software-specific fields.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: exact target state for local, remote, mutable, immutable, single-, and multi-component targets.
+- Potential capability loss or regression: software examples could leak repository fields into generic records.
+- Protected-capability effect: evidence remains bound to exact target snapshots; targets remain distinct from knowledge and intent.
+- Architecture and operating-model effect: establishes the target owner used by knowledge, intervention, runtime, and host adapters.
+- Tradeoff and source evidence: architecture contract sections 2 and 4 plus scope revision Block 5; include an early non-software sentinel.
+
+### Inputs and dependencies
+
+- Blocks 1 and 4.
+
+### Required work
+
+- Implement target, snapshot, component, capability, comparison, and currentness semantics.
+- Add deterministic multi-component and non-software fixtures without Git fields in core records.
+
+### Scope and non-goals
+
+- In scope: semantic target identity/currentness.
+- Not in scope: target mutation, knowledge persistence, Git adapters, or a repository platform.
+
+### Deliverables and recorded state
+
+- Target/currentness module, multi-component fixture, non-software sentinel, and focused tests.
+
+### Resource and economy contract
+
+Use compact synthetic targets and exact roots; no repository corpus scan or external target is required.
+
+### QA and independent review
+
+Review domain neutrality and atomic snapshot comparison at the frozen revision.
+
+### Acceptance
+
+- Old evidence cannot appear current; opaque/unmutable and multi-component targets work; non-software currentness uses only generic semantics.
+
+### Negative tests
+
+- Reject duplicate components, mismatched target/snapshot references, partial multi-component comparison, and required Git-specific fields.
+
+### Completion evidence
+
+Pending.
+
+### Stop
+
+Stop before persistent knowledge storage or target application.
+
+## Block 6 — Persistent knowledge and `KnowledgeStore`
+
+Status: `not-started`
+
+### Objective
+
+Persist and retrieve reusable epistemic state with explicit target currentness, independently of runtime state.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: valid knowledge can be reused across runs while stale evidence remains queryable but noncurrent.
+- Potential capability loss or regression: storage may become a second semantic authority or grow into a generic data platform.
+- Protected-capability effect: canonical record roots and target currentness govern storage/retrieval.
+- Architecture and operating-model effect: introduces a protocol plus minimal SQLite reference backend separate from runtime persistence.
+- Tradeoff and source evidence: architecture contract sections 6 and 8 plus scope revision Block 6; no vector DB, graph platform, or dashboard.
+
+### Inputs and dependencies
+
+- Blocks 1 and 5.
+
+### Required work
+
+- Define `KnowledgeStore` persistence/query contracts for canonical knowledge records and relationships.
+- Implement minimal transactional SQLite storage, deterministic reconstruction, filters, lineage, and currentness-aware retrieval.
+
+### Scope and non-goals
+
+- In scope: semantic knowledge storage/retrieval and SQLite reference implementation.
+- Not in scope: runtime event state, analytics, embeddings, vector search, or hosted database operations.
+
+### Deliverables and recorded state
+
+- Knowledge protocol, SQLite backend/migrations, query/currentness tests, and backend substitution contract.
+
+### Resource and economy contract
+
+Use bounded temporary databases and batched fixtures; test one current and one stale lineage before mapped suite.
+
+### QA and independent review
+
+Review transactionality, reconstruction, currentness, schema migration, and separation from runtime state.
+
+### Acceptance
+
+- A second run can reuse current knowledge; stale knowledge remains labeled/queryable; SQLite needs no external service; another backend can satisfy the protocol.
+
+### Negative tests
+
+- Reject root/type tampering, cross-target currentness leakage, partial writes, duplicate semantic rows with divergent bytes, and runtime-state masquerading as knowledge.
+
+### Completion evidence
+
+Pending.
+
+### Stop
+
+Stop before durable run/event/action lifecycle implementation.
+
+## Block 7 — Durable semantic Run/Event/State/Action engine
+
+Status: `not-started`
+
+### Objective
+
+Provide one replayable, resumable, idempotent semantic runtime for every control plane.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: runs survive interruption and correlate exact actions/results through deterministic transitions.
+- Potential capability loss or regression: runtime code could become a generic orchestrator or duplicate knowledge authority.
+- Protected-capability effect: canonical records, budgets, failure classification, and authority state remain explicit and replayable.
+- Architecture and operating-model effect: adds pure state transitions plus append-only/materialized SQLite durability.
+- Tradeoff and source evidence: architecture contract sections 3 and 8 plus scope revision Block 7; no distributed worker, messaging, or tracing platform.
+
+### Inputs and dependencies
+
+- Blocks 1 and 6.
+
+### Required work
+
+- Implement Run, State, Event, Action, ActionResult, Transition, budgets, failure classes, and terminal outcomes.
+- Implement pure `step` semantics, append-only events, materialized state, replay, resume, duplicate submission protection, and SQLite durability.
+
+### Scope and non-goals
+
+- In scope: authoritative semantic runtime and reference durability.
+- Not in scope: generic task scheduling, worker fleets, provider execution, transports, or agent messaging.
+
+### Deliverables and recorded state
+
+- Runtime records/state machine/store, replay fixtures, interruption dogfood, and transition tests.
+
+### Resource and economy contract
+
+Use bounded transition traces and temporary SQLite; test pure state first, then durability/replay. No live workers.
+
+### QA and independent review
+
+Review event authority, transition validity, duplicate/idempotent submission, replay equivalence, and knowledge/runtime separation.
+
+### Acceptance
+
+- A run resumes after every transition; replay yields the same state; duplicate results cannot double-apply; invalid transitions fail closed; budgets and terminal states are explicit.
+
+### Negative tests
+
+- Reject stale/wrong action results, event gaps/reordering, terminal-state mutation, budget bypass, and conversational prose as lifecycle authority.
+
+### Completion evidence
+
+Pending.
+
+### Stop
+
+Stop before capability resolution and automatic dispatch.
+
+## Block 8 — Capability protocols and control-plane-neutral dispatch
+
+Status: `not-started`
+
+### Objective
+
+Drive the same runtime through automatic, external, or hybrid capability execution without semantic divergence.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: granular replaceable capabilities and structured pending actions for missing authority.
+- Potential capability loss or regression: a dispatcher or optimizer could become a second lifecycle/selection authority.
+- Protected-capability effect: action/result/state equivalence and explicit automatic/external/human-reserved/unavailable postures.
+- Architecture and operating-model effect: capabilities implement actions while the Block 7 runtime remains authoritative.
+- Tradeoff and source evidence: architecture contract sections 3 and 5 plus scope revision Block 8; one object may implement several protocols without a monolith.
+
+### Inputs and dependencies
+
+- Block 7, with Block 5 non-software target fixture.
+
+### Required work
+
+- Define Inspector, Retriever, Reasoner, Experimenter, Implementer, Reviewer, Applier, and Verifier protocols.
+- Implement capability resolution/dispatch and external `next/submit` equivalence.
+- Exercise one capability against the non-software sentinel.
+
+### Scope and non-goals
+
+- In scope: capability contracts, availability/authority, and deterministic dispatch.
+- Not in scope: provider adapters, optimizer algorithms, distributed orchestration, or authoritative selection/application decisions.
+
+### Deliverables and recorded state
+
+- Capability module, dispatcher, managed/external/hybrid equivalence tests, and non-software dogfood.
+
+### Resource and economy contract
+
+Use deterministic fake capabilities and bounded action traces; no provider or process execution is required.
+
+### QA and independent review
+
+Review authority boundaries, equivalent state roots across modes, and absence of domain/provider types in core protocols.
+
+### Acceptance
+
+- Semantically equivalent results yield equivalent state in all modes; missing capabilities return structured actions; capability presence never grants epistemic/application authority.
+
+### Negative tests
+
+- Reject mismatched result schemas, unavailable capability auto-execution, human-reserved dispatch, domain leakage, and dispatcher lifecycle mutation outside runtime transitions.
+
+### Completion evidence
+
+Pending.
+
+### Stop
+
+Stop before structured reasoning implementations or composed workflows.
+
+## Block 9 — Provider-neutral reasoner contract and structured reasoning
+
+Status: `not-started`
+
+### Objective
+
+Represent cognitive work as validated proposals without making a model or external agent an epistemic authority.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: provider-neutral reflection, hypothesis, experiment-design, explanation, intervention, decomposition, and revision requests/results.
+- Potential capability loss or regression: free-form narration could bypass typed validation or promote claims directly.
+- Protected-capability effect: exact provenance/currentness and proposal-versus-authority separation remain explicit.
+- Architecture and operating-model effect: reasoners become capability implementations usable by managed and external-host modes.
+- Tradeoff and source evidence: architecture contract sections 5 and 9 plus scope revision Block 9; optional optimizers stay behind proposal contracts.
+
+### Inputs and dependencies
+
+- Blocks 3, 7, and 8.
+
+### Required work
+
+- Define typed reasoning requests/results and validation for each supported reasoning kind.
+- Map managed and externally supplied responses through the same ActionResult transition path.
+- Retain lineage from inputs and reasoner proposal to later evidence or intervention decisions.
+
+### Scope and non-goals
+
+- In scope: structured reasoning semantics and capability boundary.
+- Not in scope: a hosted provider adapter, prompt optimizer, agent framework, or truth promotion.
+
+### Deliverables and recorded state
+
+- Reasoning records/protocols/validators, external-host fixture, malformed-response regressions, and public exports.
+
+### Resource and economy contract
+
+Use deterministic fake reasoners; no live model call is required. Batch request-kind validation in one fixture matrix.
+
+### QA and independent review
+
+Review proposal authority, schema validation, provenance, and managed/external equivalence.
+
+### Acceptance
+
+- No provider type leaks into core; an external host can complete reasoning without an SDK; malformed output cannot corrupt state; narration cannot validate a claim.
+
+### Negative tests
+
+- Reject stale/mismatched requests, unsupported result kinds, missing lineage, malformed structured payloads, and direct knowledge promotion.
+
+### Completion evidence
+
+Pending.
+
+### Stop
+
+Stop before composing validation or investigation workflows.
+
+## Block 10 — First-class validation workflow and `ValidationResult`
+
+Status: `not-started`
+
+### Objective
+
+Validate a claim through current knowledge and evidence-gathering actions without requiring a goal or intervention.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: a useful declarative `validate` workflow with structured supported, contradicted, bounded, and inconclusive outcomes.
+- Potential capability loss or regression: workflow convenience could duplicate epistemic/runtime state or assume software tests.
+- Protected-capability effect: current evidence is reused, evidence gaps are explicit, and all conclusions cite canonical provenance.
+- Architecture and operating-model effect: first vertical composition of targets, knowledge, epistemics, experiments, runtime, capabilities, and workflow-owned outcomes.
+- Tradeoff and source evidence: architecture contract sections 10–11 and scope revision Block 10; include an early non-software validation dogfood.
+
+### Inputs and dependencies
+
+- Blocks 3–9 and the Block 5 non-software sentinel.
+
+### Required work
+
+- Implement validation planning, knowledge reuse/currentness, evidence-gap actions, evidence evaluation, claim-state update, and `ValidationResult`.
+- Expose low-level stepped and convenience workflow entry points over the same state machine.
+- Add deterministic software-neutral and non-software end-to-end validation fixtures.
+
+### Scope and non-goals
+
+- In scope: claim-only validation workflow and result.
+- Not in scope: open-ended investigation, candidate generation, intervention, or application.
+
+### Deliverables and recorded state
+
+- Validation workflow/state, result contract, public API, persisted run fixture, and CI dogfoods.
+
+### Resource and economy contract
+
+Check current knowledge before requesting execution; run the smallest evidence plan and stop when sufficiency or budget is reached.
+
+### QA and independent review
+
+Review evidence sufficiency/currentness, workflow/runtime ownership, outcome lineage, and domain neutrality.
+
+### Acceptance
+
+- Validation needs no goal/intervention; sufficient current evidence avoids work; outcome classes remain distinct; provenance is complete; non-software validation uses generic code.
+
+### Negative tests
+
+- Reject stale evidence as current, unsupported success claims, software-only assumptions, duplicate actions, and result synthesis from narrative alone.
+
+### Completion evidence
+
+Pending.
+
+### Stop
+
+Stop before multi-hypothesis investigation or intervention generation.
+
+## Block 11 — Investigation and scientific-understanding workflow
+
+Status: `not-started`
+
+### Objective
+
+Investigate a question through competing hypotheses, adaptive experiments, bounded search, and evidence-bound synthesis.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: questions can branch, falsify, refine, and retain unresolved alternatives instead of terminating on one hypothesis.
+- Potential capability loss or regression: search heuristics could masquerade as truth or create a duplicate lane/runtime owner.
+- Protected-capability effect: portfolio lanes reuse canonical evidence, action, budget, and lineage semantics.
+- Architecture and operating-model effect: composes validation and reasoner capabilities into an investigation workflow and `InvestigationResult`.
+- Tradeoff and source evidence: architecture contract section 10 and predecessor Block 11; reuse `PortfolioPolicy` before adding scheduling machinery.
+
+### Inputs and dependencies
+
+- Block 10 and the Block 9 reasoner contract.
+
+### Required work
+
+- Implement question state, hypothesis alternatives/lineage, experiment prioritization/redesign, branch retirement, stopping policies, and evidence-bound answer synthesis.
+- Reuse sequential/parallel portfolio primitives and canonical runtime budgets.
+
+### Scope and non-goals
+
+- In scope: epistemic investigation and structured result.
+- Not in scope: interventions, candidate implementation, generic optimizer algorithms, or application.
+
+### Deliverables and recorded state
+
+- Investigation workflow/result, branch fixtures, inconclusive-redesign dogfood, and public API.
+
+### Resource and economy contract
+
+Reuse existing evidence; cap branches/experiments by declared run budgets; widen only after a concrete surviving alternative requires it.
+
+### QA and independent review
+
+Review branch lineage, falsification behavior, stopping, evidence citations, and absence of search-as-authority.
+
+### Acceptance
+
+- Falsifying one hypothesis leaves viable alternatives; inconclusive evidence can redesign an experiment; runs stop on explicit sufficiency/budget/no-action conditions; conclusions cite evidence.
+
+### Negative tests
+
+- Reject unsupported branch promotion, evidence leakage between hypotheses, endless branch expansion, and conclusion synthesis without current supporting evidence.
+
+### Completion evidence
+
+Pending.
+
+### Stop
+
+Stop before proposing or implementing target changes.
+
+## Block 12 — Generic intervention and candidate lifecycle
+
+Status: `not-started`
+
+### Objective
+
+Represent proposed change and prospective candidate state without conflating either with authoritative target application.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: domain-extensible interventions, implementation handoffs, candidates, and exact lineage.
+- Potential capability loss or regression: domain payloads could leak into core fields or candidate creation could imply application.
+- Protected-capability effect: target currentness, constraints, evidence rationale, and candidate/application separation remain enforced.
+- Architecture and operating-model effect: an Implementer capability creates candidates behind a universal semantic envelope.
+- Tradeoff and source evidence: architecture contract sections 2 and 10 plus scope revision Block 12; include the non-software sentinel without core schema changes.
+
+### Inputs and dependencies
+
+- Blocks 5 and 11; capability contracts from Block 8.
+
+### Required work
+
+- Implement intervention specification, implementation result, candidate snapshot/lifecycle, evidence rationale, risks, validation plan, and rollback expectations.
+- Support absent implementers through complete handoffs and extensible domain payloads.
+- Add one non-software intervention/candidate fixture.
+
+### Scope and non-goals
+
+- In scope: proposal-to-candidate semantics and implementation capability boundary.
+- Not in scope: comparative selection, authoritative application, or domain-specific implementation engines.
+
+### Deliverables and recorded state
+
+- Intervention/candidate records and policy, Implementer contract integration, handoff schema, and deterministic fixtures.
+
+### Resource and economy contract
+
+Use synthetic implementers/candidates; no external target mutation. Reuse exact target snapshots and evidence roots.
+
+### QA and independent review
+
+Review lineage, extensibility, currentness, absent-capability handoff, and candidate/application separation.
+
+### Acceptance
+
+- Useful interventions can be emitted without an implementer; candidate state differs from authoritative target state; domain payloads need no core modification; lineage is exact.
+
+### Negative tests
+
+- Reject stale-target implementation, candidate without intervention/evidence lineage, domain fields in generic identity, and candidate status promoted to applied.
+
+### Completion evidence
+
+Pending.
+
+### Stop
+
+Stop before evaluation-contract operationalization, candidate comparison, or application.
+
+## Block 13 — Goals, objectives, constraints, guardrails, and evaluation contracts
+
+Status: `not-started`
+
+### Objective
+
+Translate declarative improvement intent into typed measurable evaluation contracts without confusing goals with claims.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: natural-language and typed goals gain explicit metrics, baselines, constraints, guardrails, and stopping rules.
+- Potential capability loss or regression: a reasoner could fabricate success criteria or operationalization could become domain-specific.
+- Protected-capability effect: typed contracts, exact baselines, and structured need-for-information govern evaluation.
+- Architecture and operating-model effect: introduces the intent/evaluation owner consumed by selection and improvement.
+- Tradeoff and source evidence: architecture contract sections 2 and 10 plus scope revision Block 13; reasoners propose, typed contracts decide.
+
+### Inputs and dependencies
+
+- Blocks 5 and 12, with metrics from Block 4 and reasoner proposals from Block 9.
+
+### Required work
+
+- Implement Goal, Objective, Constraint, Guardrail, Baseline, EvaluationContract, and operationalization actions/results.
+- Support typed minimize/maximize/target/no-regression/must-satisfy semantics and unmeasurable-intent outcomes.
+
+### Scope and non-goals
+
+- In scope: declarative intent and measurable contracts.
+- Not in scope: optimizer algorithms, candidate generation, comparative selection, or application.
+
+### Deliverables and recorded state
+
+- Intent/evaluation records/policies, operationalization workflow slice, and typed/natural-language fixtures.
+
+### Resource and economy contract
+
+Use deterministic proposed contracts; no live reasoner required. Stop operationalization when criteria are sufficient or a named fact is missing.
+
+### QA and independent review
+
+Review Goal-versus-Claim separation, baseline identity, guardrail meaning, and proposal authority.
+
+### Acceptance
+
+- Natural-language goals can be operationalized; typed goals remain exact; constraints/stops are explicit; unmeasurable intent yields structured pending action rather than invented criteria.
+
+### Negative tests
+
+- Reject non-finite metrics, missing baselines where required, contradictory constraints, untyped fabricated criteria, and goal treated as evidence.
+
+### Completion evidence
+
+Pending.
+
+### Stop
+
+Stop before ranking or accepting candidates.
+
+## Block 14 — Comparative evaluation, candidate selection, and search boundary
+
+Status: `not-started`
+
+### Objective
+
+Select the evidence-supported candidate, Pareto set, or none through explicit evaluation contracts and guardrails.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: actual baseline/candidate comparison, uncertainty, minimum effects, risk, multi-objective decisions, and none-accepted outcomes.
+- Potential capability loss or regression: optimizer output or passing execution could bypass evidence/guardrail semantics.
+- Protected-capability effect: independent review remains configurable governance, and selection provenance is exact.
+- Architecture and operating-model effect: libRSI owns comparison/acceptance while replaceable search capabilities only propose candidates.
+- Tradeoff and source evidence: architecture contract sections 5, 6, and 10 plus scope revision Block 14; do not reimplement mature optimization algorithms.
+
+### Inputs and dependencies
+
+- Blocks 4, 12, and 13.
+
+### Required work
+
+- Implement candidate evaluation/comparison, uncertainty, guardrails, meaningful effect, Pareto representation, risk policy, ranking, and none-accepted decision.
+- Define a proposal-only search/candidate-generation capability boundary where needed.
+
+### Scope and non-goals
+
+- In scope: deterministic comparison, selection, and provenance.
+- Not in scope: optimizer algorithms, implementation, application, or mandatory independent review for every low-risk case.
+
+### Deliverables and recorded state
+
+- Evaluation/selection records and policy, search protocol boundary, comparison matrices, and regression tests.
+
+### Resource and economy contract
+
+Batch candidates through one evaluation contract; reject invalid trials before ranking; widen only for an explicit unresolved objective/guardrail conflict.
+
+### QA and independent review
+
+Review no-regression, none-accepted, uncertainty, Pareto, and proposal-versus-selection authority.
+
+### Acceptance
+
+- Passing commands cannot prove improvement; guardrail failures reject candidates; none accepted is valid; parallel lanes compare through one contract.
+
+### Negative tests
+
+- Reject incomparable baselines, invalid-trial promotion, hidden guardrail violation, opaque aggregate scores, and optimizer self-acceptance.
+
+### Completion evidence
+
+Pending.
+
+### Stop
+
+Stop before the complete iterative improvement workflow or authoritative application.
+
+## Block 15 — Complete improvement workflow and `ImprovementResult`
+
+Status: `not-started`
+
+### Objective
+
+Compose goals, investigation, interventions, candidates, experiments, and selection into a bounded evidence-driven improvement engine.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: declarative `improve` executes complete iterative search and returns an evidence-backed result or no-useful-improvement outcome.
+- Potential capability loss or regression: convenience may hide budgets, fabricate improvement, or hard-code software assumptions.
+- Protected-capability effect: exact baselines/currentness, guardrails, failure-driven learning, and application-default-off remain visible.
+- Architecture and operating-model effect: first full improvement composition over the shared runtime and workflow-owned outcome substrate.
+- Tradeoff and source evidence: architecture contract section 10 and scope revision Block 15; acceptance includes both software-oriented and non-software deterministic dogfoods.
+
+### Inputs and dependencies
+
+- Blocks 10–14 and canonical runtime/capabilities.
+
+### Required work
+
+- Implement operationalize/baseline/investigate/hypothesize/intervene/implement/experiment/select/learn/repeat/stop lifecycle.
+- Add iteration, experiment, retry, and resource budgets plus diminishing-return, failure-broadening, and promising-branch narrowing.
+- Produce `ImprovementResult` and maintain software-oriented and non-software deterministic end-to-end dogfoods.
+
+### Scope and non-goals
+
+- In scope: improvement through accepted candidate selection and complete application handoff.
+- Not in scope: authoritative application, provider infrastructure, or self-change governance.
+
+### Deliverables and recorded state
+
+- Improvement workflow/state/result, declarative and stepped APIs, budget policies, and two cross-domain dogfoods.
+
+### Resource and economy contract
+
+Reuse current knowledge and baselines; enforce declared budgets; run focused vertical fixtures before mapped suite; stop on sufficiency, no productive action, or diminishing return.
+
+### QA and independent review
+
+Review whole-loop state transitions, guardrail/selection authority, failure recovery, budget enforcement, and domain neutrality.
+
+### Acceptance
+
+- A synthetic improvement needs no manual policy sequencing; failed candidates return to investigation; falsified hypotheses can be replaced; success and no-improvement results are complete; both domain dogfoods pass.
+
+### Negative tests
+
+- Reject success without baseline/comparison, budget bypass, repeated blind retry, candidate failure reported as hypothesis falsification, and software ontology in generic workflow code.
+
+### Completion evidence
+
+Pending.
+
+### Stop
+
+Stop before authoritative target application.
+
+## Block 16 — Application, post-application verification, and rollback
+
+Status: `not-started`
+
+### Objective
+
+Apply an accepted candidate only through explicit authority/currentness gates, verify the actual produced target state, and roll back failed outcomes.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: optional authoritative transition, exact post-application verification, rollback, and complete handoff when no Applier exists.
+- Potential capability loss or regression: execution success could be mistaken for improvement or application authority could be inferred.
+- Protected-capability effect: `apply=False` default, explicit capability authority, target currentness, and evidence/application failure separation.
+- Architecture and operating-model effect: separates candidate selection from authoritative target mutation and verification owners.
+- Tradeoff and source evidence: architecture contract sections 2 and 10; additional lifecycle complexity prevents unsafe implicit application.
+
+### Inputs and dependencies
+
+- Block 15 and Block 8 Applier/Verifier capability contracts.
+
+### Required work
+
+- Implement proposed-to-verified/rolled-back lifecycle, application request/handoff, currentness preconditions, actual-result snapshot capture, verification, and rollback actions.
+- Preserve application/infrastructure failure separately from epistemic evidence.
+
+### Scope and non-goals
+
+- In scope: generic application lifecycle and capability-mediated effects.
+- Not in scope: domain-specific deployment systems, automatic external authority, or self-change risk policy.
+
+### Deliverables and recorded state
+
+- Application records/state transitions, handoff schemas, deterministic fake target/applier/verifier/rollback fixtures, and public result fields.
+
+### Resource and economy contract
+
+Use disposable synthetic targets; default all mapped tests to `apply=False`; execute mutation/rollback only inside bounded fixtures.
+
+### QA and independent review
+
+Review authority, currentness, actual-produced-state verification, rollback, and evidence classification at the frozen revision.
+
+### Acceptance
+
+- `apply=False` returns a consumable result; compatible Applier supports `apply=True`; failed verification rolls back; application failure is not counterevidence; stale targets reject application.
+
+### Negative tests
+
+- Reject absent/reserved Applier execution, stale application, assumed output snapshots, duplicate apply, verification of the wrong state, and rollback without exact prior state.
+
+### Completion evidence
+
+Pending.
+
+### Stop
+
+Stop before meta-targeting or self-change governance.
+
+## Block 17 — Generalized RSI, meta-targeting, and self-change governance
+
+Status: `not-started`
+
+### Objective
+
+Use the ordinary improvement machinery against explicitly declared improvement-system targets under stronger activation and rollback governance.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: governed self-change of reasoners, experiment planners, search/aggregation/selection policies, resource allocation, and host machinery.
+- Potential capability loss or regression: self-evaluation could authorize itself or weaken future decision quality.
+- Protected-capability effect: historical replay, forward shadow, independent evaluation, currentness, activation gates, and rollback are mandatory for configured self-change classes.
+- Architecture and operating-model effect: generalizes `SelectorPolicy` through ordinary intervention/candidate/evidence/outcome records rather than a second RSI system.
+- Tradeoff and source evidence: architecture contract sections 2 and 10; stronger governance increases cost only for self-affecting targets.
+
+### Inputs and dependencies
+
+- Blocks 7–16 and existing `selector_policies.py` guarantees.
+
+### Required work
+
+- Define explicit meta-target classification and risk/governance policy.
+- Generalize historical, shadow, independent review, activation, currentness, and rollback through ordinary records/actions.
+- Produce `RSIResult` and deterministic accepted/rejected/rollback self-change fixtures.
+
+### Scope and non-goals
+
+- In scope: self-change semantics and governance composition.
+- Not in scope: ungoverned self-modification, a second epistemic/experiment engine, hosted autonomous execution, or release/deployment.
+
+### Deliverables and recorded state
+
+- Meta-target/governance records and policies, workflow integration, result contract, compatibility mapping, and CI dogfoods.
+
+### Resource and economy contract
+
+Use deterministic policy candidates and replay fixtures; no live self-modification or provider call. Run low-risk ordinary improvement proof before meta-governance cases.
+
+### QA and independent review
+
+Independent review is required for activation semantics, self-review separation, currentness, risk classification, and rollback proof.
+
+### Acceptance
+
+- Self-change uses ordinary records/outcomes; targeting is explicit; configured governance cannot be bypassed; current selector-policy guarantees survive; failed activated candidates roll back.
+
+### Negative tests
+
+- Reject implicit meta-targeting, candidate self-acceptance, same-actor review where independence is required, activation without every gate, stale evidence, and irreversible no-rollback policy changes.
+
+### Completion evidence
+
+Pending.
+
+### Stop
+
+Stop before batteries-included local defaults and public facade consolidation.
+
+## Block 18 — Batteries-included local runtime and high-level Python facade
+
+Status: `not-started`
+
+### Objective
+
+Make local validation, investigation, improvement, and stepped execution useful with minimal configuration while retaining replaceability.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: `LibRSI`, `local`, `for_repo`, workflow methods, SQLite, local command/filesystem/artifact defaults, and structured logging.
+- Potential capability loss or regression: defaults could become mandatory infrastructure or make repositories fundamental.
+- Protected-capability effect: low-level `RSIKernel`, external-host execution, independent component substitution, and generic targets remain supported.
+- Architecture and operating-model effect: assembles thin reference adapters around the canonical engine; it does not create another engine.
+- Tradeoff and source evidence: architecture contract sections 6–7 and scope revision Block 18; minimal setup is worth optional/local dependencies only when independently replaceable.
+
+### Inputs and dependencies
+
+- Blocks 6, 8, and 15–17.
+
+### Required work
+
+- Implement the high-level facade and local constructors over canonical workflows/runtime.
+- Ship minimal SQLite, command, filesystem inspection, artifact-directory, and event/logging defaults behind protocols.
+- Preserve expert/low-level APIs and support per-component replacement.
+
+### Scope and non-goals
+
+- In scope: local reference composition and Python usability.
+- Not in scope: generic repository automation, artifact/logging platforms, distributed orchestration, or mandatory server/provider dependencies.
+
+### Deliverables and recorded state
+
+- Facade/default modules, optional dependency boundaries, executable local examples, substitution tests, and updated low-level documentation.
+
+### Resource and economy contract
+
+Use temporary directories/databases/processes; reuse canonical workflow fixtures; no network or provider calls.
+
+### QA and independent review
+
+Review facade/runtime equivalence, dependency minimality, component replacement, repo convenience isolation, and legacy API reachability.
+
+### Acceptance
+
+- A trivial local workflow needs minimal setup; each default is substitutable; existing kernel APIs remain; README-ready examples use the facade rather than manual internals.
+
+### Negative tests
+
+- Reject hidden global state, mandatory repo fields, mandatory optional dependencies, facade-specific lifecycle semantics, and local execution outside configured authority.
+
+### Completion evidence
+
+Pending.
+
+### Stop
+
+Stop before stabilizing external outcome projections or CLI schemas.
+
+## Block 19 — Structured Outcome serialization, events, and external consumption
+
+Status: `not-started`
+
+### Objective
+
+Stabilize versioned canonical projections for every workflow outcome across Python, JSON, events, and persistence.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: consumers receive complete, versioned results without understanding internal policy calls.
+- Potential capability loss or regression: premature schema freeze could constrain real workflows or projection code could become semantic authority.
+- Protected-capability effect: exact run/target/intent/evidence/intervention/application identity and cross-mode equivalence remain canonical.
+- Architecture and operating-model effect: completes projections over workflow-owned result contracts introduced in Blocks 10, 11, 15, and 17.
+- Tradeoff and source evidence: architecture contract section 11 and scope revision Block 19; stage result contracts early and freeze complete projections only after workflow use.
+
+### Inputs and dependencies
+
+- Blocks 10, 11, and 15–18.
+
+### Required work
+
+- Complete `Outcome`, `ValidationResult`, `InvestigationResult`, `ImprovementResult`, and `RSIResult` fields, schema versions, JSON/event/persistent projections, and reconstruction.
+- Prove managed/external/hybrid semantic equivalence and migration/currentness behavior.
+
+### Scope and non-goals
+
+- In scope: semantic outcome contracts and stable projections.
+- Not in scope: reporting dashboards, transport protocols, notification systems, or alternate lifecycle state.
+
+### Deliverables and recorded state
+
+- Outcome module/schemas, projection adapters, golden fixtures, compatibility tests, and consumer documentation.
+
+### Resource and economy contract
+
+Reuse canonical dogfood outcomes; compare exact semantic roots and exclude presentation-only differences; avoid regenerating unchanged workflows.
+
+### QA and independent review
+
+Review completeness, versioning, round trips, currentness, cross-mode equivalence, and projection-versus-authority separation.
+
+### Acceptance
+
+- Consumers need no internal policy knowledge; JSON round trips preserve identity; schema versions are explicit; all control modes project equivalent outcomes.
+
+### Negative tests
+
+- Reject unknown/incompatible schemas, missing lineage/currentness, transport metadata changing roots, lossy projection, and projection writes that mutate canonical state.
+
+### Completion evidence
+
+Pending.
+
+### Stop
+
+Stop before CLI, HTTP, or MCP transport stabilization.
+
+## Block 20 — CLI and external-agent protocol
+
+Status: `not-started`
+
+### Objective
+
+Drive durable libRSI workflows through structured commands and JSON without inferring state from prose.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: start/status/next/submit/resume/outcome operations for validation, investigation, and improvement.
+- Potential capability loss or regression: CLI state or prose could diverge from the canonical runtime or silently accept stale results.
+- Protected-capability effect: explicit run/action/result identity, schema validation, restartability, and external-host neutrality.
+- Architecture and operating-model effect: CLI is a projection over runtime/service contracts, not a controller.
+- Tradeoff and source evidence: architecture contract section 12 and predecessor Block 20; structured JSON adds interface work but enables robust Codex/agent driving.
+
+### Inputs and dependencies
+
+- Blocks 7 and 19, with workflow APIs exposed only when implemented.
+
+### Required work
+
+- Add CLI entrypoint and structured validate/investigate/improve/status/next/submit/resume/outcome commands.
+- Bind input/output schemas to canonical records and runtime transitions.
+- Add interruption/restart, stale submission, and wheel-installed CLI dogfoods.
+
+### Scope and non-goals
+
+- In scope: local CLI/external-agent projection.
+- Not in scope: HTTP/MCP, natural-language agent orchestration, shell inference, or application authority.
+
+### Deliverables and recorded state
+
+- CLI module/entrypoint, JSON schemas/examples, subprocess dogfoods, and packaging metadata.
+
+### Resource and economy contract
+
+Use temporary local stores and subprocess invocations; one maintained command matrix covers workflow and lifecycle commands.
+
+### QA and independent review
+
+Review schema/runtime equivalence, restartability, error determinism, stale rejection, and no prose-derived state.
+
+### Acceptance
+
+- A complete run is externally driven through JSON; controller restart loses no state; `next` supplies exact context/schema; stale/invalid submission fails closed.
+
+### Negative tests
+
+- Reject unknown commands/schemas, wrong run/action IDs, duplicate advancement, malformed JSON, unsupported workflow claims, and CLI-only state.
+
+### Completion evidence
+
+Pending.
+
+### Stop
+
+Stop before HTTP/MCP compatibility or hosted-provider adapters.
+
+## Block 21 — libRSI service, HTTP, and MCP projections
+
+Status: `not-started`
+
+### Objective
+
+Expose the canonical runtime through one transport-independent service facade plus maintained HTTP and MCP projections.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: explicit durable run handles, remote lifecycle operations, knowledge queries, capability inspection, local stdio MCP, and maintained remote MCP transport.
+- Potential capability loss or regression: transport sessions could become state authority, network access could imply application authority, or premature schemas could freeze incomplete semantics.
+- Protected-capability effect: one runtime/store/outcome model, explicit capability authority, restartability, secret minimization, and optional dependencies.
+- Architecture and operating-model effect: `LibRSIService` delegates to canonical owners; HTTP/MCP remain thin replaceable transports.
+- Tradeoff and source evidence: architecture contract section 12, scope revision Block 20A, and historical server extension; compatibility waits for Blocks 19–20.
+
+### Inputs and dependencies
+
+- Blocks 7, 8, 19, and 20; expose each workflow only when its canonical API exists.
+
+### Required work
+
+- Implement transport-independent service operations for runs, actions/results, outcomes, knowledge queries, and capability inspection.
+- Add versioned HTTP/JSON endpoints using a mature optional framework.
+- Add maintained MCP tools/resources over the service for stdio and the current maintained remote transport.
+- Enforce explicit run handles, restart, duplicate/stale safety, authority distinctions, bounded requests, structured errors, health/readiness, and graceful shutdown.
+
+### Scope and non-goals
+
+- In scope: optional service/HTTP/MCP projections and basic operational hooks.
+- Not in scope: an API gateway, generic workflow service, distributed scheduler, UI, notification platform, observability platform, or full multi-tenant control plane.
+
+### Deliverables and recorded state
+
+- Service facade, optional server/MCP extras, entrypoints, schemas, capability report, HTTP/MCP/restart dogfoods, and security boundary documentation.
+
+### Resource and economy contract
+
+Use disposable local servers, temporary stores, loopback binding, bounded requests, and one semantic-equivalence fixture; no deployment or public endpoint.
+
+### QA and independent review
+
+Independent review covers shared-runtime authority, network/application permissions, secret projection, restart, duplicate submission, optional packaging, and transport neutrality.
+
+### Acceptance
+
+- One service facade backs HTTP and MCP; stdio and maintained remote MCP work; run handles survive restart; all projections share canonical outcomes; capabilities/authority are inspectable; stale/duplicate results fail safely.
+
+### Negative tests
+
+- Reject session-only state, anonymous remote mutation in configured protected mode, secret leakage, oversized requests, unsupported capability simulation, transport-root divergence, and unavailable Applier execution.
+
+### Completion evidence
+
+Pending.
+
+### Stop
+
+Stop before production deployment, general platform features, or provider-specific adapters.
+
+## Block 22 — Optional reasoner, optimizer, and backend integrations
+
+Status: `not-started`
+
+### Objective
+
+Prove stable capability contracts with one maintained hosted-model reasoner adapter and only justified optional backend integrations.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: managed structured reasoning and validated replaceability of selected optimizer/backend contracts.
+- Potential capability loss or regression: provider types, credentials, optimizer scores, or workflow engines could leak authority into core semantics.
+- Protected-capability effect: base install remains provider-free; external-agent mode remains first-class; proposals never become truth/selection/application automatically.
+- Architecture and operating-model effect: optional extras implement existing protocols without modifying canonical records.
+- Tradeoff and source evidence: architecture contract sections 5–6 and scope revision Block 21; add only adapters required by a real dogfood.
+
+### Inputs and dependencies
+
+- Blocks 9 and 18–20; current provider SDK/spec selected at implementation time.
+
+### Required work
+
+- Implement `ExternalAgentReasoner` and one maintained hosted-model reasoner extra through typed reasoning tasks.
+- Add optimizer/experiment/orchestrator projections only when one named dogfood validates a stable contract.
+- Keep credentials/configuration outside canonical records and provide deterministic fake/offline contract tests.
+
+### Scope and non-goals
+
+- In scope: optional adapters proving capability/backend substitution.
+- Not in scope: a model gateway, optimizer implementation, agent framework, workflow platform, credential manager, or mandatory network dependency.
+
+### Deliverables and recorded state
+
+- Optional extras/adapters, provider contract tests, configuration/secret docs, and at most the dogfood-justified backend adapters.
+
+### Resource and economy contract
+
+Offline fake tests are the normal path. Any live hosted-model test requires separate credential/spend authority and a bounded call budget; absence does not block deterministic contract acceptance.
+
+### QA and independent review
+
+Review dependency isolation, provider-neutral schemas, credential hygiene, proposal authority, and parity with external-agent mode.
+
+### Acceptance
+
+- Base install needs no SDK; an optional extra enables maintained reasoning; provider swaps do not alter epistemic schema; external-agent execution remains equivalent.
+
+### Negative tests
+
+- Reject provider objects in canonical records, credential serialization/logging, model output truth promotion, optimizer self-selection, and base-import failure without extras.
+
+### Completion evidence
+
+Pending.
+
+### Stop
+
+Stop before adding ecosystem adapters without a named contract or dogfood need.
+
+## Block 23 — Software Factory consumer integration
+
+Status: `not-started`
+
+### Objective
+
+Prove that Software Factory consumes libRSI capabilities and outcomes for ordinary and governed self-improvement targets without reverse dependency.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: sophisticated software targets, multi-repository snapshots, candidate/worktree handling, improvement, and application verification through libRSI contracts.
+- Potential capability loss or regression: Software Factory ontology, ledgers, or control state could leak into libRSI or be duplicated.
+- Protected-capability effect: dependency remains Software Factory → libRSI; implementation correctness and improvement validity remain separately represented.
+- Architecture and operating-model effect: incremental Q1–Q5 adapters reuse Software Factory's existing persistence/effect owners and libRSI's semantic owners.
+- Tradeoff and source evidence: architecture contract section 5 and scope revision Block 22; thin adapters expose bad abstractions early without coupling repositories.
+
+### Inputs and dependencies
+
+- Blocks 5, 8, 12, and 15–20; authoritative Software Factory checkout and its existing stores/adapters.
+
+### Required work
+
+- Map Software Factory target/revision state, capabilities, candidates/worktrees, experiments, application, and verification to libRSI records/actions/results.
+- Complete one ordinary target-repository improvement run and one governed Software Factory self-target run or safe application-disabled equivalent.
+- Preserve existing Factory telemetry, learning, evidence, and effect owners; return canonical libRSI evidence/outcomes.
+
+### Scope and non-goals
+
+- In scope: consumer-side adapters and deterministic integration dogfoods in the appropriate repositories.
+- Not in scope: importing Software Factory from libRSI, copying Factory schemas into libRSI, replacing Factory execution infrastructure, or production application.
+
+### Deliverables and recorded state
+
+- libRSI software helpers only where generic/lightweight, Software Factory adapter commits, cross-repository version pin, and integration fixtures/evidence.
+
+### Resource and economy contract
+
+Use disposable target repositories and current accepted fixtures; run focused contract tests before either mapped suite; no production target or provider spend.
+
+### QA and independent review
+
+Review both repositories at exact commits, dependency direction, owner reuse, target/candidate/evidence mapping, application boundary, and dogfood outcome.
+
+### Acceptance
+
+- Software Factory imports libRSI only; one ordinary repo run works; multi-repo identity works; candidate evidence returns for epistemic evaluation; correctness and improvement validity remain distinct.
+
+### Negative tests
+
+- Reject reverse imports, duplicate ledgers/schemas, stale revision mapping, worktree-as-authoritative target, implementation success as improvement proof, and ungoverned self-application.
+
+### Completion evidence
+
+Pending.
+
+### Stop
+
+Stop before claiming full architecture proof or modifying unrelated Software Factory programs.
+
+## Block 24 — End-to-end architecture dogfoods
+
+Status: `not-started`
+
+### Objective
+
+Prove the complete architecture through maintained deterministic workflows, interruption, control modes, application/rollback, parallel search, and self-change.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: system-level evidence that independently tested owners compose into one correct product.
+- Potential capability loss or regression: broad tests could become one-time demonstrations, duplicate fixtures, or mask owner-specific failures.
+- Protected-capability effect: control-plane equivalence, durability, application-default-off, rollback, and stronger self-change gates are exercised together.
+- Architecture and operating-model effect: converges existing incremental dogfoods into the maintained terminal system matrix.
+- Tradeoff and source evidence: predecessor Block 23 and scope revision Block 23; reuse earlier fixtures and extend only missing combinations.
+
+### Inputs and dependencies
+
+- Blocks 10, 11, and 15–23.
+
+### Required work
+
+- Maintain validation-only, investigation-only, externally driven improvement, managed-equivalent improvement, interruption/resume, application-disabled, apply/verify/rollback, parallel search, and RSI/self-change scenarios.
+- Reuse earlier vertical fixtures and assert canonical roots/outcomes across control planes.
+
+### Scope and non-goals
+
+- In scope: deterministic end-to-end CI proof of already-owned capabilities.
+- Not in scope: a new framework, production deployment, per-provider matrix, or performance benchmarking platform.
+
+### Deliverables and recorded state
+
+- Maintained dogfood suite, rooted fixtures, exact scenario/output matrix, and CI integration.
+
+### Resource and economy contract
+
+Run affected scenarios first; batch the final deterministic matrix once at the frozen candidate; use no live provider, remote service, or production target.
+
+### QA and independent review
+
+Review scenario completeness, reuse, semantic equivalence, exact outcomes, failure assertions, and absence of test-only alternate architecture.
+
+### Acceptance
+
+- Every required scenario is a maintained CI test/dogfood and passes against the same canonical engine and current package artifacts.
+
+### Negative tests
+
+- Reject one-time/manual proof, managed/external root drift, nonresumable interruption, implicit application, failed rollback, losing-lane promotion, and self-change gate bypass.
+
+### Completion evidence
+
+Pending.
+
+### Stop
+
+Stop before final cross-domain audit and public release cleanup.
+
+## Block 25 — Comprehensive cross-domain agnosticism proof
+
+Status: `not-started`
+
+### Objective
+
+Demonstrate that the complete validation, investigation, and improvement engine remains domain-neutral after every software and product integration.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: one deterministic non-software adapter completes the same generic workflow and Outcome family as software targets.
+- Potential capability loss or regression: a superficial fixture could miss hidden Git/software assumptions or introduce domain branches in core code.
+- Protected-capability effect: generic Target, Intervention, Candidate, Evidence, capability, runtime, and Outcome semantics remain unchanged.
+- Architecture and operating-model effect: final audit of the continuously maintained non-software sentinel across the completed system.
+- Tradeoff and source evidence: architecture contract section 4 and scope revision Block 24; a small deterministic target is sufficient when it traverses the real engine.
+
+### Inputs and dependencies
+
+- Block 24 and the non-software sentinel lineage from Blocks 5, 8, 10, 12, and 15.
+
+### Required work
+
+- Extend one maintained deterministic non-software adapter through validation, investigation, improvement, and structured outcomes.
+- Audit generic modules for software/Git types and prove target-specific behavior remains behind capabilities/adapters.
+
+### Scope and non-goals
+
+- In scope: comprehensive domain-neutrality proof.
+- Not in scope: many-domain breadth, physical deployment, generic simulation infrastructure, or domain-specific product features.
+
+### Deliverables and recorded state
+
+- Non-software adapter/dogfoods, generic-code dependency audit, exact outcome comparison, and CI mapping.
+
+### Resource and economy contract
+
+Reuse the existing sentinel and exact outcomes; widen the static audit only on a concrete software-type leak; no external system needed.
+
+### QA and independent review
+
+Independent review compares generic versus adapter ownership and verifies the real engine—not a test-only shortcut—executes every workflow.
+
+### Acceptance
+
+- Generic workflow code requires no software/Git type; interventions/candidates and outcomes are unchanged; target-specific behavior is wholly adapter-owned.
+
+### Negative tests
+
+- Reject repository fields in generic records, software-only workflow branches, adapter authority leakage, and non-software fixtures bypassing canonical runtime/evaluation.
+
+### Completion evidence
+
+Pending.
+
+### Stop
+
+Stop before release-facing API/version/docs changes.
+
+## Block 26 — Public API, documentation, packaging, migration, and release gate
+
+Status: `not-started`
+
+### Objective
+
+Make the redesigned architecture the accurate, typed, installable, migration-ready public product surface.
+
+### Target-product capability delta
+
+- Posture: `consequential`.
+- Intended capability gain: clear `validate → investigate → improve → governed recurse` documentation, stable exports, optional extras, executable examples, migration guidance, and release evidence.
+- Potential capability loss or regression: premature removal, misleading claims, accidental dependency growth, or an unauthorized license/release action.
+- Protected-capability effect: low-level compatibility is preserved or explicitly migrated; examples match the wheel; no planned-only capability is advertised.
+- Architecture and operating-model effect: consolidates product-facing namespace/package/CLI/service surfaces after semantic proof.
+- Tradeoff and source evidence: architecture contract sections 1, 7, and 14 plus predecessor Block 25; cleanup occurs last to avoid documentation/schema churn.
+
+### Inputs and dependencies
+
+- Blocks 21–25, accepted compatibility contract, and a complete release candidate.
+- Non-delegable legal input: the exact selection defined by the continuation-first
+  license gate; it blocks only the license-dependent acceptance subset after all
+  license-independent Block 26 work is complete.
+
+### Required work
+
+- Finalize package organization/exports, facade-first README/API examples, type docs, versioning, metadata, extras, CLI/server entrypoints, changelog, and `0.2.x` migration guide.
+- Execute examples from the built wheel and reconcile documentation against current capabilities.
+- Prepare the license decision packet with MIT and Apache-2.0 implications and add only the selected license.
+- Build and validate release artifacts; publication remains excluded without separate authority.
+
+### Scope and non-goals
+
+- In scope: release-ready source, docs, package artifacts, migration, and license once authorized.
+- Not in scope: PyPI publication, GitHub Release creation, production deployment, marketing claims beyond evidence, or backward-compatibility promises not tested.
+
+### Deliverables and recorded state
+
+- Public docs/examples, migration/changelog, license decision packet and selected
+  license when authorized, versioned build metadata, wheel/sdist, install smoke
+  evidence, and terminal completion audit.
+
+### Resource and economy contract
+
+Reuse Block 24–25 outcomes; render/build/test docs once after content freeze; rerun only invalidated examples or package checks.
+
+### QA and independent review
+
+Independent review covers API/docs truthfulness, migration/compatibility, optional dependency isolation, license exactness, artifact contents, and terminal matrix.
+
+### Acceptance
+
+- Wheel/sdist, Ruff, mypy, tests, branch coverage, and installed examples pass; docs
+  claim only current capability; migration is explicit; public product positioning
+  matches validated workflows.
+- License-dependent subset: a direct user selection is recorded, the selected
+  license text/classifier/reuse claims are exact, or an explicit no-license choice is
+  reflected without claiming open-source reuse. This subset alone may remain open
+  while every safe acceptance item above is completed.
+
+### Negative tests
+
+- Reject stale examples, missing/extra exports, base install pulling optional stacks, planned-only claims, unselected license grant, source-tree-only imports, and artifact/version mismatch.
+
+### Completion evidence
+
+Pending.
+
+### Stop
+
+Stop before PyPI publication, GitHub Release creation, production deployment, or any external announcement not separately authorized.
+
+## 8. Program source map
+
+| Block | Current source basis |
+|---:|---|
+| 0 | Architecture contract and historical Block 0 acceptance evidence. |
+| 1 | Historical Block 1 contract, `records.py`, `identity.py`, and accepted evidence. |
+| 2 | Historical Block 2 contract, exactness tests, and accepted evidence. |
+| 3 | Historical Block 3 plus scope revision Block 3. |
+| 4 | Historical Block 4 plus scope revision Block 4. |
+| 5 | Historical Block 5 plus early domain-neutrality amendment. |
+| 6 | Historical Block 6 plus KnowledgeStore scope amendment. |
+| 7 | Historical Block 7 plus semantic-runtime/reference-durability amendment. |
+| 8 | Historical Block 8 plus capability/search authority amendment. |
+| 9 | Historical Block 9 plus external optimizer/reasoner boundary. |
+| 10 | Historical Block 10 plus non-software validation/result-contract amendment. |
+| 11 | Historical Block 11 and architecture investigation contract. |
+| 12 | Historical Block 12 plus non-software candidate amendment. |
+| 13 | Historical Block 13 and typed operationalization contract. |
+| 14 | Historical Block 14 plus search-versus-selection amendment. |
+| 15 | Historical Block 15 plus two-domain improvement acceptance. |
+| 16 | Historical Block 16 and candidate/application architecture contract. |
+| 17 | Historical Block 17 and self-change architecture contract. |
+| 18 | Historical Block 18 plus thin-defaults amendment. |
+| 19 | Historical Block 19 plus incremental workflow-result amendment. |
+| 20 | Historical Block 20 and external-agent projection contract. |
+| 21 | Historical Block 20A extension plus deferred-transport amendment. |
+| 22 | Historical Block 21 plus optional backend amendment. |
+| 23 | Historical Block 22 plus incremental Q1–Q5 amendment. |
+| 24 | Historical Block 23 plus incremental-dogfood amendment. |
+| 25 | Historical Block 24 plus continuous-sentinel amendment. |
+| 26 | Historical Block 25 and public product-positioning amendment. |
+
+## 9. Program verification matrix
+
+| Block | Current verification basis |
+|---:|---|
+| 0 | Accepted architecture/compatibility CI and current regression suite. |
+| 1 | Accepted canonical record CI and semantic hardening suite. |
+| 2 | Accepted exact hypothesis/experiment CI and hardening suite. |
+| 3 | Focused epistemic/aggregation tests plus full compatibility/package suite. |
+| 4 | Metric/trial/evaluation and command-adapter tests plus full suite. |
+| 5 | Target/currentness and non-software sentinel tests plus full suite. |
+| 6 | Knowledge round-trip/currentness/migration tests plus full suite. |
+| 7 | Transition/replay/resume/idempotence tests plus full suite. |
+| 8 | Managed/external/hybrid capability equivalence tests plus full suite. |
+| 9 | Structured reasoner validation/equivalence tests plus full suite. |
+| 10 | Software-neutral and non-software validation dogfoods plus full suite. |
+| 11 | Branch/falsification/redesign investigation dogfoods plus full suite. |
+| 12 | Candidate/handoff/currentness and non-software tests plus full suite. |
+| 13 | Operationalization/evaluation-contract tests plus full suite. |
+| 14 | Comparison/guardrail/Pareto/none-accepted tests plus full suite. |
+| 15 | Software-oriented and non-software improvement dogfoods plus full suite. |
+| 16 | Apply-disabled/apply/verify/rollback fixtures plus full suite. |
+| 17 | Self-change governance/activation/rollback dogfoods plus full suite. |
+| 18 | Local facade/default substitution and installed-example tests. |
+| 19 | Outcome round-trip/version/cross-mode equivalence tests. |
+| 20 | Installed CLI JSON/restart/stale-submission dogfoods. |
+| 21 | Service/HTTP/MCP/restart/authority/transport-neutrality tests. |
+| 22 | Offline provider contract/dependency/secret-isolation tests. |
+| 23 | Cross-repository adapter and Software Factory dogfoods at exact commits. |
+| 24 | Complete deterministic end-to-end scenario matrix in CI. |
+| 25 | Real-engine non-software validation/investigation/improvement audit. |
+| 26 | Full quality gates, artifact inspection, installed examples, docs/API/license review. |
+
+## 10. Final completion definition
+
+The program is complete only when Blocks 0–26 are accepted at exact current pushed
+revisions; every verification-matrix row is current; the built package and public
+examples are rehydrated independently; Software Factory and the non-software target
+produce current observable outcomes through the same semantic engine; no transport,
+provider, optimizer, or host became a duplicate authority; retained open work is
+genuinely reserved or excluded; and no publication, deployment, license, or
+authoritative external application crossed its declared boundary.
