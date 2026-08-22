@@ -12,6 +12,7 @@ from .programs import ProgramPolicy
 from .reviews import ReviewPolicy
 from .selections import SelectionPolicy
 from .selector_policies import SelectorPolicy
+from .targets import TargetPolicy
 
 
 @dataclass(frozen=True)
@@ -31,5 +32,6 @@ class RSIKernel:
     reflections: ReflectionPolicy = field(default_factory=ReflectionPolicy)
     epistemics: EpistemicPolicy = field(default_factory=EpistemicPolicy)
     evaluator: ExperimentEvaluator = field(default_factory=ExperimentEvaluator)
+    targets: TargetPolicy = field(default_factory=TargetPolicy)
     hypotheses: HypothesisPolicy = field(default_factory=HypothesisPolicy)
     experiments: ExperimentPolicy = field(default_factory=ExperimentPolicy)

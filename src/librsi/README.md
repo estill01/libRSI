@@ -23,10 +23,13 @@ The current implementation owns portable primitives including:
 - historical, forward-shadow, independent-review, activation, and rollback gates
   for changes to the selector itself;
 - complete immutable semantic records and exact content-addressed references;
+- opaque, composite, and non-software target snapshots with atomic currentness;
 - evidence-bound reflection and falsifiable hypothesis identities;
 - exact hypothesis-to-evidence subject binding for canonical updates;
 - configurable support, counterexample, boundary, confounder, and null-evidence
   updates; and
+- generic metrics, validity-aware repeated trials, deterministic decision rules,
+  and replay-bound evidence projection; and
 - immutable command experiment specifications whose design, criteria, target,
   inputs, environment, measurements, and hypothesis reference are all identity-bound.
 
@@ -39,6 +42,9 @@ The current implementation owns portable primitives including:
 - `selections.py` — candidate selection and outcome confidence;
 - `selector_policies.py` — evaluation and rollback of selector self-changes;
 - `records.py` — canonical semantic records, exact references, and durable serialization;
+- `targets.py` — generic target composition, capabilities, snapshots, and currentness;
+- `epistemics.py` — typed belief state and replaceable evidence aggregation;
+- `evaluation.py` — generic trials, metric rules, evaluation, and evidence projection;
 - `hypotheses.py` — canonical hypothesis creation/evidence updates plus legacy wrappers;
 - `experiments.py` — immutable command specs, host execution inputs, and evidence interpretation;
 - `ports.py` — typed host interfaces such as `ExperimentRunner`;

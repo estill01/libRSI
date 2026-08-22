@@ -237,7 +237,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 2 | Hypothesis/experiment referential integrity | 1 | `accepted` |
 | 3 | General epistemics and aggregation | 1, 2 | `accepted` |
 | 4 | Generic experiments, metrics, and evaluation | 1, 3 | `accepted` |
-| 5 | Targets, snapshots, and currentness | 1, 4 | `not-started` |
+| 5 | Targets, snapshots, and currentness | 1, 4 | `in-progress` |
 | 6 | Persistent knowledge and SQLite store | 1, 5 | `not-started` |
 | 7 | Durable semantic Run/Event/Action engine | 1, 6 | `not-started` |
 | 8 | Capability protocols and neutral dispatch | 7 | `not-started` |
@@ -678,7 +678,7 @@ Stop before target lifecycle/currentness and knowledge persistence.
 
 ## Block 5 — Targets, snapshots, multi-component identity, and currentness
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 

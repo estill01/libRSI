@@ -7,7 +7,9 @@ validation, investigation, improvement, and governed recursive self-improvement.
 The current package supplies deterministic policies and canonical records for
 reflection, hypothesis testing, experiment interpretation, program evolution,
 reviewed selection, and safe changes to the selector itself, plus typed ports for
-host-owned effects.
+host-owned effects. Targets may be opaque or multi-component, and generic currentness
+checks keep stale target-bound evidence distinguishable from current evidence without
+requiring repository or Git concepts.
 
 ## Install
 
