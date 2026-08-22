@@ -46,7 +46,9 @@ HypothesisPolicy.create(...)
 ExperimentPolicy.design_command(...)
         ↓ immutable ExperimentSpec
 ExperimentPolicy.prepare_command(...)
+        ↓ CommandExperimentInput(exact_input_root=spec.root)
         ↓ host-owned execution
+        ↓ CommandObservation(exact_input_root=executed_input_root)
 ExperimentPolicy.evaluate_command(spec=..., observation=...)
         ↓ exact Evidence
 HypothesisPolicy.apply(hypothesis=..., evidence=...)
@@ -56,9 +58,10 @@ HypothesisPolicy.apply(hypothesis=..., evidence=...)
 `evaluate_command()` has no evaluation-time criteria argument. The exact criteria are
 read from the immutable `ExperimentSpec`, so the historical “criterion A at design /
 criterion B at evaluation” integrity failure is not representable on the canonical
-path. Resulting evidence names the exact hypothesis version, experiment spec, and
-target snapshot; attempting to apply it to another or stale hypothesis version fails
-closed.
+path. The command observation must also echo the exact input root it executed; an
+observation from another spec is rejected before interpretation. Resulting evidence
+names the exact hypothesis version, experiment spec, and target snapshot; attempting
+to apply it to another or stale hypothesis version fails closed.
 
 The historical `propose()`, `apply_evidence()`, `command_input()`, and
 `evaluate_command_result()` methods remain available as deprecated `0.2.0`
@@ -68,9 +71,11 @@ used by new orchestration code when exact referential integrity matters.
 It intentionally owns no database schema, filesystem mutation, Git operation,
 subprocess, model/provider call, or product-specific ontology. A host records policy
 decisions in its existing authoritative store and executes experiments and effects
-through governed adapters. Invalid experiment execution is classified as zero-weight
-null evidence; infrastructure failure is never treated as falsification on the
-canonical command path.
+through governed adapters. A canonical command runner should copy
+`CommandExperimentInput.exact_input_root` into the returned
+`CommandObservation.exact_input_root`. Invalid experiment execution is classified as
+zero-weight null evidence; infrastructure failure is never treated as falsification on
+the canonical command path.
 
 ```python
 from librsi import RSIKernel
