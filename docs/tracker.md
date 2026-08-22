@@ -244,7 +244,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 9 | Provider-neutral reasoner contract | 3, 7, 8 | `accepted` |
 | 10 | Validation workflow and result | 3–9 | `accepted` |
 | 11 | Investigation workflow and result | 10 | `accepted` |
-| 12 | Intervention and candidate lifecycle | 5, 11 | `not-started` |
+| 12 | Intervention and candidate lifecycle | 5, 11 | `in-progress` |
 | 13 | Goals, constraints, and evaluation contracts | 5, 12 | `not-started` |
 | 14 | Comparative evaluation and selection | 4, 12, 13 | `not-started` |
 | 15 | Complete improvement workflow and result | 10–14 | `not-started` |
@@ -1642,7 +1642,7 @@ Stop before proposing or implementing target changes.
 
 ## Block 12 — Generic intervention and candidate lifecycle
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 
