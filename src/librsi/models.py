@@ -66,6 +66,7 @@ class CommandObservation:
     stdout: str
     stderr: str
     invalid: bool = False
+    exact_input_root: str | None = None
 
 
 @dataclass(frozen=True)
