@@ -42,7 +42,7 @@ A Block may only be marked `verified` after its maintained acceptance criteria h
 | Block | Short name | Status | Owner / workstream | Branch / PR | Last updated |
 |---:|---|---|---|---|---|
 | 0 | Architecture contract / namespace plan / legacy baseline | `verified` | Architecture / integration | PR #3 | 2026-08-21 |
-| 1 | Canonical immutable records / identity | `verified` | Canonical records / identity | PR #5 | 2026-08-21 |
+| 1 | Canonical immutable records / identity | `verified` | Canonical records / identity | PR #5 + #7 | 2026-08-21 |
 | 2 | Hypothesis / experiment integrity repair | `ready` | — | — | 2026-08-21 |
 | 3 | General epistemic model | `not-started` | — | — | — |
 | 4 | Generic experiments / metrics / evaluation | `not-started` | — | — | — |
@@ -122,21 +122,24 @@ A Block may only be marked `verified` after its maintained acceptance criteria h
 
 **Status:** `verified`  
 **Owner / workstream:** Canonical records / identity  
-**Authoritative implementation:** `1528c7ecc5eec0e44136ceb8b54e3fa09bb5bf74` on `main`  
-**PR:** #5, `Block 1: canonical immutable domain records and identity model`  
+**Authoritative implementation:** initial substrate `1528c7ecc5eec0e44136ceb8b54e3fa09bb5bf74`; post-audit hardening `0fc0fb2a2da70dabda4a5b2da2eacb09e357aede` on `main`  
+**PRs:** #5, `Block 1: canonical immutable domain records and identity model`; #7, `Harden Block 1 semantic identity and validation`  
 **Last updated:** 2026-08-21
 
 ### Material implementation
 
 - `1528c7ecc5eec0e44136ceb8b54e3fa09bb5bf74` — squash-merge the complete Block 1 canonical record/identity substrate from PR #5 onto `main`.
+- `0fc0fb2a2da70dabda4a5b2da2eacb09e357aede` — squash-merge the second-audit semantic identity/validation hardening from PR #7 onto `main`.
 
 ### Verification evidence
 
-- PR #5 GitHub Actions CI run `32525534734`: **success** across Python 3.11, 3.12, and 3.13 after the final performance/robustness review.
+- PR #5 GitHub Actions CI run `32525534734`: **success** across Python 3.11, 3.12, and 3.13 after the initial implementation review.
+- PR #7 GitHub Actions CI run `32551045555`: **success** across Python 3.11, 3.12, and 3.13 after the independent post-merge hardening audit.
 - The maintained CI workflow passed Ruff lint/formatting, mypy, pytest with branch coverage, package build, and Python 3.11 wheel smoke testing.
 - `tests/test_canonical_records.py` exercises a complete target → epistemic → experiment → evidence/evaluation → intervention/candidate → outcome object graph and round-trips every record deterministically.
-- Tests cover deep immutability, detachment from mutable inputs, identity stability under mapping order changes, exclusion of presentation metadata from roots, root changes for identity-bearing changes, exact reference mismatch failures, tamper detection, malformed schema/version/root rejection, non-finite/unsupported canonical values, and serialization-marker collision resistance.
-- The pre-existing `0.2.0` compatibility suite remained passing, so Block 1 is additive rather than a silent legacy break.
+- `tests/test_block1_semantic_hardening.py` pins metadata-independent Python equality/hash, generic/typed reference identity equivalence, typed `EvidenceRef` factory behavior, and strict rejection of ambiguous text/boolean/numeric/index/root coercions.
+- Tests cover deep immutability, detachment from mutable inputs, identity stability under mapping order changes, exclusion of presentation metadata from roots and Python semantic equality/hash, root changes for identity-bearing changes, exact reference mismatch failures, tamper detection, malformed schema/version/root rejection, non-finite/unsupported canonical values, and serialization-marker collision resistance.
+- The pre-existing `0.2.0` compatibility suite remained passing, so Block 1 remains additive rather than a silent legacy break.
 
 ### Acceptance reconciliation
 
@@ -144,7 +147,9 @@ A Block may only be marked `verified` after its maintained acceptance criteria h
 - All semantically material record fields are retained in the records; identity is a stable SHA-256 root over deterministic canonical identity data.
 - Every record carries exact lineage as typed content-addressed references.
 - Durable serialization carries an explicit record schema and per-record schema version and integrity-checks the stored root during reconstruction.
-- Presentation metadata is preserved in serialization but explicitly excluded from semantic identity; nested record identity depends on exact record references rather than presentation metadata.
+- Presentation metadata is preserved in serialization but excluded from content roots, Python equality, and Python hashing; records differing only in presentation metadata are the same semantic object.
+- Generic `RecordRef` and typed `EvidenceRef` instances naming the same record type/root compare and hash identically, so convenience Python subclass choice cannot create false semantic inequality.
+- Canonical constructors fail closed on ambiguous coercions: text must be text, observation validity must be boolean, trial indexes must be nonnegative integers, epistemic numeric fields must be actual finite numbers rather than strings/booleans, and roots must be textual SHA-256 digests.
 - Deep immutable `FrozenMap` values canonicalize mapping order, reject ambiguous/non-JSON-shaped values, and provide immutable O(1) lookup while retaining deterministic ordering/hashing.
 - User data mappings are wrapped during durable serialization so values that resemble libRSI record/reference schema envelopes cannot be misinterpreted during deserialization.
 - Exact references bind both record type and root and fail closed when required against a different semantic object.
@@ -160,7 +165,9 @@ A Block may only be marked `verified` after its maintained acceptance criteria h
 - **2026-08-21:** Second-pass review hardened generic reference validation and wrapped user mappings to prevent collisions with libRSI serialization markers.
 - **2026-08-21:** Semantic round-trip testing exposed an `EvidenceRef` convenience-subclass reconstruction mismatch; deserialization was corrected to preserve generic `RecordRef` semantics and let typed containers promote references contextually.
 - **2026-08-21:** Final review optimized `FrozenMap` lookup from linear to immutable O(1) indexing without changing identity/hash semantics.
-- **2026-08-21:** Final PR #5 CI run `32525534734` passed and PR #5 was squash-merged as `1528c7ecc5eec0e44136ceb8b54e3fa09bb5bf74`. Block 1 is `verified` on the authoritative implementation.
+- **2026-08-21:** Final PR #5 CI run `32525534734` passed and PR #5 was squash-merged as `1528c7ecc5eec0e44136ceb8b54e3fa09bb5bf74`. Block 1 was marked `verified` on the authoritative implementation.
+- **2026-08-21:** Independent post-merge audit found three remaining Block 1 defects: metadata still affected Python equality/hash despite being non-identity-bearing; generic and typed references to the same object compared unequal; and several constructors silently coerced malformed text/boolean/numeric/index inputs. PR #7 fixed all three classes of defect and repaired the inherited `EvidenceRef.from_record()` convenience-factory edge case without changing the durable record/ref wire format.
+- **2026-08-21:** PR #7 CI run `32551045555` passed the full matrix and PR #7 was squash-merged as `0fc0fb2a2da70dabda4a5b2da2eacb09e357aede`. Block 1 remains `verified` with the hardened implementation.
 
 ---
 
@@ -169,7 +176,7 @@ A Block may only be marked `verified` after its maintained acceptance criteria h
 **Status:** `ready`  
 **Owner / workstream:** Unassigned  
 **Branch / PR:** —  
-**Verification evidence:** Block 1 predecessor is `verified` on `main`.  
+**Verification evidence:** Block 1 predecessor is `verified` on `main`, including post-audit hardening `0fc0fb2a2da70dabda4a5b2da2eacb09e357aede`.  
 **Last updated:** 2026-08-21  
 **Notes / remaining:** Available to begin. Block 2 should migrate the existing hypothesis and experiment policy APIs onto the canonical records without collapsing the broader Block 3 epistemic-policy work into this migration.
 
@@ -197,3 +204,4 @@ A Block may only be marked `verified` after its maintained acceptance criteria h
 - **2026-08-21:** Squash-merged the internal implementation program to `main` as `2c056ca9a62c1daaaeb401c0ffdcbc2b02be937b`.
 - **2026-08-21:** Reviewed, hardened, CI-verified, and squash-merged Block 0 to `main` as `bd3815d51a326dc7f5ace8f54ce462c34e251605`; Block 1 moved to `ready`.
 - **2026-08-21:** Implemented, twice reviewed, hardened, CI-verified, and squash-merged Block 1 to `main` as `1528c7ecc5eec0e44136ceb8b54e3fa09bb5bf74`; Block 2 moved to `ready`.
+- **2026-08-21:** Re-audited Block 1 after merge, fixed semantic equality/reference/coercion defects in PR #7, passed CI run `32551045555`, and squash-merged hardening as `0fc0fb2a2da70dabda4a5b2da2eacb09e357aede`. Block 1 remains `verified`; Block 2 remains `ready`.
