@@ -26,39 +26,49 @@ python -m pytest
 
 ## Example
 
+The canonical hypothesis/experiment path binds the proposition, target snapshot,
+experiment criteria, and resulting evidence by exact immutable record identity:
+
 ```python
-from librsi import CommandObservation, RSIKernel
+from librsi import CommandObservation, RSIKernel, TargetRef, TargetSnapshot
 
 rsi = RSIKernel()
-hypothesis = rsi.hypotheses.propose(
-    scope_id="my-system",
+target = TargetRef(target_id="my-system", kind="software")
+baseline = TargetSnapshot(
+    target=target,
+    revision="abc123",
+    state={"revision": "abc123"},
+)
+
+hypothesis = rsi.hypotheses.create(
+    target=target,
     statement="The new scheduler reduces queue latency",
     causal_model={"change": "fair scheduling"},
-    prediction={"p95_latency_delta": "< 0"},
+    predictions=({"p95_latency_delta": "< 0"},),
 )
-experiment = rsi.experiments.command_input(
+spec = rsi.experiments.design_command(
     experiment_id="latency-comparison-1",
-    experiment_type="command",
-    status="designed",
+    hypothesis=hypothesis,
+    target_snapshot=baseline,
     design={"kind": "isolated comparison"},
     success_criteria={"accepted_exit_codes": [0], "stdout_contains": ["IMPROVED"]},
     command=["python", "compare_latency.py"],
     cwd="/workspace",
 )
+command = rsi.experiments.prepare_command(spec)
 
-# A host-owned runner executes `experiment` and returns its observation.
-evaluation = rsi.experiments.evaluate_command_result(
-    exact_input_root=experiment.exact_input_root,
-    success_criteria={"accepted_exit_codes": [0], "stdout_contains": ["IMPROVED"]},
+# A host-owned runner executes `command` and returns its observation.
+evidence = rsi.experiments.evaluate_command(
+    spec=spec,
     observation=CommandObservation(exit_code=0, stdout="IMPROVED\n", stderr=""),
 )
-update = rsi.hypotheses.apply_evidence(
-    current_confidence=hypothesis.confidence,
-    evidence_type=evaluation.hypothesis_evidence_type,
-    evidence_id=evaluation.evidence_root,
-    weight=evaluation.hypothesis_evidence_weight,
-)
+updated = rsi.hypotheses.apply(hypothesis=hypothesis, evidence=evidence)
 ```
+
+`evaluate_command()` reads its decision criteria from the immutable `ExperimentSpec`;
+callers cannot replace them after execution. Evidence names the exact hypothesis and
+target snapshot it bears on, and a stale or different hypothesis rejects that evidence.
+The `0.2.0` scalar APIs remain available as deprecated compatibility wrappers.
 
 The library performs no persistence or external effects. See
 [`src/librsi/README.md`](src/librsi/README.md) for the module map and complete
