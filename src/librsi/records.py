@@ -20,6 +20,7 @@ _DECISION_RULE_KINDS = frozenset({"threshold", "baseline_delta"})
 _DECISION_OPERATORS = frozenset({"<", "<=", "==", ">=", ">"})
 _TRIAL_ROLES = frozenset({"subject", "baseline", "candidate"})
 _TRIAL_RESULT_DISPOSITIONS = frozenset({"valid", "invalid", "inconclusive"})
+_TARGET_CURRENTNESS_DISPOSITIONS = frozenset({"current", "stale"})
 
 
 def _require_text(value: str, label: str) -> str:
@@ -352,11 +353,89 @@ class TargetRef(SemanticRecord):
     target_id: str
     kind: str = "generic"
     locator: Mapping[str, Any] = field(default_factory=FrozenMap)
+    components: tuple[TargetComponent, ...] = field(default_factory=tuple)
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "target_id", _require_text(self.target_id, "target id"))
         object.__setattr__(self, "kind", _require_text(self.kind, "target kind"))
         object.__setattr__(self, "locator", _freeze_map(self.locator))
+        components = tuple(self.components)
+        if any(not isinstance(item, TargetComponent) for item in components):
+            raise TypeError("target components must be TargetComponent records")
+        if len({item.component_id for item in components}) != len(components):
+            raise ValueError("target component ids must be unique")
+        if len({item.target.ref for item in components}) != len(components):
+            raise ValueError("target component targets must be unique")
+        object.__setattr__(
+            self, "components", tuple(sorted(components, key=lambda item: item.component_id))
+        )
+        super().__post_init__()
+
+    def identity_data(self) -> dict[str, Any]:
+        data = super().identity_data()
+        if not self.components:
+            data.pop("components")
+        return data
+
+
+@_register
+@dataclass(frozen=True, kw_only=True)
+class TargetCapabilities(SemanticRecord):
+    """Capabilities declared for a target and the subset available to this host."""
+
+    RECORD_TYPE: ClassVar[str] = "target_capabilities"
+
+    target: TargetRef
+    supported: tuple[str, ...] = field(default_factory=tuple)
+    locally_available: tuple[str, ...] = field(default_factory=tuple)
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.target, TargetRef):
+            raise TypeError("target capabilities require a TargetRef")
+        supported = _text_tuple(self.supported)
+        if len(set(supported)) != len(supported):
+            raise ValueError("supported target capabilities must be unique")
+        supported = tuple(sorted(supported))
+        available = _text_tuple(self.locally_available)
+        if len(set(available)) != len(available):
+            raise ValueError("locally available target capabilities must be unique")
+        if not set(available).issubset(supported):
+            raise ValueError("locally available capabilities must be declared as supported")
+        object.__setattr__(self, "supported", supported)
+        object.__setattr__(self, "locally_available", tuple(sorted(available)))
+        super().__post_init__()
+
+    def supports(self, capability: str) -> bool:
+        return _require_text(capability, "target capability") in self.supported
+
+    def is_locally_available(self, capability: str) -> bool:
+        return _require_text(capability, "target capability") in self.locally_available
+
+
+@_register
+@dataclass(frozen=True, kw_only=True)
+class TargetComponent(SemanticRecord):
+    """One named target within a composite target."""
+
+    RECORD_TYPE: ClassVar[str] = "target_component"
+
+    component_id: str
+    target: TargetRef
+    capabilities: TargetCapabilities | None = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "component_id",
+            _require_text(self.component_id, "target component id"),
+        )
+        if not isinstance(self.target, TargetRef):
+            raise TypeError("target components require a TargetRef")
+        if self.capabilities is not None:
+            if not isinstance(self.capabilities, TargetCapabilities):
+                raise TypeError("target component capabilities must be TargetCapabilities")
+            if self.capabilities.target != self.target:
+                raise ValueError("target component capabilities do not match the component target")
         super().__post_init__()
 
 
@@ -382,7 +461,60 @@ class TargetSnapshot(SemanticRecord):
         components = tuple(self.components)
         if any(not isinstance(item, TargetSnapshot) for item in components):
             raise TypeError("target snapshot components must be TargetSnapshot records")
+        if not self.target.components and components:
+            raise ValueError("atomic target snapshots cannot contain component snapshots")
+        if self.target.components:
+            component_targets = tuple(item.target.ref for item in self.target.components)
+            supplied = tuple(item.target.ref for item in components)
+            if len(set(supplied)) != len(supplied):
+                raise ValueError("target snapshot components must be unique")
+            if set(supplied) != set(component_targets):
+                raise ValueError("target snapshot must contain every exact target component")
+            by_target = {item.target.ref: item for item in components}
+            components = tuple(by_target[item.target.ref] for item in self.target.components)
         object.__setattr__(self, "components", components)
+        super().__post_init__()
+
+
+@_register
+@dataclass(frozen=True, kw_only=True)
+class TargetComparison(SemanticRecord):
+    """Exact currentness comparison between two snapshots of one target."""
+
+    RECORD_TYPE: ClassVar[str] = "target_comparison"
+
+    baseline: TargetSnapshot
+    current: TargetSnapshot
+    disposition: str
+    component_currentness: Mapping[str, Any] = field(default_factory=FrozenMap)
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.baseline, TargetSnapshot) or not isinstance(
+            self.current,
+            TargetSnapshot,
+        ):
+            raise TypeError("target comparison requires TargetSnapshot records")
+        if self.baseline.target != self.current.target:
+            raise ValueError("target comparison snapshots must reference the exact same target")
+        disposition = _require_text(self.disposition, "target currentness disposition")
+        if disposition not in _TARGET_CURRENTNESS_DISPOSITIONS:
+            raise ValueError(f"unsupported target currentness disposition: {disposition}")
+        expected_disposition = "current" if self.baseline.root == self.current.root else "stale"
+        if disposition != expected_disposition:
+            raise ValueError("target currentness disposition does not match the snapshot roots")
+        object.__setattr__(self, "disposition", disposition)
+
+        component_currentness = _freeze_map(self.component_currentness)
+        if any(type(value) is not bool for value in component_currentness.values()):
+            raise TypeError("target component currentness values must be booleans")
+        expected_components: dict[str, bool] = {}
+        for index, component in enumerate(self.baseline.target.components):
+            expected_components[component.component_id] = (
+                self.baseline.components[index].root == self.current.components[index].root
+            )
+        if component_currentness != expected_components:
+            raise ValueError("target comparison must account for every exact component snapshot")
+        object.__setattr__(self, "component_currentness", component_currentness)
         super().__post_init__()
 
 

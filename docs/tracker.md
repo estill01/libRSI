@@ -237,7 +237,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 2 | Hypothesis/experiment referential integrity | 1 | `accepted` |
 | 3 | General epistemics and aggregation | 1, 2 | `accepted` |
 | 4 | Generic experiments, metrics, and evaluation | 1, 3 | `accepted` |
-| 5 | Targets, snapshots, and currentness | 1, 4 | `not-started` |
+| 5 | Targets, snapshots, and currentness | 1, 4 | `accepted` |
 | 6 | Persistent knowledge and SQLite store | 1, 5 | `not-started` |
 | 7 | Durable semantic Run/Event/Action engine | 1, 6 | `not-started` |
 | 8 | Capability protocols and neutral dispatch | 7 | `not-started` |
@@ -678,7 +678,7 @@ Stop before target lifecycle/currentness and knowledge persistence.
 
 ## Block 5 — Targets, snapshots, multi-component identity, and currentness
 
-Status: `not-started`
+Status: `accepted`
 
 ### Objective
 
@@ -729,7 +729,67 @@ Review domain neutrality and atomic snapshot comparison at the frozen revision.
 
 ### Completion evidence
 
-Pending.
+- Repository commit: `71e59844f8a0021502198ba8f995dec17e01353f`.
+- External/domain revision or root: not applicable; Block 5 uses deterministic
+  synthetic target records and no external target owner.
+- Inputs: authoritative base `1285cb504e37a121442dce85ee2627d1e86af523`,
+  accepted Blocks 1 and 4, architecture-contract sections 2 and 4, the early
+  domain-neutrality revision, and tracker capability-frame SHA-256
+  `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+- Outputs: canonical `TargetCapabilities`, `TargetComponent`, composite
+  `TargetRef`, complete `TargetSnapshot`, and truthful `TargetComparison` records;
+  `src/librsi/targets.py`; public exports/composition; updated module documentation;
+  and split behavior/validation test modules.
+- Focused validation: Python 3.12 focused Block 5 suite, `17 passed`, covering the
+  non-software sentinel, opaque target, complete composite snapshots, currentness,
+  serialization, direct-construction failures, and tampered input.
+- Mapped validation: Python 3.12 Ruff and format checks passed; mypy passed all
+  18 source files; full suite `112 passed` at `92.18%` branch coverage; sdist/wheel
+  build and isolated installed-wheel import smoke passed.
+- Candidate freeze: content root
+  `b334d47bb834303193a1cc8e5f5f6f3d15aa8448efd457656b0dc084de7fc0ec`
+  remained unchanged through mapped validation and final independent review.
+- Remediation closure: independent review found Python Boolean/integer equality
+  could admit numeric component-currentness maps. Canonical comparison records now
+  require exact Boolean values, with direct-construction and tampered-serialization
+  regression proof; the reviewer rechecked and accepted the successor root.
+- Resource posture: compact in-memory simulation, process, document, physical-system,
+  configuration, and opaque-target fixtures only; no repository scan, database,
+  subprocess, provider, target mutation, or external target operation.
+- Independent review: Hubble, read-only, against base
+  `1285cb504e37a121442dce85ee2627d1e86af523` and the final frozen candidate root;
+  final disposition `accepted` with no material findings.
+- Product-capability review:
+  - Trigger: consequential posture.
+  - Frame identity: `docs/tracker.md`, Block 5,
+    `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+  - Capability added or preserved: exact opaque, atomic, and multi-component target
+    state can be compared independently from knowledge, and old evidence cannot be
+    promoted as current.
+  - Paths compared: another local epistemics snapshot-root check; bounded-general
+    target records plus a currentness owner; target registry/adapter/mutation platform.
+  - Selected level and owner: bounded-general `targets.py`, reusing `records.py` for
+    canonical topology and leaving epistemics as a consumer of target snapshots.
+  - Protected-capability result: default target identity, lossless serialization,
+    complete component accounting, deterministic ordering, and non-software use with
+    no required Git/repository fields are preserved by focused and compatibility tests.
+  - Rejected alternatives: the local path would omit target composition and atomic
+    comparison; the platform path would cross into host adapters, registries, mutation,
+    application, and persistence owned by later Blocks.
+  - Tradeoffs and uncertainty: currentness is deliberately exact-root equality and
+    capability availability is declarative only; semantic equivalence and capability
+    execution require explicit future policy rather than implicit heuristics.
+  - Frozen-candidate proof: commit
+    `71e59844f8a0021502198ba8f995dec17e01353f`, candidate root above, `112 passed`,
+    and accepted independent adversarial review.
+- Retained open work: none within Block 5.
+- Decision/continuation posture: not applicable; Block 6 is dependency-safe.
+- Post-block audit: accepted; no target mutation, knowledge persistence, Git adapter,
+  repository platform, or host capability execution crossed the Block 5 Stop.
+- Git durability: implementation commit
+  `71e59844f8a0021502198ba8f995dec17e01353f` was pushed non-force to
+  `origin/codex/block-05-target-currentness`; this evidence-only successor is the
+  final Block 5 tracker checkpoint.
 
 ### Stop
 

@@ -64,6 +64,9 @@ from .records import (
     Question,
     RecordRef,
     SemanticRecord,
+    TargetCapabilities,
+    TargetComparison,
+    TargetComponent,
     TargetRef,
     TargetSnapshot,
     Trial,
@@ -75,6 +78,7 @@ from .records import (
 from .reviews import ReviewPolicy
 from .selections import SelectionPolicy
 from .selector_policies import SelectorPolicy
+from .targets import Target, TargetPolicy
 
 __all__ = [
     "ArtifactRef",
@@ -131,6 +135,11 @@ __all__ = [
     "STANDARD_CLAIM_KINDS",
     "TargetRef",
     "TargetSnapshot",
+    "Target",
+    "TargetCapabilities",
+    "TargetComparison",
+    "TargetComponent",
+    "TargetPolicy",
     "Trial",
     "TrialDisposition",
     "TrialResult",
