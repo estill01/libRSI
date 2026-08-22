@@ -1,7 +1,7 @@
 # Block 20A — libRSI Server, Service API, and MCP Server
 
 **Program:** libRSI Architecture Expansion  
-**Companion to:** `architecture-expansion-implementation-tracker.md`, `parallel-implementation-plan.md`, and `implementation-status.md`  
+**Companion to:** `architecture-expansion-implementation-tracker.md`, `parallel-implementation-plan.md`, `scope-boundaries-and-early-dogfood-revision.md`, and `implementation-status.md`  
 **Status:** `not-started`  
 **Owner / workstream:** —  
 **Branch / PR:** —  
@@ -13,7 +13,9 @@
 
 Make libRSI available as a long-running local or remote service, including a maintained Model Context Protocol (MCP) server, without creating a second libRSI execution model.
 
-The server is an interface/deployment layer over the same canonical runtime used by the Python API and CLI:
+The server is an **optional interface/deployment projection**, not a separate product-semantic layer and not a generic server platform for libRSI to compete in.
+
+It sits over the same canonical runtime used by the Python API and CLI:
 
 ```text
                          canonical libRSI runtime
@@ -28,15 +30,40 @@ The server is an interface/deployment layer over the same canonical runtime used
                                    HTTP / JSON                   MCP
 ```
 
-Embedded Python, external-host stepping, managed execution, CLI, HTTP, and MCP must not have separate workflow semantics, state machines, or evidence models.
+Embedded Python, external-host stepping, managed execution, CLI, HTTP, and MCP must not have separate workflow semantics, state machines, evidence models, candidate/application rules, or persistence authorities.
+
+## Scheduling rule
+
+Block 20A remains in the program, but HTTP/MCP compatibility must **not** be stabilized around incomplete semantic contracts merely because a server skeleton can technically be implemented early.
+
+A transport-independent `LibRSIService` facade may be designed or prototyped earlier when doing so validates the service boundary. Broad HTTP/MCP surface stabilization should wait until the contracts being projected have been exercised by real workflows.
+
+Recommended sequence:
+
+```text
+Run / Action / ActionResult / Capability stable
+                ↓
+stepped Python + external-host execution exercised
+                ↓
+workflow-owned Outcome/result contracts stabilize
+                ↓
+CLI / external-agent schemas substantially stabilize
+                ↓
+LibRSIService
+                ↓
+HTTP / JSON + MCP projections
+```
+
+This Block is therefore **late on the compatibility critical path**, even though portions of its implementation can be prototyped earlier.
 
 ## Depends on
 
-**Hard contracts:**
+**Hard contracts for public transport stabilization:**
 
-- Block 7 — durable `Run / Event / State / Action` engine;
-- Block 8 — capability protocols and control-plane-neutral dispatch;
-- Block 19 — canonical `Outcome` and serialization contracts.
+- Block 7 — durable `Run / Event / State / Action / ActionResult` semantics;
+- Block 8 — capability and authority semantics;
+- Block 19 — canonical Outcome/serialization projection contracts sufficiently stable for transport;
+- Block 20 — shared external-agent schemas substantially stable so CLI/service/MCP do not diverge.
 
 **Integration dependencies:**
 
@@ -44,14 +71,13 @@ Embedded Python, external-host stepping, managed execution, CLI, HTTP, and MCP m
 - Block 11 for investigation operations;
 - Block 15 for improvement operations;
 - Block 16 for application/verification operations where exposed;
-- Block 17 for explicitly authorized RSI/meta-improvement operations;
-- Block 20 for shared external-agent schemas where the CLI and service expose equivalent operations.
+- Block 17 for explicitly authorized RSI/meta-improvement operations.
 
-The service framework, run/status endpoints, and MCP transport can begin once Blocks 7, 8, and the relevant portion of Block 19 are interface-stable; it does not need to wait for every workflow to be complete.
+A workflow must only be exposed when its underlying canonical API actually exists. The service layer must report capability absence explicitly rather than simulate planned support.
 
 ---
 
-## 1. Generic libRSI service layer
+## 1. Transport-independent libRSI service layer
 
 Introduce a transport-independent service/facade, conceptually:
 
@@ -75,6 +101,8 @@ The exact method names may differ, but the service must delegate into the canoni
 
 The same service methods should back HTTP and MCP where practical.
 
+The service facade itself is the useful abstraction. HTTP and MCP are transports over it.
+
 ### Required basic operations
 
 At minimum expose service operations for:
@@ -96,7 +124,7 @@ query relevant knowledge/evidence
 inspect server/runtime capabilities
 ```
 
-Operations that are not yet implemented by the underlying runtime must report capability absence explicitly rather than simulate support at the service layer.
+Operations that are not implemented by the underlying runtime must report capability absence explicitly rather than simulate support at the service layer.
 
 ---
 
@@ -119,7 +147,9 @@ outcome(rsi-123)
 
 Protocol/session state must not become the authoritative location of libRSI workflow state.
 
-This makes service requests restartable, horizontally routable, and compatible with external agents that reconnect between actions.
+This makes service requests restartable, horizontally routable in principle, and compatible with external agents that reconnect between actions.
+
+Horizontal scaling itself is not a requirement of this Block.
 
 ---
 
@@ -127,7 +157,9 @@ This makes service requests restartable, horizontally routable, and compatible w
 
 Provide a basic maintained remote service interface over the canonical service layer.
 
-The exact HTTP framework is an implementation decision, but the API should expose versioned structured schemas rather than prose-driven endpoints.
+The exact HTTP framework is an implementation decision. libRSI should use an appropriate mature HTTP framework rather than creating a proprietary web stack.
+
+The API should expose versioned structured schemas rather than prose-driven endpoints.
 
 A reasonable conceptual surface is:
 
@@ -147,7 +179,7 @@ GET  /v1/capabilities
 GET  /health
 ```
 
-Exact endpoint structure may change when the runtime schemas stabilize.
+Exact endpoint structure must follow the stabilized runtime/outcome schemas rather than forcing those schemas to conform to an early HTTP design.
 
 ### Requirements
 
@@ -161,7 +193,21 @@ Exact endpoint structure may change when the runtime schemas stabilize.
 - health/readiness endpoints;
 - graceful shutdown without losing durable run state;
 - multiple concurrent runs;
-- optional target/project namespace isolation.
+- optional target/project namespace isolation where needed.
+
+### Explicit non-goals
+
+The first libRSI HTTP server is **not** required to become:
+
+- a general API gateway;
+- a distributed worker scheduler;
+- a generic workflow service;
+- a multi-tenant control plane;
+- a UI application platform;
+- a notification system;
+- an observability platform.
+
+Those concerns can be added only when a real deployment need justifies them and should remain separable from canonical libRSI semantics.
 
 ---
 
@@ -192,7 +238,7 @@ librsi_capabilities
 
 Names may be refined, but MCP operations should not invent semantics absent from the normal service/Python APIs.
 
-Long-running operations should normally return an explicit libRSI run handle rather than holding one tool invocation open for the complete RSI workflow.
+Long-running operations should normally return an explicit libRSI run handle rather than holding one tool invocation open for the complete workflow.
 
 ### MCP resources
 
@@ -210,12 +256,14 @@ Resources are projections of authoritative stores; they do not become a second s
 
 ### MCP transports
 
-Support the useful deployment modes available in the maintained MCP SDK/spec at implementation time. The intended initial modes are:
+Support useful deployment modes available in the maintained MCP SDK/spec at implementation time. The intended initial modes are:
 
 - **stdio** for local process-spawned integrations;
-- **Streamable HTTP** for remote/network service use.
+- a maintained modern HTTP transport for remote/network service use.
 
-Do not build the libRSI application state around transport-level sessions. Persistent run state belongs to libRSI and is addressed through explicit run IDs.
+Do not build libRSI application state around transport-level sessions. Persistent run state belongs to libRSI and is addressed through explicit run IDs.
+
+MCP availability is a convenience integration surface, not a semantic dependency for the core product.
 
 ---
 
@@ -247,6 +295,8 @@ Remote callers must be able to inspect this rather than infer it from failures.
 
 The server must preserve the same `automatic / external / human-reserved / unavailable` capability distinctions defined by Block 8.
 
+A configured external optimizer, coding agent, experiment backend, or orchestrator is reported as a capability/backend. Its presence does not grant it epistemic truth, candidate-acceptance, or application authority beyond the explicitly configured contract.
+
 ---
 
 ## 6. Security and authority boundaries
@@ -263,7 +313,7 @@ Requirements:
 - secrets must not be emitted through outcomes, evidence projections, logs, MCP resources, or error responses;
 - server configuration determines which capabilities may execute automatically.
 
-Fine-grained multi-tenant authorization can be expanded later, but the first server must not conflate network access with unrestricted RSI authority.
+Fine-grained multi-tenant authorization can be expanded later, but it is not required merely to satisfy Block 20A. The first server must not conflate network access with unrestricted RSI authority.
 
 ---
 
@@ -280,7 +330,7 @@ At minimum:
 - action/result correlation by exact IDs;
 - cancellation/pause semantics delegated to the runtime rather than fabricated by the transport.
 
-Horizontal scaling is not required for the first implementation, but the service boundary should not preclude it.
+Horizontal scaling is explicitly not required for the first implementation. The service boundary should simply avoid assumptions that would make later scaling impossible.
 
 ---
 
@@ -299,6 +349,8 @@ basic runtime metrics hooks
 ```
 
 Operational telemetry must not automatically become scientific evidence or claim support.
+
+Use existing logging/metrics/tracing ecosystems through standard hooks where practical. Do not build a proprietary observability platform as part of this Block.
 
 ---
 
@@ -324,6 +376,8 @@ librsi mcp
 ```
 
 Exact packaging/CLI names are deferred to implementation.
+
+The chosen HTTP/MCP frameworks remain replaceable implementation dependencies, not semantic record dependencies.
 
 ---
 
@@ -355,6 +409,10 @@ Verify duplicate or stale submissions cannot advance a run twice.
 
 Verify a server lacking an `Applier` can return an accepted intervention but cannot silently apply it.
 
+### G. Transport neutrality
+
+Prove that transport-specific request/session metadata does not alter the canonical run/evidence/outcome identity for semantically equivalent submissions.
+
 ---
 
 ## Acceptance
@@ -371,13 +429,15 @@ Block 20A may be marked `verified` only when:
 - configured capabilities/authority are inspectable and enforced;
 - stale/duplicate result submission fails safely;
 - server unavailability/restart does not corrupt durable libRSI state;
-- maintained integration tests cover the basic service and MCP paths.
+- transport/session state is not required for semantic correctness;
+- maintained integration tests cover the basic service and MCP paths;
+- the implementation uses mature infrastructure frameworks where appropriate rather than introducing a competing generic server/orchestration/observability platform.
 
 ---
 
 ## Parallelization placement
 
-Treat this as **Block 20A**, a sibling of Block 20 rather than a successor to all product work.
+Treat this as **Block 20A**, a sibling interface/deployment Block whose public compatibility commitment comes after the semantic contracts it projects.
 
 Recommended schedule:
 
@@ -385,19 +445,22 @@ Recommended schedule:
 Freeze C:
 Run / Action / ActionResult / Capability
              │
-             ├──────── CLI / external-agent work (Block 20)
+             ├──────── stepped Python / external-host dogfood
              │
-             └──────── service facade + server skeleton (Block 20A)
+             └──────── optional LibRSIService prototype
                                    │
-                         Outcome schema stabilizes
+                    real workflow Outcome schemas stabilize
                                    │
-                         HTTP + MCP projections
+                     CLI / agent schema stabilizes
+                                   │
+                     HTTP + MCP projections
 ```
 
-The service framework and run/status/action interfaces can therefore proceed in parallel with later investigation/improvement features; each workflow is exposed as its canonical API becomes available.
+Do not put Block 20A on the semantic critical path to Validation, Investigation, Improvement, or RSI.
 
 ---
 
 ## Update log
 
 - **2026-08-21:** Added Block 20A after architecture review identified that the program covered CLI/external-agent integration but did not explicitly cover a libRSI server or MCP server. Initialized status as `not-started`.
+- **2026-08-21:** Revised scheduling and scope boundaries after broader architecture review: keep a transport-independent service facade, but defer HTTP/MCP compatibility commitment until runtime/outcome/external-agent contracts stabilize; explicitly treat server/MCP as thin optional projections rather than a generic infrastructure platform.
