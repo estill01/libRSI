@@ -236,7 +236,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 1 | Canonical immutable records and identity | 0 | `accepted` |
 | 2 | Hypothesis/experiment referential integrity | 1 | `accepted` |
 | 3 | General epistemics and aggregation | 1, 2 | `accepted` |
-| 4 | Generic experiments, metrics, and evaluation | 1, 3 | `in-progress` |
+| 4 | Generic experiments, metrics, and evaluation | 1, 3 | `accepted` |
 | 5 | Targets, snapshots, and currentness | 1, 4 | `not-started` |
 | 6 | Persistent knowledge and SQLite store | 1, 5 | `not-started` |
 | 7 | Durable semantic Run/Event/Action engine | 1, 6 | `not-started` |
@@ -558,7 +558,7 @@ Stop before generic metric, trial, and experiment execution semantics.
 
 ## Block 4 — Generic experiments, measurements, metrics, and evaluation
 
-Status: `in-progress`
+Status: `accepted`
 
 ### Objective
 
@@ -610,7 +610,67 @@ Review criterion identity, invalid versus negative outcomes, repeated-trial sema
 
 ### Completion evidence
 
-Pending.
+- Repository commit: `49f2aac134c2891e16caaf9da6b3e6448eedbb36`.
+- External/domain revision or root: not applicable; Block 4 is a deterministic
+  experiment-semantics boundary with no external experiment service.
+- Inputs: authoritative base `2e74e21429b50a68216f829f4d1fd75a1df69ccf`,
+  accepted Blocks 1–3, and tracker capability-frame SHA-256
+  `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+- Outputs: canonical `Metric`, `DecisionRule`, extended `ExperimentSpec`, `Trial`,
+  `Measurement`, and `TrialResult` records; `src/librsi/evaluation.py`; the
+  command-experiment adapter; public exports/composition; and
+  `tests/test_block4_evaluation.py`.
+- Focused validation: Python 3.12 focused Block 4 suite, `24 passed`; command and
+  `0.2.0` compatibility tests remained green in the full suite.
+- Mapped validation: Python 3.12 Ruff and format checks passed; mypy passed all
+  17 source files; full suite `95 passed` at `91.57%` branch coverage; sdist/wheel
+  build and isolated installed-wheel import smoke passed.
+- Candidate freeze: content root
+  `e73ea466ed86945fedc786c7a3dc40829cf6604d9fce9a4969acf8b219e33acc`
+  remained unchanged through mapped validation and final independent review.
+- Remediation closure: four read-only review rounds found and rechecked exactness
+  gaps. Evidence projection now replays exact trial results; every result uses the
+  deterministic prepared-trial root and concrete trial/snapshot-bound observations;
+  impossible valid-count rules and incomplete trial rosters fail closed; invalid
+  observations cannot be declared valid; and neutral results retain provenance
+  validation while remaining neutral in scoring.
+- Resource posture: small deterministic in-memory matrices only; no subprocess was
+  executed by the generic evaluator and no provider, database, hosted model,
+  registry, dashboard, or external experiment service was used.
+- Independent review: Hubble, read-only, against base
+  `2e74e21429b50a68216f829f4d1fd75a1df69ccf` and the final frozen candidate root;
+  final disposition `accepted` with no material findings.
+- Product-capability review:
+  - Trigger: consequential posture.
+  - Frame identity: `docs/tracker.md`, Block 4,
+    `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+  - Capability added or preserved: Claims and Hypotheses now support exact,
+    repeated, validity-aware measurement against frozen metrics and decision rules,
+    while command argv/cwd identity and invalid-run neutrality remain intact.
+  - Paths compared: command-only expansion in `experiments.py`; bounded-general
+    records plus evaluator and command adapter; experiment-platform subsystem.
+  - Selected level and owner: bounded-general `evaluation.py`, canonical state in
+    `records.py`, and `experiments.py` retained as the command-specific adapter.
+  - Protected-capability result: spec/rule/trial/result/provenance identity,
+    complete trial accounting, guardrail failure, external projection, and legacy
+    command behavior are covered by focused and compatibility tests.
+  - Rejected alternatives: the local path would keep non-command hypothesis tests
+    impossible; a platform path would add speculative MLOps, backend, dashboard,
+    registry, and persistence concerns owned by later blocks or explicit non-goals.
+  - Tradeoffs and uncertainty: mean aggregation and deterministic threshold or
+    baseline-delta rules are the reference semantics; richer statistical policies
+    remain replaceable future implementations rather than implicit behavior.
+  - Frozen-candidate proof: commit
+    `49f2aac134c2891e16caaf9da6b3e6448eedbb36`, candidate root above, `95 passed`,
+    and accepted independent adversarial review.
+- Retained open work: none within Block 4.
+- Decision/continuation posture: not applicable; Block 5 is dependency-safe.
+- Post-block audit: accepted; no target currentness, persistence, MLOps, backend,
+  dashboard, or registry implementation crossed the Block 4 Stop.
+- Git durability: implementation commit
+  `49f2aac134c2891e16caaf9da6b3e6448eedbb36` was pushed non-force to
+  `origin/codex/block-04-experiment-evaluation`; this evidence-only successor is
+  the final Block 4 tracker checkpoint.
 
 ### Stop
 
