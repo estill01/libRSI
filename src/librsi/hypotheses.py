@@ -23,6 +23,29 @@ _SUPPORTED_HYPOTHESIS_STATUSES = frozenset(
 )
 
 
+def _optional_mapping(value: Mapping[str, Any] | None, label: str) -> Mapping[str, Any]:
+    if value is None:
+        return {}
+    if not isinstance(value, Mapping):
+        raise TypeError(f"{label} must be a mapping")
+    return value
+
+
+def _prediction_sequence(
+    predictions: Sequence[Mapping[str, Any]],
+) -> tuple[Mapping[str, Any], ...]:
+    if isinstance(predictions, (str, bytes, bytearray)) or not isinstance(
+        predictions, Sequence
+    ):
+        raise TypeError("canonical hypothesis predictions must be a sequence of mappings")
+    items = tuple(predictions)
+    if not items:
+        raise ValueError("canonical hypotheses require at least one prediction")
+    if any(not isinstance(item, Mapping) for item in items):
+        raise TypeError("canonical hypothesis predictions must contain only mappings")
+    return items
+
+
 @dataclass(frozen=True)
 class HypothesisPolicy:
     """Evidence update policy for falsifiable causal hypotheses.
@@ -66,21 +89,19 @@ class HypothesisPolicy:
 
         if not isinstance(target, TargetRef):
             raise TypeError("canonical hypotheses require an exact TargetRef")
-        prediction_items = tuple(predictions)
-        if not prediction_items:
-            raise ValueError("canonical hypotheses require at least one prediction")
+        prediction_items = _prediction_sequence(predictions)
         if status not in _SUPPORTED_HYPOTHESIS_STATUSES:
             raise ValueError(f"unsupported hypothesis status: {status}")
         return Hypothesis(
             target=target,
             statement=statement,
-            causal_model=causal_model or {},
+            causal_model=_optional_mapping(causal_model, "hypothesis causal model"),
             predictions=prediction_items,
             source_refs=tuple(source_refs),
             confidence=confidence,
             status=status,
             lineage=tuple(lineage),
-            metadata=metadata or {},
+            metadata=_optional_mapping(metadata, "hypothesis metadata"),
         )
 
     def apply(self, *, hypothesis: Hypothesis, evidence: Evidence) -> Hypothesis:
