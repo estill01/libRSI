@@ -17,21 +17,31 @@ _HEX = frozenset(string.hexdigits.lower())
 
 
 def _require_text(value: str, label: str) -> str:
-    normalized = str(value).strip()
+    if not isinstance(value, str):
+        raise TypeError(f"{label} must be a string")
+    normalized = value.strip()
     if not normalized:
         raise ValueError(f"{label} is required")
     return normalized
 
 
 def _validate_root(value: str) -> str:
-    normalized = str(value).lower()
+    if not isinstance(value, str):
+        raise TypeError("record root must be a string")
+    normalized = value.lower()
     if len(normalized) != 64 or any(character not in _HEX for character in normalized):
-        raise ValueError("record roots must be lowercase SHA-256 hex digests")
+        raise ValueError("record roots must be SHA-256 hex digests")
     return normalized
 
 
 def _freeze_map(value: Mapping[str, Any] | FrozenMap | None) -> FrozenMap:
-    return value if isinstance(value, FrozenMap) else FrozenMap(value)
+    if value is None:
+        return FrozenMap()
+    if isinstance(value, FrozenMap):
+        return value
+    if not isinstance(value, Mapping):
+        raise TypeError("canonical mapping fields require a mapping")
+    return FrozenMap(value)
 
 
 def _text_tuple(value: Sequence[str] | None) -> tuple[str, ...]:
@@ -39,6 +49,8 @@ def _text_tuple(value: Sequence[str] | None) -> tuple[str, ...]:
         return ()
     if isinstance(value, str):
         value = (value,)
+    if isinstance(value, (bytes, bytearray)) or not isinstance(value, Sequence):
+        raise TypeError("text collections require a sequence of strings")
     return tuple(_require_text(item, "text item") for item in value)
 
 
@@ -47,7 +59,11 @@ def _record_refs(
     *,
     label: str = "record references",
 ) -> tuple[RecordRef, ...]:
-    refs = tuple(value or ())
+    if value is None:
+        return ()
+    if isinstance(value, (str, bytes, bytearray)) or not isinstance(value, Sequence):
+        raise TypeError(f"{label} must be a sequence of RecordRef values")
+    refs = tuple(value)
     if any(not isinstance(item, RecordRef) for item in refs):
         raise TypeError(f"{label} must contain RecordRef values")
     return refs
@@ -56,8 +72,12 @@ def _record_refs(
 def _evidence_refs(
     value: Sequence[EvidenceRef | RecordRef] | None,
 ) -> tuple[EvidenceRef, ...]:
+    if value is None:
+        return ()
+    if isinstance(value, (str, bytes, bytearray)) or not isinstance(value, Sequence):
+        raise TypeError("evidence references must be a sequence of record references")
     refs: list[EvidenceRef] = []
-    for item in value or ():
+    for item in value:
         if isinstance(item, EvidenceRef):
             refs.append(item)
         elif isinstance(item, RecordRef) and item.record_type == "evidence":
@@ -70,17 +90,37 @@ def _evidence_refs(
 def _mapping_tuple(
     value: Sequence[Mapping[str, Any] | FrozenMap] | None,
 ) -> tuple[FrozenMap, ...]:
-    return tuple(_freeze_map(item) for item in (value or ()))
+    if value is None:
+        return ()
+    if isinstance(value, (str, bytes, bytearray)) or not isinstance(value, Sequence):
+        raise TypeError("mapping collections require a sequence of mappings")
+    return tuple(_freeze_map(item) for item in value)
 
 
-def _finite_number(value: float, label: str) -> float:
+def _finite_number(value: float | int, label: str) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise TypeError(f"{label} must be a number")
     number = float(value)
     if not math.isfinite(number):
         raise ValueError(f"{label} must be finite")
     return number
 
 
-@dataclass(frozen=True)
+def _require_bool(value: bool, label: str) -> bool:
+    if not isinstance(value, bool):
+        raise TypeError(f"{label} must be a boolean")
+    return value
+
+
+def _nonnegative_int(value: int, label: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{label} must be an integer")
+    if value < 0:
+        raise ValueError(f"{label} must be nonnegative")
+    return value
+
+
+@dataclass(frozen=True, eq=False)
 class RecordRef:
     """Exact, type-bound reference to a canonical semantic record."""
 
@@ -95,14 +135,30 @@ class RecordRef:
         )
         object.__setattr__(self, "root", _validate_root(self.root))
 
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, RecordRef):
+            return NotImplemented
+        return self.record_type == other.record_type and self.root == other.root
+
+    def __hash__(self) -> int:
+        return hash((self.record_type, self.root))
+
     @classmethod
     def from_record(cls, record: SemanticRecord) -> RecordRef:
+        if not isinstance(record, SemanticRecord):
+            raise TypeError("RecordRef requires a SemanticRecord")
         return cls(record.record_type, record.root)
 
     def matches(self, record: SemanticRecord) -> bool:
-        return self.record_type == record.record_type and self.root == record.root
+        return (
+            isinstance(record, SemanticRecord)
+            and self.record_type == record.record_type
+            and self.root == record.root
+        )
 
     def require(self, record: SemanticRecord) -> SemanticRecord:
+        if not isinstance(record, SemanticRecord):
+            raise TypeError("record reference matching requires a SemanticRecord")
         if not self.matches(record):
             raise ValueError("record reference does not match the supplied semantic record")
         return record
@@ -124,10 +180,14 @@ class EvidenceRef(RecordRef):
         super().__init__("evidence", root)
 
     @classmethod
-    def from_evidence(cls, evidence: Evidence) -> EvidenceRef:
-        if not isinstance(evidence, Evidence):
+    def from_record(cls, record: SemanticRecord) -> EvidenceRef:
+        if not isinstance(record, Evidence):
             raise TypeError("EvidenceRef requires an Evidence record")
-        return cls(evidence.root)
+        return cls(record.root)
+
+    @classmethod
+    def from_evidence(cls, evidence: Evidence) -> EvidenceRef:
+        return cls.from_record(evidence)
 
 
 def _identity_value(value: Any) -> Any:
@@ -199,6 +259,8 @@ class SemanticRecord:
     metadata: Mapping[str, Any] = field(
         default_factory=FrozenMap,
         repr=False,
+        compare=False,
+        hash=False,
     )
     root: str = field(init=False)
 
@@ -208,16 +270,8 @@ class SemanticRecord:
             "lineage",
             _record_refs(self.lineage, label="record lineage"),
         )
-        object.__setattr__(
-            self,
-            "metadata",
-            _freeze_map(self.metadata),
-        )
-        object.__setattr__(
-            self,
-            "root",
-            digest(self.identity_payload()),
-        )
+        object.__setattr__(self, "metadata", _freeze_map(self.metadata))
+        object.__setattr__(self, "root", digest(self.identity_payload()))
 
     @property
     def record_type(self) -> str:
@@ -282,21 +336,9 @@ class TargetRef(SemanticRecord):
     locator: Mapping[str, Any] = field(default_factory=FrozenMap)
 
     def __post_init__(self) -> None:
-        object.__setattr__(
-            self,
-            "target_id",
-            _require_text(self.target_id, "target id"),
-        )
-        object.__setattr__(
-            self,
-            "kind",
-            _require_text(self.kind, "target kind"),
-        )
-        object.__setattr__(
-            self,
-            "locator",
-            _freeze_map(self.locator),
-        )
+        object.__setattr__(self, "target_id", _require_text(self.target_id, "target id"))
+        object.__setattr__(self, "kind", _require_text(self.kind, "target kind"))
+        object.__setattr__(self, "locator", _freeze_map(self.locator))
         super().__post_init__()
 
 
@@ -337,20 +379,9 @@ class Claim(SemanticRecord):
     scope: Mapping[str, Any] = field(default_factory=FrozenMap)
 
     def __post_init__(self) -> None:
-        object.__setattr__(
-            self,
-            "statement",
-            _require_text(self.statement, "claim statement"),
-        )
-        object.__setattr__(
-            self,
-            "kind",
-            _require_text(self.kind, "claim kind"),
-        )
-        if self.target is not None and not isinstance(
-            self.target,
-            TargetRef,
-        ):
+        object.__setattr__(self, "statement", _require_text(self.statement, "claim statement"))
+        object.__setattr__(self, "kind", _require_text(self.kind, "claim kind"))
+        if self.target is not None and not isinstance(self.target, TargetRef):
             raise TypeError("claim target must be a TargetRef")
         object.__setattr__(self, "scope", _freeze_map(self.scope))
         super().__post_init__()
@@ -366,21 +397,10 @@ class Question(SemanticRecord):
     context: Mapping[str, Any] = field(default_factory=FrozenMap)
 
     def __post_init__(self) -> None:
-        object.__setattr__(
-            self,
-            "prompt",
-            _require_text(self.prompt, "question prompt"),
-        )
-        if self.target is not None and not isinstance(
-            self.target,
-            TargetRef,
-        ):
+        object.__setattr__(self, "prompt", _require_text(self.prompt, "question prompt"))
+        if self.target is not None and not isinstance(self.target, TargetRef):
             raise TypeError("question target must be a TargetRef")
-        object.__setattr__(
-            self,
-            "context",
-            _freeze_map(self.context),
-        )
+        object.__setattr__(self, "context", _freeze_map(self.context))
         super().__post_init__()
 
 
@@ -394,15 +414,8 @@ class Goal(SemanticRecord):
     scope: Mapping[str, Any] = field(default_factory=FrozenMap)
 
     def __post_init__(self) -> None:
-        object.__setattr__(
-            self,
-            "statement",
-            _require_text(self.statement, "goal statement"),
-        )
-        if self.target is not None and not isinstance(
-            self.target,
-            TargetRef,
-        ):
+        object.__setattr__(self, "statement", _require_text(self.statement, "goal statement"))
+        if self.target is not None and not isinstance(self.target, TargetRef):
             raise TypeError("goal target must be a TargetRef")
         object.__setattr__(self, "scope", _freeze_map(self.scope))
         super().__post_init__()
@@ -423,10 +436,7 @@ class Constraint(SemanticRecord):
             "statement",
             _require_text(self.statement, "constraint statement"),
         )
-        if self.target is not None and not isinstance(
-            self.target,
-            TargetRef,
-        ):
+        if self.target is not None and not isinstance(self.target, TargetRef):
             raise TypeError("constraint target must be a TargetRef")
         object.__setattr__(self, "scope", _freeze_map(self.scope))
         super().__post_init__()
@@ -451,41 +461,20 @@ class Hypothesis(SemanticRecord):
             "statement",
             _require_text(self.statement, "hypothesis statement"),
         )
-        if self.target is not None and not isinstance(
-            self.target,
-            TargetRef,
-        ):
+        if self.target is not None and not isinstance(self.target, TargetRef):
             raise TypeError("hypothesis target must be a TargetRef")
-        object.__setattr__(
-            self,
-            "causal_model",
-            _freeze_map(self.causal_model),
-        )
-        object.__setattr__(
-            self,
-            "predictions",
-            _mapping_tuple(self.predictions),
-        )
+        object.__setattr__(self, "causal_model", _freeze_map(self.causal_model))
+        object.__setattr__(self, "predictions", _mapping_tuple(self.predictions))
         object.__setattr__(
             self,
             "source_refs",
-            _record_refs(
-                self.source_refs,
-                label="hypothesis source references",
-            ),
+            _record_refs(self.source_refs, label="hypothesis source references"),
         )
-        confidence = _finite_number(
-            self.confidence,
-            "hypothesis confidence",
-        )
+        confidence = _finite_number(self.confidence, "hypothesis confidence")
         if not 0.0 <= confidence <= 1.0:
             raise ValueError("hypothesis confidence must be between zero and one")
         object.__setattr__(self, "confidence", confidence)
-        object.__setattr__(
-            self,
-            "status",
-            _require_text(self.status, "hypothesis status"),
-        )
+        object.__setattr__(self, "status", _require_text(self.status, "hypothesis status"))
         super().__post_init__()
 
 
@@ -511,18 +500,12 @@ class Evidence(SemanticRecord):
         object.__setattr__(
             self,
             "subject_refs",
-            _record_refs(
-                self.subject_refs,
-                label="evidence subject references",
-            ),
+            _record_refs(self.subject_refs, label="evidence subject references"),
         )
         object.__setattr__(
             self,
             "source_refs",
-            _record_refs(
-                self.source_refs,
-                label="evidence source references",
-            ),
+            _record_refs(self.source_refs, label="evidence source references"),
         )
         if self.target_snapshot is not None and not isinstance(
             self.target_snapshot,
@@ -562,28 +545,16 @@ class ExperimentSpec(SemanticRecord):
             "experiment_id",
             _require_text(self.experiment_id, "experiment id"),
         )
-        object.__setattr__(
-            self,
-            "kind",
-            _require_text(self.kind, "experiment kind"),
-        )
+        object.__setattr__(self, "kind", _require_text(self.kind, "experiment kind"))
         if self.target_snapshot is not None and not isinstance(
             self.target_snapshot,
             TargetSnapshot,
         ):
             raise TypeError("experiment target snapshot must be a TargetSnapshot")
         object.__setattr__(self, "design", _freeze_map(self.design))
-        object.__setattr__(
-            self,
-            "criteria",
-            _freeze_map(self.criteria),
-        )
+        object.__setattr__(self, "criteria", _freeze_map(self.criteria))
         object.__setattr__(self, "inputs", _freeze_map(self.inputs))
-        object.__setattr__(
-            self,
-            "environment",
-            _freeze_map(self.environment),
-        )
+        object.__setattr__(self, "environment", _freeze_map(self.environment))
         object.__setattr__(
             self,
             "requested_measurements",
@@ -604,11 +575,7 @@ class Observation(SemanticRecord):
     valid: bool = True
 
     def __post_init__(self) -> None:
-        object.__setattr__(
-            self,
-            "kind",
-            _require_text(self.kind, "observation kind"),
-        )
+        object.__setattr__(self, "kind", _require_text(self.kind, "observation kind"))
         object.__setattr__(self, "value", freeze(self.value))
         if self.target_snapshot is not None and not isinstance(
             self.target_snapshot,
@@ -618,12 +585,9 @@ class Observation(SemanticRecord):
         object.__setattr__(
             self,
             "source_refs",
-            _record_refs(
-                self.source_refs,
-                label="observation source references",
-            ),
+            _record_refs(self.source_refs, label="observation source references"),
         )
-        object.__setattr__(self, "valid", bool(self.valid))
+        object.__setattr__(self, "valid", _require_bool(self.valid, "observation valid"))
         super().__post_init__()
 
 
@@ -644,22 +608,12 @@ class Trial(SemanticRecord):
             or self.experiment.record_type != "experiment_spec"
         ):
             raise TypeError("trial experiment must reference an ExperimentSpec")
-        index = int(self.index)
-        if index < 0:
-            raise ValueError("trial index must be nonnegative")
-        object.__setattr__(self, "index", index)
-        object.__setattr__(
-            self,
-            "status",
-            _require_text(self.status, "trial status"),
-        )
+        object.__setattr__(self, "index", _nonnegative_int(self.index, "trial index"))
+        object.__setattr__(self, "status", _require_text(self.status, "trial status"))
         object.__setattr__(
             self,
             "observation_refs",
-            _record_refs(
-                self.observation_refs,
-                label="trial observation references",
-            ),
+            _record_refs(self.observation_refs, label="trial observation references"),
         )
         object.__setattr__(self, "data", _freeze_map(self.data))
         super().__post_init__()
@@ -677,11 +631,7 @@ class Measurement(SemanticRecord):
     observation_refs: tuple[RecordRef, ...] = field(default_factory=tuple)
 
     def __post_init__(self) -> None:
-        object.__setattr__(
-            self,
-            "metric",
-            _require_text(self.metric, "measurement metric"),
-        )
+        object.__setattr__(self, "metric", _require_text(self.metric, "measurement metric"))
         object.__setattr__(self, "value", freeze(self.value))
         object.__setattr__(
             self,
@@ -696,10 +646,7 @@ class Measurement(SemanticRecord):
         object.__setattr__(
             self,
             "observation_refs",
-            _record_refs(
-                self.observation_refs,
-                label="measurement observation references",
-            ),
+            _record_refs(self.observation_refs, label="measurement observation references"),
         )
         super().__post_init__()
 
@@ -718,30 +665,20 @@ class Evaluation(SemanticRecord):
         object.__setattr__(
             self,
             "subject_refs",
-            _record_refs(
-                self.subject_refs,
-                label="evaluation subject references",
-            ),
+            _record_refs(self.subject_refs, label="evaluation subject references"),
         )
         if not self.subject_refs:
             raise ValueError("evaluation requires at least one subject reference")
         object.__setattr__(
             self,
             "disposition",
-            _require_text(
-                self.disposition,
-                "evaluation disposition",
-            ),
+            _require_text(self.disposition, "evaluation disposition"),
         )
         measurements = tuple(self.measurements)
         if any(not isinstance(item, Measurement) for item in measurements):
             raise TypeError("evaluation measurements must be Measurement records")
         object.__setattr__(self, "measurements", measurements)
-        object.__setattr__(
-            self,
-            "findings",
-            _freeze_map(self.findings),
-        )
+        object.__setattr__(self, "findings", _freeze_map(self.findings))
         super().__post_init__()
 
 
@@ -761,30 +698,20 @@ class ArtifactRef(SemanticRecord):
             "artifact_id",
             _require_text(self.artifact_id, "artifact id"),
         )
-        object.__setattr__(
-            self,
-            "uri",
-            _require_text(self.uri, "artifact uri"),
-        )
+        object.__setattr__(self, "uri", _require_text(self.uri, "artifact uri"))
         object.__setattr__(
             self,
             "content_digest",
             None
             if self.content_digest is None
-            else _require_text(
-                self.content_digest,
-                "artifact content digest",
-            ),
+            else _require_text(self.content_digest, "artifact content digest"),
         )
         object.__setattr__(
             self,
             "media_type",
             None
             if self.media_type is None
-            else _require_text(
-                self.media_type,
-                "artifact media type",
-            ),
+            else _require_text(self.media_type, "artifact media type"),
         )
         super().__post_init__()
 
@@ -805,35 +732,15 @@ class Intervention(SemanticRecord):
     def __post_init__(self) -> None:
         if not isinstance(self.target, TargetRef):
             raise TypeError("intervention target must be a TargetRef")
-        object.__setattr__(
-            self,
-            "kind",
-            _require_text(self.kind, "intervention kind"),
-        )
-        object.__setattr__(
-            self,
-            "specification",
-            _freeze_map(self.specification),
-        )
-        object.__setattr__(
-            self,
-            "rationale",
-            _freeze_map(self.rationale),
-        )
-        object.__setattr__(
-            self,
-            "expected_effects",
-            _freeze_map(self.expected_effects),
-        )
+        object.__setattr__(self, "kind", _require_text(self.kind, "intervention kind"))
+        object.__setattr__(self, "specification", _freeze_map(self.specification))
+        object.__setattr__(self, "rationale", _freeze_map(self.rationale))
+        object.__setattr__(self, "expected_effects", _freeze_map(self.expected_effects))
         constraints = tuple(self.constraints)
         if any(not isinstance(item, Constraint) for item in constraints):
             raise TypeError("intervention constraints must be Constraint records")
         object.__setattr__(self, "constraints", constraints)
-        object.__setattr__(
-            self,
-            "validation_plan",
-            _freeze_map(self.validation_plan),
-        )
+        object.__setattr__(self, "validation_plan", _freeze_map(self.validation_plan))
         super().__post_init__()
 
 
@@ -855,11 +762,7 @@ class Candidate(SemanticRecord):
             raise TypeError("candidate intervention must reference an Intervention")
         if not isinstance(self.target_snapshot, TargetSnapshot):
             raise TypeError("candidate target snapshot must be a TargetSnapshot")
-        object.__setattr__(
-            self,
-            "status",
-            _require_text(self.status, "candidate status"),
-        )
+        object.__setattr__(self, "status", _require_text(self.status, "candidate status"))
         artifacts = tuple(self.artifacts)
         if any(not isinstance(item, ArtifactRef) for item in artifacts):
             raise TypeError("candidate artifacts must be ArtifactRef records")
@@ -885,57 +788,35 @@ class Outcome(SemanticRecord):
     def __post_init__(self) -> None:
         if not isinstance(self.intent, RecordRef):
             raise TypeError("outcome intent must be a RecordRef")
-        object.__setattr__(
-            self,
-            "status",
-            _require_text(self.status, "outcome status"),
-        )
+        object.__setattr__(self, "status", _require_text(self.status, "outcome status"))
         if self.target_snapshot is not None and not isinstance(
             self.target_snapshot,
             TargetSnapshot,
         ):
             raise TypeError("outcome target snapshot must be a TargetSnapshot")
-        object.__setattr__(
-            self,
-            "conclusions",
-            _text_tuple(self.conclusions),
-        )
-        object.__setattr__(
-            self,
-            "evidence_refs",
-            _evidence_refs(self.evidence_refs),
-        )
+        object.__setattr__(self, "conclusions", _text_tuple(self.conclusions))
+        object.__setattr__(self, "evidence_refs", _evidence_refs(self.evidence_refs))
         interventions = _record_refs(
             self.intervention_refs,
             label="outcome intervention references",
         )
         if any(item.record_type != "intervention" for item in interventions):
             raise TypeError("outcome intervention references must point to interventions")
-        object.__setattr__(
-            self,
-            "intervention_refs",
-            interventions,
-        )
+        object.__setattr__(self, "intervention_refs", interventions)
         artifacts = tuple(self.artifacts)
         if any(not isinstance(item, ArtifactRef) for item in artifacts):
             raise TypeError("outcome artifacts must be ArtifactRef records")
         object.__setattr__(self, "artifacts", artifacts)
-        object.__setattr__(
-            self,
-            "unresolved",
-            _text_tuple(self.unresolved),
-        )
-        object.__setattr__(
-            self,
-            "next_actions",
-            _text_tuple(self.next_actions),
-        )
+        object.__setattr__(self, "unresolved", _text_tuple(self.unresolved))
+        object.__setattr__(self, "next_actions", _text_tuple(self.next_actions))
         super().__post_init__()
 
 
 def record_from_dict(payload: Mapping[str, Any]) -> SemanticRecord:
     """Reconstruct and integrity-check a record from durable data."""
 
+    if not isinstance(payload, Mapping):
+        raise TypeError("record payload must be a mapping")
     if payload.get("$schema") != _RECORD_SCHEMA:
         raise ValueError("unsupported semantic record schema")
 
@@ -959,10 +840,7 @@ def record_from_dict(payload: Mapping[str, Any]) -> SemanticRecord:
     decoded = _decode_value(data)
     if not isinstance(decoded, Mapping):
         raise ValueError("serialized semantic record data must be a mapping")
-    record = record_cls(
-        **dict(decoded),
-        metadata=dict(metadata),
-    )
+    record = record_cls(**dict(decoded), metadata=dict(metadata))
     if record.root != expected_root:
         raise ValueError("serialized semantic record root does not match its identity-bearing data")
     return record
@@ -979,6 +857,8 @@ def serialize_record(record: SemanticRecord) -> str:
 def deserialize_record(serialized: str) -> SemanticRecord:
     """Deserialize and integrity-check deterministic record JSON."""
 
+    if not isinstance(serialized, str):
+        raise TypeError("serialized semantic record must be text")
     payload = json.loads(serialized)
     if not isinstance(payload, Mapping):
         raise ValueError("serialized semantic record must contain a JSON object")
