@@ -64,9 +64,7 @@ def _texts(value: Sequence[str], label: str, *, required: bool = False) -> tuple
 RecordT = TypeVar("RecordT", bound=SemanticRecord)
 
 
-def _records(
-    value: Sequence[RecordT], expected: type[RecordT], label: str
-) -> tuple[RecordT, ...]:
+def _records(value: Sequence[RecordT], expected: type[RecordT], label: str) -> tuple[RecordT, ...]:
     if isinstance(value, (str, bytes, bytearray)) or not isinstance(value, Sequence):
         raise TypeError(f"{label} must be a sequence")
     items = tuple(value)
@@ -163,9 +161,7 @@ class Objective(SemanticRecord):
             raise ValueError("objective tolerance and minimum effect must be nonnegative")
         object.__setattr__(self, "tolerance", tolerance)
         object.__setattr__(self, "minimum_effect", effect)
-        direction = {"minimize": "decrease", "maximize": "increase", "target": "target"}[
-            semantics
-        ]
+        direction = {"minimize": "decrease", "maximize": "increase", "target": "target"}[semantics]
         if self.metric.direction != direction:
             raise ValueError("objective semantics conflict with its Metric direction")
         if semantics == "target":
@@ -351,21 +347,13 @@ def _require_contract_consistency(
 
     objective_by_metric: dict[str, Objective] = {}
     for objective in objectives:
-        previous_objective = objective_by_metric.setdefault(
-            objective.metric.metric_id, objective
-        )
+        previous_objective = objective_by_metric.setdefault(objective.metric.metric_id, objective)
         if previous_objective != objective:
             raise ValueError("a contract cannot contain contradictory objectives")
 
     required_baselines = {
-        item.metric.metric_id
-        for item in objectives
-        if item.semantics in {"minimize", "maximize"}
-    } | {
-        item.metric.metric_id
-        for item in guardrails
-        if item.semantics == "no-regression"
-    }
+        item.metric.metric_id for item in objectives if item.semantics in {"minimize", "maximize"}
+    } | {item.metric.metric_id for item in guardrails if item.semantics == "no-regression"}
     missing = required_baselines - set(baseline.measurements)
     if missing:
         raise ValueError(f"evaluation contract is missing required baselines: {sorted(missing)}")
@@ -379,9 +367,12 @@ def _require_contract_consistency(
         upper: float | None = None
         upper_inclusive = True
         for guardrail in metric_guardrails:
-            candidate_lower, candidate_lower_inclusive, candidate_upper, candidate_upper_inclusive = (
-                _guardrail_bound(guardrail, baseline)
-            )
+            (
+                candidate_lower,
+                candidate_lower_inclusive,
+                candidate_upper,
+                candidate_upper_inclusive,
+            ) = _guardrail_bound(guardrail, baseline)
             if candidate_lower is not None and (lower is None or candidate_lower > lower):
                 lower, lower_inclusive = candidate_lower, candidate_lower_inclusive
             elif candidate_lower is not None and candidate_lower == lower:
@@ -390,8 +381,10 @@ def _require_contract_consistency(
                 upper, upper_inclusive = candidate_upper, candidate_upper_inclusive
             elif candidate_upper is not None and candidate_upper == upper:
                 upper_inclusive = upper_inclusive and candidate_upper_inclusive
-        if lower is not None and upper is not None and (
-            lower > upper or (lower == upper and not (lower_inclusive and upper_inclusive))
+        if (
+            lower is not None
+            and upper is not None
+            and (lower > upper or (lower == upper and not (lower_inclusive and upper_inclusive)))
         ):
             raise ValueError(f"contradictory guardrails for metric {metric_id!r}")
 
@@ -410,6 +403,7 @@ def _require_contract_consistency(
                 target_low > upper or (target_low == upper and not upper_inclusive)
             ):
                 raise ValueError("target objective contradicts its guardrail")
+
 
 @register_record_type
 @dataclass(frozen=True, kw_only=True)

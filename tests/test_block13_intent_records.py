@@ -48,7 +48,9 @@ def test_objective_semantics_are_typed_and_metric_aligned(
 
 def test_guardrails_distinguish_no_regression_from_absolute_constraint() -> None:
     context = intent_context()
-    constraint = Constraint(statement="Contamination must remain below 4 ppm", target=context.target)
+    constraint = Constraint(
+        statement="Contamination must remain below 4 ppm", target=context.target
+    )
     absolute = Guardrail.create(
         guardrail_id="absolute-contamination",
         metric=context.guardrail.metric,

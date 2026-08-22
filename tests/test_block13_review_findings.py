@@ -109,9 +109,7 @@ def test_dispatcher_rejects_malformed_operationalization_before_runtime_mutation
     waiting = workflow.start(context.request, current_snapshot=context.snapshot).progress
     action = waiting.state.pending_actions[0]
     dispatcher = CapabilityDispatcher(
-        CapabilityRegistry(
-            routes=(CapabilityRoute("operationalize-goal", "reasoner", "external"),)
-        )
+        CapabilityRegistry(routes=(CapabilityRoute("operationalize-goal", "reasoner", "external"),))
     )
     malformed = ActionResult(
         action=action,
@@ -141,9 +139,7 @@ def test_external_dispatch_and_workflow_resume_share_canonical_runtime() -> None
     )
     envelope = make_operationalization_result(action=handoff.action, proposal=proposal)
     dispatcher = CapabilityDispatcher(
-        CapabilityRegistry(
-            routes=(CapabilityRoute("operationalize-goal", "reasoner", "external"),)
-        )
+        CapabilityRegistry(routes=(CapabilityRoute("operationalize-goal", "reasoner", "external"),))
     )
 
     submitted = dispatcher.submit(
@@ -238,9 +234,7 @@ def test_dispatch_and_typed_path_require_live_exact_currentness() -> None:
         state=context.snapshot.state,
     )
     dispatcher = CapabilityDispatcher(
-        CapabilityRegistry(
-            routes=(CapabilityRoute("operationalize-goal", "reasoner", "external"),)
-        )
+        CapabilityRegistry(routes=(CapabilityRoute("operationalize-goal", "reasoner", "external"),))
     )
     handoff = waiting.handoff
     assert handoff is not None
@@ -274,9 +268,7 @@ def test_policy_invalid_proposal_is_rejected_before_runtime_mutation() -> None:
     waiting = workflow.start(context.request, current_snapshot=context.snapshot).progress
     action = waiting.state.pending_actions[0]
     dispatcher = CapabilityDispatcher(
-        CapabilityRegistry(
-            routes=(CapabilityRoute("operationalize-goal", "reasoner", "external"),)
-        )
+        CapabilityRegistry(routes=(CapabilityRoute("operationalize-goal", "reasoner", "external"),))
     )
     other_goal = Goal(statement="Reduce energy", target=context.target)
     other_objective = Objective.create(
@@ -351,9 +343,7 @@ def test_exact_duplicate_submission_is_idempotent_but_divergence_is_rejected() -
     )
     envelope = make_operationalization_result(action=handoff.action, proposal=proposal)
     dispatcher = CapabilityDispatcher(
-        CapabilityRegistry(
-            routes=(CapabilityRoute("operationalize-goal", "reasoner", "external"),)
-        )
+        CapabilityRegistry(routes=(CapabilityRoute("operationalize-goal", "reasoner", "external"),))
     )
 
     first = dispatcher.submit(
