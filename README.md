@@ -2,10 +2,12 @@
 
 # libRSI
 
-`libRSI` is a zero-dependency Python library for bounded recursive
-self-improvement. It supplies pure policies for reflection, hypothesis testing,
-experiment interpretation, program evolution, reviewed selection, and safe changes
-to the selector itself, plus typed ports for host-owned effects.
+`libRSI` is a zero-dependency Python library of evidence-bound primitives for
+validation, investigation, improvement, and governed recursive self-improvement.
+The current package supplies deterministic policies and canonical records for
+reflection, hypothesis testing, experiment interpretation, program evolution,
+reviewed selection, and safe changes to the selector itself, plus typed ports for
+host-owned effects.
 
 ## Install
 
@@ -75,9 +77,11 @@ echo the exact spec/input root. Evidence names the exact hypothesis, experiment,
 target snapshot it bears on, and a stale or different hypothesis rejects that evidence.
 The `0.2.0` scalar APIs remain available as deprecated compatibility wrappers.
 
-The library performs no persistence or external effects. See
+The current library performs no persistence or external effects. See
 [`src/librsi/README.md`](src/librsi/README.md) for the module map and complete
-integration boundary.
+integration boundary. The maintained implementation plan evolves this deterministic
+core toward higher-level validation, investigation, improvement, and RSI workflows
+without making libRSI a general-purpose agent/orchestration infrastructure platform.
 
 ## Development guarantees
 
