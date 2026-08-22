@@ -13,6 +13,7 @@ from .capabilities import (
     CapabilityDispatcher,
     CapabilityRegistry,
     CapabilityResolution,
+    CapabilityResultValidator,
     CapabilityRoute,
     DispatchBatch,
     DispatchPlan,
@@ -72,6 +73,23 @@ from .models import (
 from .portfolios import PortfolioPolicy
 from .ports import ExperimentRunner
 from .programs import ProgramPolicy
+from .reasoning import (
+    REASONING_ACTION_KIND,
+    REASONING_KINDS,
+    REASONING_SCHEMA_VALIDATORS,
+    ReasoningBackend,
+    ReasoningRequest,
+    ReasoningResult,
+    ReasoningResultValidator,
+    StructuredReasoner,
+    make_reasoning_action,
+    make_reasoning_action_result,
+    make_reasoning_failure,
+    reasoning_request_from_action,
+    reasoning_result_from_action_result,
+    require_reasoning_derivation,
+    validate_reasoning_content,
+)
 from .records import (
     ArtifactRef,
     BeliefState,
@@ -149,6 +167,7 @@ __all__ = [
     "CapabilityDispatcher",
     "CapabilityRegistry",
     "CapabilityResolution",
+    "CapabilityResultValidator",
     "CapabilityRoute",
     "CheckpointDecision",
     "CheckpointPolicy",
@@ -200,7 +219,14 @@ __all__ = [
     "PortfolioTransition",
     "ProgramPolicy",
     "Question",
+    "REASONING_ACTION_KIND",
+    "REASONING_KINDS",
+    "REASONING_SCHEMA_VALIDATORS",
     "Reasoner",
+    "ReasoningBackend",
+    "ReasoningRequest",
+    "ReasoningResult",
+    "ReasoningResultValidator",
     "Retriever",
     "Reviewer",
     "RSICapabilityError",
@@ -242,6 +268,7 @@ __all__ = [
     "TrialRole",
     "Verifier",
     "StoredKnowledge",
+    "StructuredReasoner",
     "aggregate_evidence",
     "bound_target_snapshots",
     "deserialize_record",
@@ -249,7 +276,14 @@ __all__ = [
     "serialize_record",
     "initial_belief",
     "label_currentness",
+    "make_reasoning_action",
+    "make_reasoning_action_result",
+    "make_reasoning_failure",
     "persist_transitions",
+    "reasoning_request_from_action",
+    "reasoning_result_from_action_result",
+    "require_reasoning_derivation",
+    "validate_reasoning_content",
 ]
 
 __version__ = "0.2.0"

@@ -241,7 +241,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 6 | Persistent knowledge and SQLite store | 1, 5 | `accepted` |
 | 7 | Durable semantic Run/Event/Action engine | 1, 6 | `accepted` |
 | 8 | Capability protocols and neutral dispatch | 7 | `accepted` |
-| 9 | Provider-neutral reasoner contract | 3, 7, 8 | `not-started` |
+| 9 | Provider-neutral reasoner contract | 3, 7, 8 | `in-progress` |
 | 10 | Validation workflow and result | 3–9 | `not-started` |
 | 11 | Investigation workflow and result | 10 | `not-started` |
 | 12 | Intervention and candidate lifecycle | 5, 11 | `not-started` |
@@ -1205,7 +1205,7 @@ Stop before structured reasoning implementations or composed workflows.
 
 ## Block 9 — Provider-neutral reasoner contract and structured reasoning
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 

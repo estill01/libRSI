@@ -3,6 +3,7 @@
 from .dispatcher import CapabilityDispatcher
 from .protocols import (
     Applier,
+    CapabilityResultValidator,
     Experimenter,
     Implementer,
     Inspector,
@@ -29,6 +30,7 @@ __all__ = [
     "CapabilityDispatcher",
     "CapabilityRegistry",
     "CapabilityResolution",
+    "CapabilityResultValidator",
     "CapabilityRoute",
     "DispatchBatch",
     "DispatchPlan",

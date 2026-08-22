@@ -39,6 +39,10 @@ The current implementation owns portable primitives including:
 - eight granular structural capability protocols with explicit automatic, external,
   human-reserved, and unavailable routing; and
 - deterministic managed/external/hybrid dispatch through the same runtime transitions.
+- strict provider-neutral reasoning requests/results for reflection, hypothesis
+  generation, experiment design, explanation, intervention generation, problem
+  decomposition, and approach revision; and
+- pre-transition schema/currentness validation plus proposal-to-decision lineage guards.
 
 ## Package structure
 
@@ -67,6 +71,12 @@ The current implementation owns portable primitives including:
   lookup without semantic authority;
 - `capabilities/dispatcher.py` — optional automatic-frontier execution and external
   `next`/`submit` equivalence through the Block 7 runtime engine;
+- `reasoning/records.py` and `reasoning/schemas.py` — canonical cognitive requests and
+  closed structured proposal schemas with exact input/currentness lineage;
+- `reasoning/actions.py` — lossless request/result codecs for the runtime `reason` action;
+- `reasoning/adapters.py` — zero-provider backend protocol and managed Reasoner adapter;
+- `reasoning/validation.py` — pre-transition response validation and downstream
+  Evidence/Intervention lineage guards;
 - `hypotheses.py` — canonical hypothesis creation/evidence updates plus legacy wrappers;
 - `experiments.py` — immutable command specs, host execution inputs, and evidence interpretation;
 - `ports.py` — typed host interfaces such as `ExperimentRunner`;
@@ -119,6 +129,15 @@ automatic authority; external and hybrid hosts submit the same `ActionResult` th
 the same runtime transition. Human-reserved and unavailable actions remain structured
 and pending. A successful capability result cannot itself create an Outcome, promote
 knowledge, select a candidate, or authorize application.
+
+Structured reasoning is a replaceable implementation of the same `Reasoner` capability,
+not a new runtime. Managed backends and external agents consume one canonical
+`ReasoningRequest`, produce one validated `ReasoningResult`, and submit the same exact
+`ActionResult`. Closed per-kind schemas reject free-form substitutions and authority-
+bearing fields; the dispatcher always applies its nonreplaceable canonical validator
+ before any optional host validator on the reserved `reason` path. A successful result
+ references only its proposal record: narration may
+explain a proposal but cannot become evidence or validated knowledge merely by saying so.
 
 The base distribution does not open a database from the composition root, mutate
 targets or files, run Git/subprocess operations, call a model/provider, schedule

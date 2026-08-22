@@ -18,6 +18,10 @@ records, a pure deterministic transition engine, and an opt-in `RuntimeStore` wi
 replay-checked SQLite implementation. The separate `librsi.capabilities` package maps
 exact action kinds to eight granular host protocols and explicit automatic, external,
 human-reserved, or unavailable postures without creating another state machine.
+The `librsi.reasoning` package adds strict provider-neutral reflection, hypothesis,
+experiment-design, explanation, intervention, decomposition, and revision proposals.
+Managed and external reasoners answer the same exact runtime action; their output is a
+lineage-bearing proposal, never evidence, validated knowledge, or application authority.
 
 ## Install
 
@@ -120,6 +124,18 @@ It invokes only explicitly supplied, automatically authorized capability objects
 external host can submit the same exact `ActionResult`, and hybrid mode may leave other
 actions external, human-reserved, or unavailable. Capability success never creates an
 `Outcome`, promotes knowledge, or grants selection/application authority on its own.
+
+Structured reasoning uses the same boundary. `ReasoningRequest` binds its inputs and
+exact target snapshot, `ReasoningResult` validates one of seven closed proposal schemas,
+and libRSI's nonreplaceable `ReasoningResultValidator` runs immediately before either
+managed or external submission mutates runtime state. The reserved `reason` action
+cannot pass through the dispatcher without canonical validation and an exact reasoner
+route; optional host validators run only in addition. A host can install
+`StructuredReasoner` around any
+object implementing the zero-provider `ReasoningBackend` protocol, or consume the
+serialized reasoning `Action` itself and return the same `ActionResult`. Downstream
+evidence or intervention decisions can use `require_reasoning_derivation()` to prove
+that both the proposal and every original input remain in lineage.
 
 The base distribution ships no target, provider, subprocess, filesystem, worker, or
 transport implementation. Any effects occur only inside a capability object explicitly
