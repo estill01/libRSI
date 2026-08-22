@@ -10,6 +10,9 @@ reviewed selection, and safe changes to the selector itself, plus typed ports fo
 host-owned effects. Targets may be opaque or multi-component, and generic currentness
 checks keep stale target-bound evidence distinguishable from current evidence without
 requiring repository or Git concepts.
+Canonical knowledge can be persisted through a replaceable `KnowledgeStore` contract;
+the included transactional SQLite backend needs no service and labels retrieved
+target-bound records as current, stale, unbound, or incomparable.
 
 ## Install
 
@@ -79,7 +82,9 @@ echo the exact spec/input root. Evidence names the exact hypothesis, experiment,
 target snapshot it bears on, and a stale or different hypothesis rejects that evidence.
 The `0.2.0` scalar APIs remain available as deprecated compatibility wrappers.
 
-The current library performs no persistence or external effects. See
+The library performs no target or runtime effects. Persistence is opt-in through an
+explicitly constructed knowledge store; `RSIKernel` does not open a database or infer
+a storage location. See
 [`src/librsi/README.md`](src/librsi/README.md) for the module map and complete
 integration boundary. The maintained implementation plan evolves this deterministic
 core toward higher-level validation, investigation, improvement, and RSI workflows

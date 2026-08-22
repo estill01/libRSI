@@ -238,7 +238,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 3 | General epistemics and aggregation | 1, 2 | `accepted` |
 | 4 | Generic experiments, metrics, and evaluation | 1, 3 | `accepted` |
 | 5 | Targets, snapshots, and currentness | 1, 4 | `accepted` |
-| 6 | Persistent knowledge and SQLite store | 1, 5 | `not-started` |
+| 6 | Persistent knowledge and SQLite store | 1, 5 | `accepted` |
 | 7 | Durable semantic Run/Event/Action engine | 1, 6 | `not-started` |
 | 8 | Capability protocols and neutral dispatch | 7 | `not-started` |
 | 9 | Provider-neutral reasoner contract | 3, 7, 8 | `not-started` |
@@ -797,7 +797,7 @@ Stop before persistent knowledge storage or target application.
 
 ## Block 6 — Persistent knowledge and `KnowledgeStore`
 
-Status: `not-started`
+Status: `accepted`
 
 ### Objective
 
@@ -848,7 +848,77 @@ Review transactionality, reconstruction, currentness, schema migration, and sepa
 
 ### Completion evidence
 
-Pending.
+- Repository commit: `0b1d43dfe468fea4265858e77dc081aa9c671c71`.
+- External/domain revision or root: not applicable; Block 6 uses bounded temporary
+  SQLite databases and no hosted database, external target, or runtime-state owner.
+- Inputs: authoritative base `dedadd152039a2840c4204123a4040922bdc40d2`,
+  accepted Blocks 1 and 5, architecture-contract sections 6 and 8, the KnowledgeStore
+  scope revision, and tracker capability-frame SHA-256
+  `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+- Outputs: canonical `KnowledgeRelationship`; backend-neutral `KnowledgeStore`,
+  `KnowledgeWrite`, `KnowledgeQuery`, `StoredKnowledge`, and currentness semantics;
+  an exact rollback-safe SQLite schema/migration owner; a thin SQLite store backend;
+  public exports and truthful module documentation; and split contract, behavior,
+  integrity, and adversarial test modules.
+- Focused validation: Python 3.13 focused Block 6 suite, `34 passed`, covering
+  cross-run reuse, current/stale/unbound/incomparable retrieval, exact filters and
+  relationships, backend substitution, schema migration, transaction rollback,
+  resource closure, and raw-database tampering.
+- Mapped validation: Python 3.13 Ruff and format checks passed; mypy passed all
+  21 source files; full suite `146 passed` at `92.72%` branch coverage with
+  `ResourceWarning` treated as error; sdist/wheel build and isolated installed-wheel
+  SQLite knowledge smoke passed.
+- Candidate freeze: content root
+  `179bfbea82bdfd2107f6cab2d80ce5a61fbafe5430bd06c8d34a5f886114b09a`
+  remained unchanged through final mapped validation and independent review.
+- Remediation closure: three read-only review rounds found and rechecked two
+  fail-closed defects and one successor edge. The complete owned v1 schema now
+  validates inside a rollback boundary before version commit, reconstruction occurs
+  before write commit, auxiliary projections cannot override canonical records, and
+  SQL normalization preserves quoted literal bytes so case-altered `strftime`
+  defaults fail during construction.
+- Resource posture: compact in-memory and temporary-file SQLite fixtures only;
+  no hosted service, provider, subprocess experiment, vector/graph platform,
+  analytics system, external target effect, or runtime lifecycle state was used.
+- Independent review: Hubble, read-only, against base
+  `dedadd152039a2840c4204123a4040922bdc40d2` and the final frozen candidate root;
+  final disposition `accepted` with both predecessor findings closed and no material
+  successor findings.
+- Product-capability review:
+  - Trigger: consequential posture.
+  - Frame identity: `docs/tracker.md`, Block 6,
+    `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+  - Capability added or preserved: canonical knowledge can be reused across runs
+    while stale target-bound state stays queryable and cannot appear current.
+  - Paths compared: an in-memory local dictionary; a bounded-general KnowledgeStore
+    contract with a thin SQLite reference; a vector, graph, analytics, or registry
+    platform.
+  - Selected level and owner: bounded-general `knowledge.py` contracts, exact schema
+    ownership in `sqlite_schema.py`, and persistence behavior in
+    `sqlite_knowledge.py`; canonical semantics remain in records/currentness owners.
+  - Protected-capability result: exact roots, typed references, deterministic
+    reconstruction, conservative target currentness, runtime separation, base-install
+    zero dependencies, and replaceable backend composition are covered by focused and
+    installed-wheel proof.
+  - Rejected alternatives: an in-memory dictionary would not satisfy cross-run reuse
+    or migration; a database platform would add speculative search, analytics,
+    service, and registry authority explicitly excluded by the Block.
+  - Tradeoffs and uncertainty: the reference backend validates all persisted
+    projections and filters reconstructed canonical records for fail-closed semantics;
+    exact schema v1 is deliberately strict, while indexed scale and richer backends
+    remain replaceable implementations rather than core authority.
+  - Frozen-candidate proof: commit
+    `0b1d43dfe468fea4265858e77dc081aa9c671c71`, candidate root above, `146 passed`,
+    installed-wheel reuse proof, and accepted independent adversarial review.
+- Retained open work: none within Block 6.
+- Decision/continuation posture: not applicable; Block 7 is dependency-safe.
+- Post-block audit: accepted; no durable Run/Event/Action lifecycle, target mutation,
+  hosted database, vector/analytics platform, or kernel-opened storage crossed the
+  Block 6 Stop.
+- Git durability: implementation commit
+  `0b1d43dfe468fea4265858e77dc081aa9c671c71` was pushed non-force to
+  `origin/codex/block-06-knowledge-store`; this evidence-only successor is the final
+  Block 6 tracker checkpoint.
 
 ### Stop
 
