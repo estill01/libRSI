@@ -43,7 +43,7 @@ A Block may only be marked `verified` after its maintained acceptance criteria h
 |---:|---|---|---|---|---|
 | 0 | Architecture contract / namespace plan / legacy baseline | `verified` | Architecture / integration | PR #3 | 2026-08-21 |
 | 1 | Canonical immutable records / identity | `verified` | Canonical records / identity | PR #5 + #7 | 2026-08-21 |
-| 2 | Hypothesis / experiment integrity repair | `verified` | Epistemics / experiment integrity | PR #10 | 2026-08-21 |
+| 2 | Hypothesis / experiment integrity repair | `verified` | Epistemics / experiment integrity | PR #10 + #12 | 2026-08-21 |
 | 3 | General epistemic model | `ready` | — | — | 2026-08-21 |
 | 4 | Generic experiments / metrics / evaluation | `not-started` | — | — | — |
 | 5 | Target / snapshot / currentness model | `not-started` | — | — | — |
@@ -175,29 +175,35 @@ A Block may only be marked `verified` after its maintained acceptance criteria h
 
 **Status:** `verified`  
 **Owner / workstream:** Epistemics / experiment integrity  
-**Authoritative implementation:** `73539e88f4add2bb62345b824f5df034810f450a` on `main`  
-**PR:** #10, `Block 2: repair hypothesis and experiment referential integrity`  
+**Authoritative implementation:** initial migration `73539e88f4add2bb62345b824f5df034810f450a`; exactness hardening `a3943609f283bce5d9c0ca248a53115a8b5c30c7` on `main`  
+**PRs:** #10, `Block 2: repair hypothesis and experiment referential integrity`; #12, `Harden Block 2 exact command semantics`  
 **Last updated:** 2026-08-21
 
 ### Material implementation
 
 - `73539e88f4add2bb62345b824f5df034810f450a` — squash-merge the complete Block 2 hypothesis/command-experiment integrity migration from PR #10 onto `main`.
+- `a3943609f283bce5d9c0ca248a53115a8b5c30c7` — squash-merge the independent exact-command-semantics hardening from PR #12 onto `main`.
 
 ### Verification evidence
 
-- PR #10 GitHub Actions CI run `32554375281`: **success** across Python 3.11, 3.12, and 3.13 after the implementation and second-pass hardening review.
-- The maintained CI workflow passed Ruff lint/formatting, mypy, pytest with branch coverage, package build, and Python 3.11 wheel smoke testing.
-- Python 3.11 ran 51 tests successfully with **92.34% branch coverage**.
-- `tests/test_block2_referential_integrity.py` adds 15 adversarial tests covering exact target/origin binding, stale-hypothesis evidence rejection, criteria identity, exact execution-input/observation correlation, invalid-run null evidence, malformed/unbound specs, strict criteria/input validation, target mismatch, and deprecated compatibility wrappers.
+- PR #10 GitHub Actions CI run `32554375281`: **success** across Python 3.11, 3.12, and 3.13 after the initial implementation and second-pass hardening review.
+- PR #12 GitHub Actions CI run `32554825264`: **success** across Python 3.11, 3.12, and 3.13 after the independent post-merge exactness audit.
+- The maintained CI workflow passed Ruff lint/formatting, mypy, pytest with branch coverage, package build, and Python 3.11 wheel smoke testing on both reviewed heads.
+- `tests/test_block2_referential_integrity.py` covers exact target/origin binding, stale-hypothesis evidence rejection, criteria identity, exact execution-input/observation correlation, invalid-run null evidence, malformed/unbound specs, strict criteria/input validation, target mismatch, and deprecated compatibility wrappers.
+- `tests/test_block2_exactness_hardening.py` pins exact argv/cwd preservation, whitespace-sensitive experiment identity, legitimate empty non-executable argv values, rejection of empty-string predicates, and rejection of empty prediction payloads.
 - `tests/test_v020_compatibility_contract.py` remained passing, including pinned legacy hypothesis/experiment roots and historical update behavior.
 
 ### Acceptance reconciliation
 
-- `HypothesisPolicy.create()` returns a complete immutable `Hypothesis` carrying exact target identity, statement, causal model, predictions, originating semantic references, confidence, status, lineage, and root.
+- `HypothesisPolicy.create()` returns a complete immutable `Hypothesis` carrying exact target identity, statement, causal model, nonempty predictions, originating semantic references, confidence, status, lineage, and root.
+- Empty prediction mappings are rejected, so the canonical API cannot satisfy its prediction requirement with a semantically empty payload.
 - `HypothesisPolicy.apply()` accepts canonical `Evidence` only when its `subject_refs` names the exact hypothesis version being updated; evidence for a different or stale hypothesis fails closed.
 - Target-bound evidence must match the hypothesis target, and canonical evidence updates require an explicit weight.
 - `ExperimentPolicy.design_command()` produces one immutable `ExperimentSpec` whose identity binds the exact hypothesis, target snapshot, design, success criteria, command argv/cwd, additional inputs, environment requirements, and requested measurements.
+- Canonical command argv and cwd are preserved exactly rather than stripped or normalized before hashing/execution; whitespace differences therefore remain identity-bearing and execution-bearing differences. Empty non-executable argv elements are preserved, while a missing executable is rejected.
+- Empty-string `stdout_contains` and `stderr_not_contains` predicates are rejected rather than becoming degenerate always-true/always-false criteria.
 - `ExperimentPolicy.prepare_command()` validates that the spec is fully bound before execution and emits `CommandExperimentInput.exact_input_root == spec.root`.
+- `ExperimentRunner` now documents the canonical obligation to echo that exact input root in `CommandObservation.exact_input_root`.
 - Canonical `CommandObservation` can carry the exact input root executed; `evaluate_command()` requires it and rejects missing/mismatched roots, preventing an observation from one spec from being evaluated as another.
 - `evaluate_command()` exposes no evaluation-time success-criteria argument and interprets the observation solely using the criteria stored in the immutable spec. The historical “criteria A at design, criteria B at evaluation” substitution is therefore not representable on the canonical path.
 - Resulting `Evidence` names the exact hypothesis, experiment spec, and target snapshot and records the correlated observation input root.
@@ -206,7 +212,7 @@ A Block may only be marked `verified` after its maintained acceptance criteria h
 - Historical `propose()`, `apply_evidence()`, `command_input()`, and `evaluate_command_result()` remain available as explicit deprecated `0.2.0` compatibility wrappers and preserve the Block 0 hash/behavior fixtures.
 - Block 2 did not introduce Block 3's generalized `Claim`/belief aggregation model or Block 4's generic trial/measurement experiment subsystem.
 
-**Remaining for Block 2:** None. Block 3 may generalize epistemic objects and belief/evidence aggregation while preserving the exact identity and execution-correlation guarantees established here.
+**Remaining for Block 2:** None. Block 3 may generalize epistemic objects and belief/evidence aggregation while preserving the exact identity, command-input, criteria, and execution-correlation guarantees established here.
 
 ### Update log
 
@@ -214,7 +220,9 @@ A Block may only be marked `verified` after its maintained acceptance criteria h
 - **2026-08-21:** CI caught only lint/format/type-shape issues during early passes; all were corrected without weakening repository gates.
 - **2026-08-21:** Second-pass review hardened falsy/malformed optional mappings, requested-measurement validation, and pre-execution rejection of hand-built unbound command specs.
 - **2026-08-21:** Review identified an additional execution-correlation gap: an observation could otherwise be paired with the wrong exact spec. `CommandObservation.exact_input_root` was added backward-compatibly, and the canonical evaluator now requires it to equal `spec.root` before interpretation.
-- **2026-08-21:** Final PR #10 CI run `32554375281` passed the full matrix, and PR #10 was squash-merged to `main` as `73539e88f4add2bb62345b824f5df034810f450a`. Block 2 is `verified` on the authoritative implementation.
+- **2026-08-21:** Final PR #10 CI run `32554375281` passed the full matrix, and PR #10 was squash-merged to `main` as `73539e88f4add2bb62345b824f5df034810f450a`. Block 2 was marked `verified` on the authoritative implementation.
+- **2026-08-21:** Independent post-merge audit found that canonical argv/cwd normalization could silently change exact execution semantics, empty prediction maps could satisfy the prediction requirement without an observable proposition, and empty-string command predicates had degenerate semantics. PR #12 corrected those cases and clarified the runner root-echo contract.
+- **2026-08-21:** PR #12 CI run `32554825264` passed the full matrix and PR #12 was squash-merged as `a3943609f283bce5d9c0ca248a53115a8b5c30c7`. Block 2 remains `verified` with the hardened exactness contract.
 
 ---
 
@@ -223,9 +231,9 @@ A Block may only be marked `verified` after its maintained acceptance criteria h
 **Status:** `ready`  
 **Owner / workstream:** Unassigned  
 **Branch / PR:** —  
-**Verification evidence:** Blocks 1 and 2 are `verified` on `main`; Block 2 authoritative implementation is `73539e88f4add2bb62345b824f5df034810f450a`.  
+**Verification evidence:** Blocks 1 and 2 are `verified` on `main`; Block 2 authoritative implementation includes exactness hardening `a3943609f283bce5d9c0ca248a53115a8b5c30c7`.  
 **Last updated:** 2026-08-21  
-**Notes / remaining:** Available to begin. Block 3 should generalize `Claim`, evidence relationships, provenance, belief state, and pluggable aggregation while preserving Block 2's exact hypothesis/evidence identity and command-execution correlation guarantees.
+**Notes / remaining:** Available to begin. Block 3 should generalize `Claim`, evidence relationships, provenance, belief state, and pluggable aggregation while preserving Block 2's exact hypothesis/evidence identity, command-input semantics, criteria binding, and execution-correlation guarantees.
 
 ---
 
@@ -253,3 +261,4 @@ A Block may only be marked `verified` after its maintained acceptance criteria h
 - **2026-08-21:** Implemented, twice reviewed, hardened, CI-verified, and squash-merged Block 1 to `main` as `1528c7ecc5eec0e44136ceb8b54e3fa09bb5bf74`; Block 2 moved to `ready`.
 - **2026-08-21:** Re-audited Block 1 after merge, fixed semantic equality/reference/coercion defects in PR #7, passed CI run `32551045555`, and squash-merged hardening as `0fc0fb2a2da70dabda4a5b2da2eacb09e357aede`. Block 1 remains `verified`; Block 2 remains `ready`.
 - **2026-08-21:** Implemented, second-pass hardened, CI-verified, and squash-merged Block 2 through PR #10 as `73539e88f4add2bb62345b824f5df034810f450a`; Block 2 moved to `verified` and Block 3 moved to `ready`.
+- **2026-08-21:** Re-audited Block 2 after merge, fixed exact argv/cwd preservation, empty prediction payloads, degenerate string criteria, and runner-contract documentation in PR #12; CI run `32554825264` passed and the hardening was squash-merged as `a3943609f283bce5d9c0ca248a53115a8b5c30c7`. Block 2 remains `verified`; Block 3 remains `ready`.
