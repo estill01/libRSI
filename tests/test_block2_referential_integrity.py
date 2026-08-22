@@ -208,7 +208,10 @@ def test_experiment_criteria_cannot_be_replaced_at_evaluation_time() -> None:
     observation = CommandObservation(exit_code=0, stdout="A\n", stderr="")
 
     assert criterion_a.root != criterion_b.root
-    assert policy.evaluate_command(spec=criterion_a, observation=observation).evidence_type == "support"
+    assert (
+        policy.evaluate_command(spec=criterion_a, observation=observation).evidence_type
+        == "support"
+    )
     assert (
         policy.evaluate_command(spec=criterion_b, observation=observation).evidence_type
         == "counterexample"
