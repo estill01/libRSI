@@ -9,9 +9,9 @@ from librsi import (
     ExperimentSpec,
     Hypothesis,
     Question,
+    RecordRef,
     RSIKernel,
     RSITransitionError,
-    RecordRef,
     TargetRef,
     TargetSnapshot,
 )
