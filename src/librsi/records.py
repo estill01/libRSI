@@ -527,6 +527,38 @@ class Evidence(SemanticRecord):
 
 @_register
 @dataclass(frozen=True, kw_only=True)
+class BeliefState(SemanticRecord):
+    """Typed, provenance-bearing aggregation state for a Claim or Hypothesis."""
+
+    RECORD_TYPE: ClassVar[str] = "belief_state"
+
+    subject_ref: RecordRef
+    status: str = "proposed"
+    confidence: float = 0.5
+    evidence_refs: tuple[EvidenceRef, ...] = field(default_factory=tuple)
+    target_snapshot: TargetSnapshot | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.subject_ref, RecordRef):
+            raise TypeError("belief state subject must be a RecordRef")
+        if self.subject_ref.record_type not in {"claim", "hypothesis"}:
+            raise ValueError("belief state subject must reference a claim or hypothesis")
+        object.__setattr__(self, "status", _require_text(self.status, "belief status"))
+        confidence = _finite_number(self.confidence, "belief confidence")
+        if not 0.0 <= confidence <= 1.0:
+            raise ValueError("belief confidence must be between zero and one")
+        object.__setattr__(self, "confidence", confidence)
+        object.__setattr__(self, "evidence_refs", _evidence_refs(self.evidence_refs))
+        if self.target_snapshot is not None and not isinstance(
+            self.target_snapshot,
+            TargetSnapshot,
+        ):
+            raise TypeError("belief state target snapshot must be a TargetSnapshot")
+        super().__post_init__()
+
+
+@_register
+@dataclass(frozen=True, kw_only=True)
 class ExperimentSpec(SemanticRecord):
     RECORD_TYPE: ClassVar[str] = "experiment_spec"
 

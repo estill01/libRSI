@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from .checkpoints import CheckpointPolicy
+from .epistemics import EpistemicPolicy
 from .experiments import ExperimentPolicy
 from .hypotheses import HypothesisPolicy, ReflectionPolicy
 from .portfolios import PortfolioPolicy
@@ -27,5 +28,6 @@ class RSIKernel:
     selections: SelectionPolicy = field(default_factory=SelectionPolicy)
     selector_policies: SelectorPolicy = field(default_factory=SelectorPolicy)
     reflections: ReflectionPolicy = field(default_factory=ReflectionPolicy)
+    epistemics: EpistemicPolicy = field(default_factory=EpistemicPolicy)
     hypotheses: HypothesisPolicy = field(default_factory=HypothesisPolicy)
     experiments: ExperimentPolicy = field(default_factory=ExperimentPolicy)

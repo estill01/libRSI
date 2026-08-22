@@ -6,6 +6,19 @@ improvement, and RSI workflows around the same canonical records.
 """
 
 from .checkpoints import CheckpointPolicy
+from .epistemics import (
+    BELIEF_STATUSES,
+    EVIDENCE_RELATIONSHIPS,
+    STANDARD_CLAIM_KINDS,
+    BeliefStatus,
+    ClaimKind,
+    EpistemicPolicy,
+    EvidenceAggregator,
+    EvidenceRelationship,
+    LinearEvidenceAggregator,
+    aggregate_evidence,
+    initial_belief,
+)
 from .errors import RSITransitionError
 from .experiments import ExperimentPolicy
 from .hypotheses import HypothesisPolicy, ReflectionPolicy
@@ -26,6 +39,7 @@ from .ports import ExperimentRunner
 from .programs import ProgramPolicy
 from .records import (
     ArtifactRef,
+    BeliefState,
     Candidate,
     Claim,
     Constraint,
@@ -55,16 +69,24 @@ from .selector_policies import SelectorPolicy
 
 __all__ = [
     "ArtifactRef",
+    "BELIEF_STATUSES",
+    "BeliefState",
+    "BeliefStatus",
     "Candidate",
     "CheckpointDecision",
     "CheckpointPolicy",
     "Claim",
+    "ClaimKind",
     "CommandExperimentInput",
     "CommandObservation",
     "Constraint",
     "Evaluation",
     "Evidence",
+    "EvidenceAggregator",
+    "EvidenceRelationship",
     "EvidenceRef",
+    "EVIDENCE_RELATIONSHIPS",
+    "EpistemicPolicy",
     "ExperimentEvaluation",
     "ExperimentPolicy",
     "ExperimentRunner",
@@ -76,6 +98,7 @@ __all__ = [
     "HypothesisProposal",
     "HypothesisUpdate",
     "Intervention",
+    "LinearEvidenceAggregator",
     "Measurement",
     "Observation",
     "Outcome",
@@ -92,12 +115,15 @@ __all__ = [
     "SelectionPolicy",
     "SelectorPolicy",
     "SemanticRecord",
+    "STANDARD_CLAIM_KINDS",
     "TargetRef",
     "TargetSnapshot",
     "Trial",
+    "aggregate_evidence",
     "deserialize_record",
     "record_from_dict",
     "serialize_record",
+    "initial_belief",
 ]
 
 __version__ = "0.2.0"

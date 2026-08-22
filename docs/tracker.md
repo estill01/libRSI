@@ -235,7 +235,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 0 | Architecture contract and compatibility baseline | — | `accepted` |
 | 1 | Canonical immutable records and identity | 0 | `accepted` |
 | 2 | Hypothesis/experiment referential integrity | 1 | `accepted` |
-| 3 | General epistemics and aggregation | 1, 2 | `not-started` |
+| 3 | General epistemics and aggregation | 1, 2 | `in-progress` |
 | 4 | Generic experiments, metrics, and evaluation | 1, 3 | `not-started` |
 | 5 | Targets, snapshots, and currentness | 1, 4 | `not-started` |
 | 6 | Persistent knowledge and SQLite store | 1, 5 | `not-started` |
@@ -450,7 +450,7 @@ Stop before general epistemic aggregation.
 
 ## Block 3 — General epistemic model and pluggable aggregation
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 

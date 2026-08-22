@@ -5,6 +5,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, cast
 
+from .epistemics import EvidenceAggregator, LinearEvidenceAggregator, aggregate_evidence
 from .identity import digest, normalize_ids
 from .models import (
     EvidenceType,
@@ -13,7 +14,7 @@ from .models import (
     HypothesisUpdate,
     ReflectionIdentity,
 )
-from .records import Evidence, Hypothesis, RecordRef, TargetRef
+from .records import BeliefState, Evidence, Hypothesis, RecordRef, TargetRef
 
 _SUPPORTED_EVIDENCE_TYPES = frozenset(
     {"support", "counterexample", "boundary", "confounder", "null"}
@@ -65,6 +66,7 @@ class HypothesisPolicy:
     qualification_scale: float = 0.05
     supported_threshold: float = 0.75
     rejected_threshold: float = 0.2
+    aggregator: EvidenceAggregator | None = None
 
     def create(
         self,
@@ -129,20 +131,26 @@ class HypothesisPolicy:
         if evidence.weight is None:
             raise ValueError("canonical hypothesis evidence requires an explicit weight")
 
-        update = self._transition(
-            current_confidence=hypothesis.confidence,
-            evidence_type=evidence.evidence_type,
-            evidence_id=evidence.root,
-            weight=evidence.weight,
+        state = aggregate_evidence(
+            self.aggregator or self._linear_aggregator(null_is_neutral=True),
+            subject=hypothesis,
+            evidence=(evidence,),
+            prior=BeliefState(
+                subject_ref=hypothesis.ref,
+                status=hypothesis.status,
+                confidence=hypothesis.confidence,
+            ),
         )
+        if state.status not in _SUPPORTED_HYPOTHESIS_STATUSES:
+            raise ValueError("hypothesis aggregation produced an incompatible belief status")
         return Hypothesis(
             target=hypothesis.target,
             statement=hypothesis.statement,
             causal_model=hypothesis.causal_model,
             predictions=hypothesis.predictions,
             source_refs=hypothesis.source_refs,
-            confidence=update.confidence,
-            status=update.status,
+            confidence=state.confidence,
+            status=state.status,
             lineage=(*hypothesis.lineage, hypothesis.ref, evidence.ref),
             metadata=hypothesis.metadata,
         )
@@ -219,29 +227,29 @@ class HypothesisPolicy:
             raise ValueError(f"unsupported hypothesis evidence type: {evidence_type}")
         normalized_type = cast(EvidenceType, evidence_type)
 
-        if normalized_type == "support":
-            delta = weight * self.support_scale
-        elif normalized_type == "counterexample":
-            delta = -weight * self.counterexample_scale
-        else:
-            delta = -weight * self.qualification_scale
-
-        confidence = min(1.0, max(0.0, current_confidence + delta))
-        status: HypothesisStatus
-        if confidence >= self.supported_threshold:
-            status = "supported"
-        elif confidence <= self.rejected_threshold:
-            status = "rejected"
-        elif normalized_type == "counterexample":
-            status = "weakened"
-        else:
-            status = "testing"
+        status, confidence = self._linear_aggregator(null_is_neutral=False).transition(
+            current_confidence=current_confidence,
+            relationship=normalized_type,
+            weight=weight,
+        )
+        if status not in _SUPPORTED_HYPOTHESIS_STATUSES:
+            raise RuntimeError("legacy linear aggregation produced an invalid hypothesis status")
         return HypothesisUpdate(
-            status,
+            cast(HypothesisStatus, status),
             confidence,
             normalized_type,
             evidence_id,
             weight,
+        )
+
+    def _linear_aggregator(self, *, null_is_neutral: bool) -> LinearEvidenceAggregator:
+        return LinearEvidenceAggregator(
+            support_scale=self.support_scale,
+            counterexample_scale=self.counterexample_scale,
+            qualification_scale=self.qualification_scale,
+            supported_threshold=self.supported_threshold,
+            rejected_threshold=self.rejected_threshold,
+            null_is_neutral=null_is_neutral,
         )
 
     @staticmethod
