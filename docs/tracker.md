@@ -245,7 +245,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 10 | Validation workflow and result | 3–9 | `accepted` |
 | 11 | Investigation workflow and result | 10 | `accepted` |
 | 12 | Intervention and candidate lifecycle | 5, 11 | `accepted` |
-| 13 | Goals, constraints, and evaluation contracts | 5, 12 | `in-progress` |
+| 13 | Goals, constraints, and evaluation contracts | 5, 12 | `completed` |
 | 14 | Comparative evaluation and selection | 4, 12, 13 | `not-started` |
 | 15 | Complete improvement workflow and result | 10–14 | `not-started` |
 | 16 | Application, verification, and rollback | 15 | `not-started` |
@@ -1733,7 +1733,7 @@ Stop before evaluation-contract operationalization, candidate comparison, or app
 
 ## Block 13 — Goals, objectives, constraints, guardrails, and evaluation contracts
 
-Status: `in-progress`
+Status: `completed`
 
 ### Objective
 
@@ -1784,7 +1784,32 @@ Review Goal-versus-Claim separation, baseline identity, guardrail meaning, and p
 
 ### Completion evidence
 
-Pending.
+- Capability comparison: rejected a thin prose-to-metrics converter because it would
+  let proposed wording become authority; selected the structured middle level with
+  exact Goal/Baseline/Objective/Constraint/Guardrail/StoppingRule records and a
+  restartable proposal-only operationalization workflow; deferred optimizer/problem-
+  modeling machinery to the comparison/search owner in Block 14.
+- Added the structured `librsi.intent` package split across records, policy, action
+  codecs/validation, and canonical runtime workflow modules. Natural-language and
+  typed paths converge on the same `EvaluationContract`; unmeasurable intent returns
+  named missing facts, and no contract/result can treat a Goal as Claim or Evidence.
+- Added exact minimize/maximize/target objectives, no-regression/must-satisfy
+  guardrails, finite baseline values, feasibility/contradiction checks, explicit stop
+  rules, stale-currentness gates, pre-mutation proposal-policy validation, managed and
+  external dispatch equivalence, runtime replay/resume, and exact duplicate idempotency.
+- Added a non-software fermenter fixture and 40 focused tests covering typed and
+  proposed operationalization, missing-information outcomes, foreign/stale proposal
+  rejection, fabricated criterion subclasses, contradictory objective/guardrail
+  ranges, malformed dispatcher results, failure settlement, and divergent duplicates.
+- Validation: Ruff and mypy clean; full suite `422 passed` at `90.31%` branch coverage;
+  built wheel focused suite `40 passed` on Python 3.11, 3.12, and 3.13.
+- Independent review: accepted exact candidate root
+  `2c19bbca304dd6c93ce82de733ff0f121051ad33576be7e9576485dc17c8ec01`
+  after three adversarial rounds; all authority, feasibility, replay, idempotency, and
+  exact-type findings were closed. Implementation commit: `cb6b268`.
+- The unrelated untracked `uv.lock` remained excluded and byte/mtime-identical
+  (`134695`, `1787379167`). No candidate ranking, selection, optimizer, acceptance, or
+  application authority was introduced.
 
 ### Stop
 
