@@ -41,6 +41,8 @@ def _prediction_sequence(
         raise ValueError("canonical hypotheses require at least one prediction")
     if any(not isinstance(item, Mapping) for item in items):
         raise TypeError("canonical hypothesis predictions must contain only mappings")
+    if any(not item for item in items):
+        raise ValueError("canonical hypothesis predictions cannot be empty")
     return items
 
 
@@ -81,8 +83,8 @@ class HypothesisPolicy:
 
         ``target`` is the exact scope/target identity. ``source_refs`` binds the
         originating question, reflection, or other semantic records. At least one
-        prediction is required so the canonical path cannot create a proposition that
-        has no stated observable consequence.
+        nonempty prediction is required so the canonical path cannot create a
+        proposition that has no stated observable consequence.
         """
 
         if not isinstance(target, TargetRef):

@@ -35,6 +35,14 @@ def _require_text(value: str, label: str) -> str:
     return normalized
 
 
+def _require_exact_text(value: Any, label: str) -> str:
+    if not isinstance(value, str):
+        raise TypeError(f"{label} must be a string")
+    if value == "":
+        raise ValueError(f"{label} is required")
+    return value
+
+
 def _optional_mapping(value: Mapping[str, Any] | None, label: str) -> Mapping[str, Any]:
     if value is None:
         return {}
@@ -46,10 +54,16 @@ def _optional_mapping(value: Mapping[str, Any] | None, label: str) -> Mapping[st
 def _normalize_command(command: Sequence[str]) -> tuple[str, ...]:
     if isinstance(command, (str, bytes, bytearray)) or not isinstance(command, Sequence):
         raise TypeError("command experiment argv must be a sequence of strings")
-    normalized = tuple(_require_text(part, "command argv item") for part in command)
-    if not normalized:
+    result: list[str] = []
+    for index, part in enumerate(command):
+        if not isinstance(part, str):
+            raise TypeError("command experiment argv must contain only strings")
+        if index == 0 and part == "":
+            raise ValueError("command experiment executable is required")
+        result.append(part)
+    if not result:
         raise ValueError("command experiment requires a nonempty argv")
-    return normalized
+    return tuple(result)
 
 
 def _measurement_names(value: Sequence[str]) -> tuple[str, ...]:
@@ -68,6 +82,8 @@ def _string_sequence(value: Any, label: str) -> tuple[str, ...]:
     for item in value:
         if not isinstance(item, str):
             raise TypeError(f"{label} must contain only strings")
+        if item == "":
+            raise ValueError(f"{label} cannot contain empty strings")
         result.append(item)
     return tuple(result)
 
@@ -153,7 +169,7 @@ def _command_spec_context(
     argv = _normalize_command(command)
     if not isinstance(cwd, str):
         raise ValueError("command ExperimentSpec is missing canonical cwd")
-    working_directory = _require_text(cwd, "command working directory")
+    working_directory = _require_exact_text(cwd, "command working directory")
     return (
         hypothesis_refs[0],
         argv,
@@ -204,7 +220,8 @@ class ExperimentPolicy:
     ) -> ExperimentSpec:
         """Create an exact immutable command experiment bound to a hypothesis.
 
-        Command argv/cwd, design, criteria, target snapshot, additional inputs,
+        Command argv/cwd are preserved byte-for-byte as Python strings rather than
+        normalized, while design, criteria, target snapshot, additional inputs,
         environment requirements, requested measurements, and the exact hypothesis
         version are all identity-bearing content of the returned ``ExperimentSpec``.
         """
@@ -222,7 +239,7 @@ class ExperimentPolicy:
 
         _validate_command_criteria(success_criteria)
         argv = _normalize_command(command)
-        working_directory = _require_text(cwd, "command working directory")
+        working_directory = _require_exact_text(cwd, "command working directory")
         parameters = _optional_mapping(inputs, "command experiment inputs")
         environment_requirements = _optional_mapping(
             environment,
