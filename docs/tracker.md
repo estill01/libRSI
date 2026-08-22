@@ -245,7 +245,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 10 | Validation workflow and result | 3–9 | `accepted` |
 | 11 | Investigation workflow and result | 10 | `accepted` |
 | 12 | Intervention and candidate lifecycle | 5, 11 | `accepted` |
-| 13 | Goals, constraints, and evaluation contracts | 5, 12 | `not-started` |
+| 13 | Goals, constraints, and evaluation contracts | 5, 12 | `in-progress` |
 | 14 | Comparative evaluation and selection | 4, 12, 13 | `not-started` |
 | 15 | Complete improvement workflow and result | 10–14 | `not-started` |
 | 16 | Application, verification, and rollback | 15 | `not-started` |
@@ -1733,7 +1733,7 @@ Stop before evaluation-contract operationalization, candidate comparison, or app
 
 ## Block 13 — Goals, objectives, constraints, guardrails, and evaluation contracts
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 

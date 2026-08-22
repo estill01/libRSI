@@ -49,6 +49,10 @@ The current implementation owns portable primitives including:
   observation-only experiment design, and evidence-bound findings; and
 - a generic intervention-to-candidate lifecycle with exact rationale/currentness,
   complete absent-Implementer handoffs, and no authoritative application operation.
+- a structured intent layer that separates declarative Goals from Claims/Evidence,
+  operationalizes natural-language or typed intent into exact objectives, baselines,
+  constraints, guardrails, and stopping rules, and returns named information gaps
+  instead of fabricating evaluation criteria.
 
 ## Package structure
 
@@ -100,6 +104,9 @@ The current implementation owns portable primitives including:
   application authority;
 - `interventions/workflow.py` — restartable absent, managed, and external Implementer
   paths over the canonical runtime;
+- `intent/records.py`, `intent/policy.py`, `intent/actions.py`, and `intent/workflow.py`
+  — measurable evaluation contracts, consistency checks, proposal-only Reasoner
+  handoffs, and typed/natural-language operationalization;
 - `hypotheses.py` — canonical hypothesis creation/evidence updates plus legacy wrappers;
 - `experiments.py` — immutable command specs, host execution inputs, and evidence interpretation;
 - `ports.py` — typed host interfaces such as `ExperimentRunner`;
