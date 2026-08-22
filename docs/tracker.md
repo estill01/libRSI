@@ -243,7 +243,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 8 | Capability protocols and neutral dispatch | 7 | `accepted` |
 | 9 | Provider-neutral reasoner contract | 3, 7, 8 | `accepted` |
 | 10 | Validation workflow and result | 3–9 | `accepted` |
-| 11 | Investigation workflow and result | 10 | `not-started` |
+| 11 | Investigation workflow and result | 10 | `accepted` |
 | 12 | Intervention and candidate lifecycle | 5, 11 | `not-started` |
 | 13 | Goals, constraints, and evaluation contracts | 5, 12 | `not-started` |
 | 14 | Comparative evaluation and selection | 4, 12, 13 | `not-started` |
@@ -1499,7 +1499,7 @@ Stop before multi-hypothesis investigation or intervention generation.
 
 ## Block 11 — Investigation and scientific-understanding workflow
 
-Status: `not-started`
+Status: `accepted`
 
 ### Objective
 
@@ -1550,7 +1550,91 @@ Review branch lineage, falsification behavior, stopping, evidence citations, and
 
 ### Completion evidence
 
-Pending.
+- Delivered a structured `librsi.investigation` package rather than a monolithic helper:
+  `records.py` owns request, complete frontier, branch, experiment-batch, finding, and
+  result records; `policy.py` owns canonical hypothesis, portfolio, evidence, budget,
+  redesign, retirement, and stopping semantics; `actions.py` owns dedicated reasoner and
+  experimenter codecs plus exact pre-transition validation; `workflow.py` owns restartable
+  composition over the Block 7 runtime; `__init__.py` exposes the supported public surface.
+- Behavioral proof: competing hypotheses begin at a neutral canonical belief, reuse only
+  current admissible knowledge with exact provenance, retain isolated evidence, support
+  sequential and deterministic parallel lane activation, redesign after inconclusive
+  evidence within budget, retire on explicit causes, and project findings only from exact
+  supported hypothesis statements and evidence. Direct, managed, persisted, and resumed
+  paths share the same action and result semantics.
+- Authority proof: experiment proposals use a closed observation-only schema with exact
+  built-in strings, bounded measurement identifiers, and criteria derived from the
+  canonical epistemic relationship owner. A complete typed `InvestigationFrontier`
+  accompanies each specialized action. `derive_investigation_action()` is the single
+  authority for branch choice, design-versus-experiment phase, sequence, and budget
+  eligibility; public builders, codecs, workflow replay, and failed results require its
+  exact output. Generic `CapabilityDispatcher` routes and submissions fail closed for
+  investigation actions, leaving `InvestigationWorkflow.submit()` as the sole owner.
+- Validation: Ruff formatting/checks and mypy passed. The focused Block 11 suite passed
+  `36` tests; the protected Blocks 6–11 suite passed `211`; the full suite passed `323`
+  with `90.26%` branch coverage. Isolated sdist and wheel builds succeeded; the wheel
+  contained `py.typed` and all five investigation modules. Fresh installed-wheel
+  environments passed all `36` focused tests on Python 3.11, 3.12, and 3.13 and imported
+  `InvestigationFrontier`, `InvestigationWorkflow`, and `derive_investigation_action`.
+- Candidate freeze: content root
+  `1655bd50e2eca74731f4ab5d04f442dba142d3e2836c41f92cf3d07144dea7b2`
+  remained unchanged through final mapped validation, release proof, and independent
+  review; exactly 17 candidate files were included. The unrelated untracked `uv.lock` was
+  excluded and remained untouched at 134,695 bytes with mtime `1787379167`.
+- Independent review: Hubble, read-only, against base
+  `b5fc49873aa61ec6db714f69852338b417a6a8ea` and successive exact frozen candidates; final
+  disposition `accepted` at the root above. Adversarial probes found and drove remediation
+  of target-change spelling/value/container smuggling, noncanonical provider criteria,
+  exact-string subclass spoofing, generic-dispatch prevalidation effects, incomplete or
+  altered failure rosters, out-of-order action submission, and full-roster failed-action
+  substitution. All reproductions and Blocks 6–10 protections were independently reprobed
+  closed; no actionable finding remained.
+- Product-capability review:
+  - Trigger: consequential posture.
+  - Frame identity: `docs/tracker.md`, Block 11,
+    `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+  - Capability added or preserved: a caller can now investigate one exact question through
+    competing falsifiable hypotheses, bounded adaptive observations, current reusable
+    evidence, explicit unresolved alternatives, deterministic persistence/resume, and
+    evidence-bound findings without granting target-change authority.
+  - Paths compared: a single-question one-shot helper; the selected bounded-general
+    investigation package composed over Question, Hypothesis, Evidence, ExperimentSpec,
+    PortfolioPolicy, reasoner/experimenter capabilities, knowledge, and runtime; and a
+    general search/agent/optimizer platform spanning intervention and application.
+  - Selected level and owner: semantic state in `investigation/records.py`, canonical
+    epistemic/search policy in `investigation/policy.py`, exact capability/action authority
+    in `investigation/actions.py`, and lifecycle/replay composition in
+    `investigation/workflow.py`.
+  - Protected-capability result: evidence currentness and provenance, neutral initial
+    belief, portfolio ownership, runtime sole mutation authority, provider neutrality,
+    external/managed parity, deterministic replay, and software/non-software neutrality are
+    preserved by mapped tests and exact-root review.
+  - Rejected alternatives: a one-shot helper cannot preserve competing lanes, bounded
+    redesign, persistence, or explicit unresolved state; a general optimizer/agent engine
+    would duplicate lifecycle and portfolio authority and prematurely cross the
+    intervention/application boundary.
+  - Tradeoffs and uncertainty: callers resuming knowledge-backed investigations must supply
+    the same `KnowledgeStore` so reused roots can be revalidated. Policy changes require a
+    versioned semantic contract rather than injectable heuristics. These constraints retain
+    stable identity and fail-closed replay.
+  - Frozen-candidate proof: implementation commit
+    `f1dc143243b0250b505a24f975315b6e8a7e2502`, candidate root above, `323 passed`,
+    installed-wheel Python 3.11/3.12/3.13 proof, and accepted independent exact-root review.
+- Resource posture: knowledge reuse precedes new actions; hypothesis, experiment, redesign,
+  action, and failure counts remain bounded; one exact action is pending at a time; tests
+  use synthetic capabilities, temporary SQLite stores, and temporary build/install
+  environments. No provider, worker, scheduler, transport, messaging, filesystem/Git
+  effect, or target mutation was added to the library core.
+- Retained open work: none within Block 11.
+- Decision/continuation posture: not applicable; Block 12 is dependency-safe.
+- Post-block audit: accepted; no intervention, candidate, evaluation-contract,
+  comparative-selection, application, target-change, hosted provider, generic optimizer,
+  worker/scheduler, transport, messaging, tracing, or second runtime/epistemic/portfolio
+  owner crossed the Block 11 Stop.
+- Git durability: implementation commit
+  `f1dc143243b0250b505a24f975315b6e8a7e2502` was pushed non-force to
+  `origin/codex/block-11-investigation-workflow`; this evidence-only successor is the final
+  Block 11 tracker checkpoint.
 
 ### Stop
 

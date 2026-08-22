@@ -163,6 +163,35 @@ mutation; any reused evidence must still resolve through the supplied `Knowledge
 The initial validation contract uses the canonical built-in epistemic policy;
 alternate sufficiency policies require an explicit versioned semantic policy contract.
 
+`investigation/records.py` owns bounded question requests, hypothesis branches, a typed
+complete-roster `InvestigationFrontier`, exact experiment-evidence batches, evidence-bound
+findings, and `InvestigationResult`.
+`investigation/policy.py` owns neutral-prior belief aggregation, sequential/parallel lane
+activation, deterministic prioritization, redesign/experiment budgets, branch retirement,
+and stopping. `investigation/actions.py` owns dedicated reserved reasoner/experimenter
+codecs and nonreplaceable pre-transition validators. `investigation/workflow.py` composes
+those owners with the Block 7 runtime; it exposes one restartable action frontier and
+reconstructs every branch from the persisted action/result log before mutation or a
+managed host effect. Each action carries the complete ordered branch roster plus the one
+policy-selected active branch. Generic `CapabilityDispatcher` configuration and
+submission fail closed for these specialized action kinds; only
+`InvestigationWorkflow.submit()` can advance them. `derive_investigation_action()` is the
+single owner for branch choice, phase, experiment sequence, and budget eligibility; action
+builders, decoders, replay, and failure-result validation all require its exact output.
+
+Reasoner hypothesis confidence remains proposal metadata: each branch starts from a
+neutral canonical belief and changes only through exact Evidence. Sequential portfolios
+finish a lane before advancing; parallel portfolios keep every viable lane active and
+round-robin the least-tested branch. Experiment-design proposals can describe only
+epistemic work through a closed observation-only schema: `measure`, `observe`, or
+`retrieve`, bounded measurement identifiers, and canonical evidence criteria. There is no
+open procedure/operation mapping in which intervention, candidate, implementation,
+mutation, application, or target-change authority can hide. A dedicated
+`investigation-reason` validator applies that schema before any runtime transition.
+`InvestigationFinding` cannot synthesize text beyond a supported hypothesis
+statement, and terminal stop causes are derived from branches plus exact failed-result
+lineage. Investigation never proposes or applies a target change.
+
 The base distribution does not open a database from the composition root, mutate
 targets or files, run Git/subprocess operations, call a model/provider, schedule
 workers, or send messages. Hosts choose whether and where to construct stores and

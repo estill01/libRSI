@@ -22,7 +22,18 @@ class CapabilityDispatcher:
         if not isinstance(registry, CapabilityRegistry):
             raise TypeError("capability dispatcher requires a CapabilityRegistry")
         for route in registry.routes:
-            if route.action_kind not in {"reason", "validation-evidence"}:
+            if route.action_kind in {
+                "investigation-reason",
+                "investigation-experiment",
+            }:
+                raise RSICapabilityError(
+                    "investigation actions are owned by InvestigationWorkflow and cannot "
+                    "be configured on CapabilityDispatcher"
+                )
+            if route.action_kind not in {
+                "reason",
+                "validation-evidence",
+            }:
                 continue
             expected_family = "reasoner" if route.action_kind == "reason" else "experimenter"
             if route.family != expected_family:
@@ -45,6 +56,13 @@ class CapabilityDispatcher:
     ) -> RuntimeUpdate:
         if not isinstance(result, ActionResult):
             raise TypeError("capability submission requires an ActionResult")
+        if result.action.kind in {
+            "investigation-reason",
+            "investigation-experiment",
+        }:
+            raise RSICapabilityError(
+                "investigation results must be submitted through InvestigationWorkflow"
+            )
         if result.action.kind == "reason":
             # The reserved structured-reasoning path is validated by libRSI itself.
             # Host validators configured on the registry run in addition below and

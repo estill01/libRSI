@@ -11,6 +11,7 @@ from ..runtime import Action, ActionResult, Run, RuntimeFailure
 from .records import ReasoningRequest, ReasoningResult
 
 REASONING_ACTION_KIND = "reason"
+REASONING_ACTION_KINDS = frozenset({REASONING_ACTION_KIND, "investigation-reason"})
 
 
 def make_reasoning_action(
@@ -45,7 +46,7 @@ def reasoning_request_from_action(action: Action) -> ReasoningRequest:
 
     if not isinstance(action, Action):
         raise TypeError("reasoning action decoding requires an Action")
-    if action.kind != REASONING_ACTION_KIND:
+    if action.kind not in REASONING_ACTION_KINDS:
         raise ValueError("action is not a structured reasoning action")
     if frozenset(action.payload) != {"request"}:
         raise ValueError("reasoning action payload must contain only its exact request")
