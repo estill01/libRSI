@@ -1,3 +1,5 @@
+![libRSI — Experiment. Learn. Improve. Recurse.](docs/assets/librsi-banner.webp)
+
 # libRSI
 
 `libRSI` is a zero-dependency Python library for bounded recursive
