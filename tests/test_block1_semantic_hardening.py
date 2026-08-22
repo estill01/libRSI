@@ -39,12 +39,15 @@ def test_typed_and_generic_refs_share_exact_reference_identity() -> None:
     generic = RecordRef("evidence", evidence.root)
     typed = EvidenceRef.from_evidence(evidence)
 
+    assert EvidenceRef.from_record(evidence) == typed
     assert generic == typed
     assert typed == generic
     assert hash(generic) == hash(typed)
     assert len({generic, typed}) == 1
     assert generic.matches(evidence)
     assert typed.require(evidence) is evidence
+    with pytest.raises(TypeError, match="Evidence record"):
+        EvidenceRef.from_record(claim)
 
 
 def test_text_fields_reject_non_strings_instead_of_coercing() -> None:
