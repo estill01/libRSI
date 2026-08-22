@@ -241,7 +241,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 6 | Persistent knowledge and SQLite store | 1, 5 | `accepted` |
 | 7 | Durable semantic Run/Event/Action engine | 1, 6 | `accepted` |
 | 8 | Capability protocols and neutral dispatch | 7 | `accepted` |
-| 9 | Provider-neutral reasoner contract | 3, 7, 8 | `not-started` |
+| 9 | Provider-neutral reasoner contract | 3, 7, 8 | `accepted` |
 | 10 | Validation workflow and result | 3–9 | `not-started` |
 | 11 | Investigation workflow and result | 10 | `not-started` |
 | 12 | Intervention and candidate lifecycle | 5, 11 | `not-started` |
@@ -1205,7 +1205,7 @@ Stop before structured reasoning implementations or composed workflows.
 
 ## Block 9 — Provider-neutral reasoner contract and structured reasoning
 
-Status: `not-started`
+Status: `accepted`
 
 ### Objective
 
@@ -1257,7 +1257,91 @@ Review proposal authority, schema validation, provenance, and managed/external e
 
 ### Completion evidence
 
-Pending.
+- Repository commit: `e6f3a3cebffa2b23233487994f4ea7283a658c3b`.
+- External/domain revision or root: not applicable; Block 9 uses deterministic fake
+  reasoners, exact immutable records, and bounded in-memory action traces, with no live
+  provider, model call, target mutation, process execution, network, worker, or hosted
+  service.
+- Inputs: authoritative base `fdeed6986923ae2ca75959281dcbff98751b262d`,
+  accepted Blocks 3, 7, and 8, architecture-contract sections 5 and 9, the Block 9
+  scope revision, and tracker capability-frame SHA-256
+  `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+- Outputs: structured `librsi.reasoning` package split across strict per-kind schemas,
+  canonical request/result records, exact runtime action/result codecs, a provider-free
+  backend protocol and managed Reasoner adapter, pre-transition result validation, and
+  downstream Evidence/Intervention lineage guards; additive action-kind result
+  validators in the generic capability registry; public exports and truthful module
+  documentation; and split record, dispatch, lineage, and adversarial tests.
+- Focused validation: Python 3.14 focused Block 9 suite, `39 passed`, covering all seven
+  reasoning kinds, strict malformed-schema matrices, canonical serialization, exact
+  request/input/currentness binding, managed/external transition equivalence, stale and
+  mismatched requests, external and managed malformed responses, direct claim/evidence
+  promotion, failure shapes, non-authoritative narration, complete downstream lineage,
+  wrong-family routes, and malicious no-op host validators. The combined protected
+  Blocks 6–9 suite passed `129` tests.
+- Mapped validation: Python 3.14 Ruff and format checks passed; mypy passed all 39 source
+  files; full suite `241 passed` at `90.92%` branch coverage with `ResourceWarning`
+  treated as error; rebuilt sdist/wheel each contained all six structured reasoning
+  modules; isolated Python 3.11 installed-wheel proof confirmed that libRSI's canonical
+  validator rejects free-form output even when an additive host validator is a no-op.
+- Candidate freeze: content root
+  `917163618f8293795b6e300e845aeac90058d3828437c3dd3415a2dabdd9cb1e`
+  remained unchanged through final mapped validation and independent review; exactly
+  18 candidate files were included and unrelated untracked `uv.lock` was excluded and
+  left untouched.
+- Resource posture: deterministic in-memory fake reasoners, closed JSON-shaped proposal
+  fixtures, bounded runtime traces, an isolated build environment, and one installed-
+  wheel Python 3.11 environment; no provider/model SDK, prompt optimizer, agent
+  framework, subprocess capability, target effect, scheduler, worker, transport,
+  messaging, tracing, validation workflow, or investigation workflow was used or added.
+- Independent review: Hubble, read-only, against base
+  `fdeed6986923ae2ca75959281dcbff98751b262d` and the final frozen candidate root; final
+  disposition `accepted`. Review-found gaps allowing optional-validator bypass and
+  omission of the exact request root from downstream lineage were remediated and
+  independently reprobed; the canonical validator is now nonreplaceable on the reserved
+  `reason` path, host validators are additive only, proposal/request/input/currentness
+  lineage is complete, Blocks 6–8 remain protected, successor seams are clean, and the
+  Block 9 Stop is compliant.
+- Product-capability review:
+  - Trigger: consequential posture.
+  - Frame identity: `docs/tracker.md`, Block 9,
+    `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+  - Capability added or preserved: managed implementations and SDK-free external hosts
+    can perform seven kinds of cognitive work through the same exact runtime action and
+    result while every output remains a validated, lineage-bearing proposal rather than
+    evidence, truth, knowledge promotion, selection, or application authority.
+  - Paths compared: a free-form callback or narration field; a bounded-general package
+    of canonical records, closed schemas, codecs, adapters, and validation/lineage
+    guards; and a provider SDK, prompt optimizer, agent framework, or composed workflow.
+  - Selected level and owner: structural semantics in `reasoning/records.py` and
+    `reasoning/schemas.py`, runtime correlation in `reasoning/actions.py`, replaceable
+    execution in `reasoning/adapters.py`, and nonreplaceable authority/currentness plus
+    downstream provenance in `reasoning/validation.py` and the reserved dispatcher path.
+  - Protected-capability result: exact identity/currentness, proposal-versus-authority
+    separation, malformed-output atomicity, provider neutrality, external-host parity,
+    zero base dependencies, complete request/proposal/input lineage, Block 7 sole state
+    mutation, and Block 8 routing equivalence are covered by focused and mapped proof.
+  - Rejected alternatives: free-form responses cannot establish a stable validation or
+    provenance contract; a provider/optimizer/agent/workflow platform would introduce
+    provider types and orchestration authority explicitly outside this Block.
+  - Tradeoffs and uncertainty: schemas are deliberately closed and may require explicit
+    compatible extension as new reasoning kinds mature; provider metadata may remain
+    non-authoritative metadata, while the semantic result identity stays provider-free.
+    The exact action kind `reason` is reserved so canonical validation cannot be replaced
+    accidentally; custom cognitive actions use distinct kinds and explicit validators.
+  - Frozen-candidate proof: implementation commit
+    `e6f3a3cebffa2b23233487994f4ea7283a658c3b`, candidate root above, `241 passed`,
+    installed-wheel adversarial proof, and accepted independent exact-root review.
+- Retained open work: none within Block 9.
+- Decision/continuation posture: not applicable; Block 10 is dependency-safe.
+- Post-block audit: accepted; no validation/investigation workflow, provider adapter,
+  prompt optimizer, agent framework, hosted model integration, candidate generation,
+  intervention execution, worker/scheduler, transport, messaging, or tracing platform
+  crossed the Block 9 Stop.
+- Git durability: implementation commit
+  `e6f3a3cebffa2b23233487994f4ea7283a658c3b` was pushed non-force to
+  `origin/codex/block-09-structured-reasoning`; this evidence-only successor is the final
+  Block 9 tracker checkpoint.
 
 ### Stop
 

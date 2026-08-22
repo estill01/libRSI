@@ -8,6 +8,7 @@ from typing import cast
 
 from ..errors import RSICapabilityError
 from ..runtime import Action, ActionResult, RunState
+from .protocols import CapabilityResultValidator
 from .records import (
     CAPABILITY_FAMILIES,
     CapabilityResolution,
@@ -37,6 +38,7 @@ class CapabilityRegistry:
         *,
         routes: Sequence[CapabilityRoute] = (),
         implementations: Sequence[object] = (),
+        result_validators: Sequence[CapabilityResultValidator] = (),
     ) -> None:
         if isinstance(routes, (str, bytes, bytearray)) or not isinstance(routes, Sequence):
             raise TypeError("capability routes must be a sequence")
@@ -68,9 +70,32 @@ class CapabilityRegistry:
                 providers[family] = matches[0]
         self._providers = providers
 
+        if isinstance(result_validators, (str, bytes, bytearray)) or not isinstance(
+            result_validators, Sequence
+        ):
+            raise TypeError("capability result validators must be a sequence")
+        validators = tuple(result_validators)
+        for validator in validators:
+            if not isinstance(validator, CapabilityResultValidator):
+                raise TypeError(
+                    "capability result validators must implement CapabilityResultValidator"
+                )
+            if validator.action_kind not in self._routes:
+                raise ValueError("capability result validator requires an exact configured route")
+        if len({item.action_kind for item in validators}) != len(validators):
+            raise ValueError("capability result validators must have unique action kinds")
+        self._result_validators = {item.action_kind: item for item in validators}
+
     @property
     def routes(self) -> tuple[CapabilityRoute, ...]:
         return tuple(self._routes.values())
+
+    def has_result_validator(self, action_kind: str) -> bool:
+        """Return whether an exact action kind has a pre-transition validator."""
+
+        if not isinstance(action_kind, str):
+            raise TypeError("capability validator lookup requires an action kind")
+        return action_kind in self._result_validators
 
     def resolve(self, action: Action) -> CapabilityResolution:
         if not isinstance(action, Action):
@@ -106,6 +131,17 @@ class CapabilityRegistry:
             state=state,
             resolutions=tuple(self.resolve(action) for action in state.pending_actions),
         )
+
+    def validate(self, state: RunState, result: ActionResult) -> None:
+        """Validate one result under its exact action-kind contract, if configured."""
+
+        if not isinstance(state, RunState):
+            raise TypeError("capability result validation requires a RunState")
+        if not isinstance(result, ActionResult):
+            raise TypeError("capability result validation requires an ActionResult")
+        validator = self._result_validators.get(result.action.kind)
+        if validator is not None:
+            validator.validate(state, result)
 
     def execute(self, resolution: CapabilityResolution) -> ActionResult:
         if not isinstance(resolution, CapabilityResolution):

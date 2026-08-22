@@ -21,6 +21,13 @@ class CapabilityDispatcher:
     def __init__(self, registry: CapabilityRegistry) -> None:
         if not isinstance(registry, CapabilityRegistry):
             raise TypeError("capability dispatcher requires a CapabilityRegistry")
+        for route in registry.routes:
+            if route.action_kind != "reason":
+                continue
+            if route.family != "reasoner":
+                raise RSICapabilityError(
+                    "structured reasoning actions require an exact reasoner route"
+                )
         self._registry = registry
 
     def next(self, state: RunState) -> DispatchPlan:
@@ -37,7 +44,17 @@ class CapabilityDispatcher:
     ) -> RuntimeUpdate:
         if not isinstance(result, ActionResult):
             raise TypeError("capability submission requires an ActionResult")
+        if result.action.kind == "reason":
+            # The reserved structured-reasoning path is validated by libRSI itself.
+            # Host validators configured on the registry run in addition below and
+            # cannot weaken or replace this authority boundary.
+            from ..reasoning.validation import ReasoningResultValidator
+
+            ReasoningResultValidator().validate(state, result)
+        self._registry.validate(state, result)
         resolution = self._registry.resolve(result.action)
+        if result.action.kind == "reason" and resolution.family != "reasoner":
+            raise RSICapabilityError("structured reasoning actions require an exact reasoner route")
         if resolution.posture == "unavailable":
             raise RSICapabilityError("unavailable capability results cannot be submitted")
         if resolution.posture != authority:

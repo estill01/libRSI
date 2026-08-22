@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Protocol, runtime_checkable
 
-from ..runtime import Action, ActionResult
+from ..runtime import Action, ActionResult, RunState
 
 
 @runtime_checkable
@@ -45,3 +45,12 @@ class Applier(Protocol):
 @runtime_checkable
 class Verifier(Protocol):
     def verify(self, action: Action) -> ActionResult: ...
+
+
+@runtime_checkable
+class CapabilityResultValidator(Protocol):
+    """Action-kind-specific validation applied before any runtime mutation."""
+
+    action_kind: str
+
+    def validate(self, state: RunState, result: ActionResult) -> None: ...
