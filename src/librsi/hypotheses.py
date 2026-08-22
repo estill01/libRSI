@@ -3,7 +3,7 @@ from __future__ import annotations
 import warnings
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 from .identity import digest, normalize_ids
 from .models import (
@@ -196,10 +196,11 @@ class HypothesisPolicy:
             raise ValueError("hypothesis evidence requires an exact evidence id")
         if evidence_type not in _SUPPORTED_EVIDENCE_TYPES:
             raise ValueError(f"unsupported hypothesis evidence type: {evidence_type}")
+        normalized_type = cast(EvidenceType, evidence_type)
 
-        if evidence_type == "support":
+        if normalized_type == "support":
             delta = weight * self.support_scale
-        elif evidence_type == "counterexample":
+        elif normalized_type == "counterexample":
             delta = -weight * self.counterexample_scale
         else:
             delta = -weight * self.qualification_scale
@@ -210,14 +211,14 @@ class HypothesisPolicy:
             status = "supported"
         elif confidence <= self.rejected_threshold:
             status = "rejected"
-        elif evidence_type == "counterexample":
+        elif normalized_type == "counterexample":
             status = "weakened"
         else:
             status = "testing"
         return HypothesisUpdate(
             status,
             confidence,
-            evidence_type,
+            normalized_type,
             evidence_id,
             weight,
         )
