@@ -240,7 +240,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 5 | Targets, snapshots, and currentness | 1, 4 | `accepted` |
 | 6 | Persistent knowledge and SQLite store | 1, 5 | `accepted` |
 | 7 | Durable semantic Run/Event/Action engine | 1, 6 | `accepted` |
-| 8 | Capability protocols and neutral dispatch | 7 | `in-progress` |
+| 8 | Capability protocols and neutral dispatch | 7 | `accepted` |
 | 9 | Provider-neutral reasoner contract | 3, 7, 8 | `not-started` |
 | 10 | Validation workflow and result | 3–9 | `not-started` |
 | 11 | Investigation workflow and result | 10 | `not-started` |
@@ -1067,7 +1067,7 @@ Stop before capability resolution and automatic dispatch.
 
 ## Block 8 — Capability protocols and control-plane-neutral dispatch
 
-Status: `in-progress`
+Status: `accepted`
 
 ### Objective
 
@@ -1119,7 +1119,85 @@ Review authority boundaries, equivalent state roots across modes, and absence of
 
 ### Completion evidence
 
-Pending.
+- Repository commit: `5f2e1ef7b6e071f88f5c8be82ab06741292abecc`.
+- External/domain revision or root: not applicable; Block 8 uses deterministic fake
+  capability objects and bounded immutable traces, with no provider, process, target
+  mutation, network, worker, or hosted service.
+- Inputs: authoritative base `5c995aec534867acd228a4ea1949e7277c284570`,
+  accepted Blocks 5 and 7, architecture-contract sections 3 and 5, the capability
+  scope revision, and tracker capability-frame SHA-256
+  `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+- Outputs: structured `librsi.capabilities` package; granular Inspector, Retriever,
+  Reasoner, Experimenter, Implementer, Reviewer, Applier, and Verifier protocols;
+  explicit action-kind routes and automatic, external, human-reserved, and unavailable
+  resolutions; deterministic provider registry; pure pending-action plans; one-frontier
+  automatic dispatch; external and explicit reserved-authority submission through the
+  Block 7 engine; public exports and truthful documentation; and split contract,
+  equivalence, authority, and non-software dogfood tests.
+- Focused validation: Python 3.14 focused Block 8 suite, `18 passed`, covering all
+  protocols, one object implementing multiple protocols, exact route validation,
+  missing route/provider resolution, managed/external/hybrid state equivalence,
+  explicit external/human/unavailable authority, wrong schemas/actions and raised
+  implementations, terminal frontier stopping, non-promotion of successful capability
+  results, and the synthetic heat-treatment process sentinel. The combined protected
+  Blocks 6–8 suite passed `90` tests.
+- Mapped validation: Python 3.14 Ruff and format checks passed; mypy passed all
+  33 source files; full suite `202 passed` at `90.62%` branch coverage with
+  `ResourceWarning` treated as error; sdist/wheel build included the structured
+  capabilities and runtime packages; isolated Python 3.11 installed-wheel automatic
+  dispatch smoke passed.
+- Candidate freeze: content root
+  `3561fe619586f4560b9dd64c9b9f452a488ad8df836481ef411c64a4246c4dd6`
+  remained unchanged through final mapped validation and independent review; exactly
+  13 candidate files were included and unrelated untracked `uv.lock` was excluded and
+  left untouched.
+- Resource posture: deterministic in-memory fake capabilities, bounded action traces,
+  one synthetic non-software snapshot, and an isolated installed-wheel environment;
+  no model/provider SDK, subprocess, target effect, optimizer, scheduler, worker,
+  transport, messaging bus, tracing platform, or workflow engine was used or added.
+- Independent review: Hubble, read-only, against base
+  `5c995aec534867acd228a4ea1949e7277c284570` and the frozen candidate root; final
+  disposition `accepted` with no material findings, independent adversarial probes
+  passed, Blocks 6–7 protected, successor seams clean, and the Block 8 Stop compliant.
+- Product-capability review:
+  - Trigger: consequential posture.
+  - Frame identity: `docs/tracker.md`, Block 8,
+    `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+  - Capability added or preserved: the same exact pending actions and results can be
+    driven automatically, externally, or in hybrid mode without creating a second
+    lifecycle, epistemic, selection, or application authority.
+  - Paths compared: hard-coded execution inside the runtime; a bounded-general set of
+    granular capability protocols plus neutral dispatcher; and a provider, optimizer,
+    worker, scheduling, messaging, tracing, or orchestration platform.
+  - Selected level and owner: structural host contracts in
+    `capabilities/protocols.py`, explicit routing views in `capabilities/records.py`,
+    deterministic implementation lookup in `capabilities/registry.py`, and dispatch
+    convenience in `capabilities/dispatcher.py`; all state mutation remains owned by
+    `RuntimeEngine.submit`.
+  - Protected-capability result: identical state/transition semantics across modes,
+    explicit missing and reserved authority, exact action/result correlation, terminal
+    frontier safety, non-software neutrality, knowledge non-promotion, base-install
+    zero dependencies, and structured packaging are covered by focused and mapped proof.
+  - Rejected alternatives: embedding execution in the runtime would couple hosts and
+    control planes; a general execution platform would add speculative providers,
+    optimizers, workers, scheduling, transport, messaging, and tracing explicitly
+    outside this Block and mostly outside libRSI ownership.
+  - Tradeoffs and uncertainty: one `advance()` call executes only the currently
+    automatic frontier in canonical pending order; callers explicitly repeat frontiers
+    or submit external/reserved results, preserving boundedness and avoiding a hidden
+    scheduler. Provider-specific schemas and structured reasoning remain later seams.
+  - Frozen-candidate proof: commit
+    `5f2e1ef7b6e071f88f5c8be82ab06741292abecc`, candidate root above, `202 passed`,
+    installed-wheel dispatch proof, and accepted independent adversarial review.
+- Retained open work: none within Block 8.
+- Decision/continuation posture: not applicable; Block 9 is dependency-safe.
+- Post-block audit: accepted; no reasoner implementation, composed workflow, provider
+  adapter, optimizer, worker/scheduler, transport, messaging, or tracing platform
+  crossed the Block 8 Stop.
+- Git durability: implementation commit
+  `5f2e1ef7b6e071f88f5c8be82ab06741292abecc` was pushed non-force to
+  `origin/codex/block-08-capability-dispatch`; this evidence-only successor is the
+  final Block 8 tracker checkpoint.
 
 ### Stop
 
