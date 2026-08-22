@@ -27,7 +27,8 @@ python -m pytest
 ## Example
 
 The canonical hypothesis/experiment path binds the proposition, target snapshot,
-experiment criteria, and resulting evidence by exact immutable record identity:
+experiment criteria, execution input, observation, and resulting evidence by exact
+immutable record identity:
 
 ```python
 from librsi import CommandObservation, RSIKernel, TargetRef, TargetSnapshot
@@ -57,16 +58,20 @@ spec = rsi.experiments.design_command(
 )
 command = rsi.experiments.prepare_command(spec)
 
-# A host-owned runner executes `command` and returns its observation.
-evidence = rsi.experiments.evaluate_command(
-    spec=spec,
-    observation=CommandObservation(exit_code=0, stdout="IMPROVED\n", stderr=""),
+# A host-owned runner executes `command` and echoes its exact input root.
+observation = CommandObservation(
+    exit_code=0,
+    stdout="IMPROVED\n",
+    stderr="",
+    exact_input_root=command.exact_input_root,
 )
+evidence = rsi.experiments.evaluate_command(spec=spec, observation=observation)
 updated = rsi.hypotheses.apply(hypothesis=hypothesis, evidence=evidence)
 ```
 
 `evaluate_command()` reads its decision criteria from the immutable `ExperimentSpec`;
-callers cannot replace them after execution. Evidence names the exact hypothesis and
+callers cannot replace them after execution. It also rejects observations that do not
+echo the exact spec/input root. Evidence names the exact hypothesis, experiment, and
 target snapshot it bears on, and a stale or different hypothesis rejects that evidence.
 The `0.2.0` scalar APIs remain available as deprecated compatibility wrappers.
 
