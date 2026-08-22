@@ -14,6 +14,12 @@ _REF_SCHEMA = "librsi.ref/v1"
 _MAP_SCHEMA = "librsi.map/v1"
 _RECORD_TYPES: dict[str, type[Any]] = {}
 _HEX = frozenset(string.hexdigits.lower())
+_METRIC_DIRECTIONS = frozenset({"increase", "decrease", "target"})
+_METRIC_ROLES = frozenset({"objective", "guardrail", "diagnostic"})
+_DECISION_RULE_KINDS = frozenset({"threshold", "baseline_delta"})
+_DECISION_OPERATORS = frozenset({"<", "<=", "==", ">=", ">"})
+_TRIAL_ROLES = frozenset({"subject", "baseline", "candidate"})
+_TRIAL_RESULT_DISPOSITIONS = frozenset({"valid", "invalid", "inconclusive"})
 
 
 def _require_text(value: str, label: str) -> str:
@@ -118,6 +124,18 @@ def _nonnegative_int(value: int, label: str) -> int:
     if value < 0:
         raise ValueError(f"{label} must be nonnegative")
     return value
+
+
+def _nonnegative_int_tuple(
+    value: Sequence[int] | None,
+    *,
+    label: str,
+) -> tuple[int, ...]:
+    if value is None:
+        return ()
+    if isinstance(value, (str, bytes, bytearray)) or not isinstance(value, Sequence):
+        raise TypeError(f"{label} must be a sequence of integers")
+    return tuple(_nonnegative_int(item, label) for item in value)
 
 
 @dataclass(frozen=True, eq=False)
@@ -559,6 +577,82 @@ class BeliefState(SemanticRecord):
 
 @_register
 @dataclass(frozen=True, kw_only=True)
+class Metric(SemanticRecord):
+    """Exact definition of a measured quantity and its evaluation role."""
+
+    RECORD_TYPE: ClassVar[str] = "metric"
+
+    metric_id: str
+    direction: str
+    role: str = "objective"
+    unit: str | None = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "metric_id", _require_text(self.metric_id, "metric id"))
+        direction = _require_text(self.direction, "metric direction")
+        if direction not in _METRIC_DIRECTIONS:
+            raise ValueError(f"unsupported metric direction: {direction}")
+        object.__setattr__(self, "direction", direction)
+        role = _require_text(self.role, "metric role")
+        if role not in _METRIC_ROLES:
+            raise ValueError(f"unsupported metric role: {role}")
+        object.__setattr__(self, "role", role)
+        object.__setattr__(
+            self,
+            "unit",
+            None if self.unit is None else _require_text(self.unit, "metric unit"),
+        )
+        super().__post_init__()
+
+
+@_register
+@dataclass(frozen=True, kw_only=True)
+class DecisionRule(SemanticRecord):
+    """Deterministic threshold or baseline-delta rule for one exact Metric."""
+
+    RECORD_TYPE: ClassVar[str] = "decision_rule"
+
+    metric: RecordRef
+    kind: str
+    operator: str | None = None
+    threshold: float | None = None
+    minimum_effect: float = 0.0
+    aggregation: str = "mean"
+    required_valid_trials: int = 1
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.metric, RecordRef) or self.metric.record_type != "metric":
+            raise TypeError("decision rule metric must reference a Metric")
+        kind = _require_text(self.kind, "decision rule kind")
+        if kind not in _DECISION_RULE_KINDS:
+            raise ValueError(f"unsupported decision rule kind: {kind}")
+        object.__setattr__(self, "kind", kind)
+        if self.aggregation != "mean":
+            raise ValueError("the built-in decision rule supports mean aggregation only")
+        minimum_effect = _finite_number(self.minimum_effect, "minimum meaningful effect")
+        if minimum_effect < 0.0:
+            raise ValueError("minimum meaningful effect must be nonnegative")
+        object.__setattr__(self, "minimum_effect", minimum_effect)
+        required = _nonnegative_int(self.required_valid_trials, "required valid trials")
+        if required == 0:
+            raise ValueError("required valid trials must be positive")
+        object.__setattr__(self, "required_valid_trials", required)
+
+        if kind == "threshold":
+            if minimum_effect != 0.0:
+                raise ValueError("threshold rules do not accept a minimum meaningful effect")
+            if self.operator not in _DECISION_OPERATORS:
+                raise ValueError("threshold rules require a supported operator")
+            if self.threshold is None:
+                raise ValueError("threshold rules require a finite threshold")
+            object.__setattr__(self, "threshold", _finite_number(self.threshold, "threshold"))
+        elif self.operator is not None or self.threshold is not None:
+            raise ValueError("baseline-delta rules do not accept operator or threshold")
+        super().__post_init__()
+
+
+@_register
+@dataclass(frozen=True, kw_only=True)
 class ExperimentSpec(SemanticRecord):
     RECORD_TYPE: ClassVar[str] = "experiment_spec"
 
@@ -570,6 +664,14 @@ class ExperimentSpec(SemanticRecord):
     inputs: Mapping[str, Any] = field(default_factory=FrozenMap)
     environment: Mapping[str, Any] = field(default_factory=FrozenMap)
     requested_measurements: tuple[str, ...] = field(default_factory=tuple)
+    metrics: tuple[Metric, ...] = field(default_factory=tuple)
+    decision_rules: tuple[DecisionRule, ...] = field(default_factory=tuple)
+    repetitions: int = 1
+    seeds: tuple[int, ...] = field(default_factory=tuple)
+    budget: Mapping[str, Any] = field(default_factory=FrozenMap)
+    validity_requirements: Mapping[str, Any] = field(default_factory=FrozenMap)
+    baseline_snapshot: TargetSnapshot | None = None
+    candidate_snapshot: TargetSnapshot | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(
@@ -592,7 +694,63 @@ class ExperimentSpec(SemanticRecord):
             "requested_measurements",
             _text_tuple(self.requested_measurements),
         )
+        metrics = tuple(self.metrics)
+        if any(not isinstance(item, Metric) for item in metrics):
+            raise TypeError("experiment metrics must be Metric records")
+        if len({item.metric_id for item in metrics}) != len(metrics):
+            raise ValueError("experiment metric ids must be unique")
+        object.__setattr__(self, "metrics", metrics)
+        rules = tuple(self.decision_rules)
+        if any(not isinstance(item, DecisionRule) for item in rules):
+            raise TypeError("experiment decision rules must be DecisionRule records")
+        metric_refs = {item.ref for item in metrics}
+        if any(item.metric not in metric_refs for item in rules):
+            raise ValueError("experiment decision rules must reference an exact experiment metric")
+        object.__setattr__(self, "decision_rules", rules)
+        repetitions = _nonnegative_int(self.repetitions, "experiment repetitions")
+        if repetitions == 0:
+            raise ValueError("experiment repetitions must be positive")
+        object.__setattr__(self, "repetitions", repetitions)
+        seeds = _nonnegative_int_tuple(self.seeds, label="experiment seeds")
+        if seeds and len(seeds) != repetitions:
+            raise ValueError("experiment seeds must match the repetition count")
+        object.__setattr__(self, "seeds", seeds)
+        object.__setattr__(self, "budget", _freeze_map(self.budget))
+        object.__setattr__(self, "validity_requirements", _freeze_map(self.validity_requirements))
+        for label in ("baseline", "candidate"):
+            snapshot = getattr(self, f"{label}_snapshot")
+            if snapshot is not None and not isinstance(snapshot, TargetSnapshot):
+                raise TypeError(f"experiment {label} snapshot must be a TargetSnapshot")
+            if (
+                snapshot is not None
+                and self.target_snapshot is not None
+                and snapshot.target != self.target_snapshot.target
+            ):
+                raise ValueError(f"experiment {label} snapshot target does not match")
+        if (
+            self.baseline_snapshot is not None
+            and self.candidate_snapshot is not None
+            and self.baseline_snapshot.target != self.candidate_snapshot.target
+        ):
+            raise ValueError("experiment baseline and candidate targets must match")
         super().__post_init__()
+
+    def identity_data(self) -> dict[str, Any]:
+        data = super().identity_data()
+        defaults = {
+            "metrics": (),
+            "decision_rules": (),
+            "repetitions": 1,
+            "seeds": (),
+            "budget": FrozenMap(),
+            "validity_requirements": FrozenMap(),
+            "baseline_snapshot": None,
+            "candidate_snapshot": None,
+        }
+        for name, default in defaults.items():
+            if getattr(self, name) == default:
+                data.pop(name)
+        return data
 
 
 @_register
@@ -633,6 +791,8 @@ class Trial(SemanticRecord):
     status: str
     observation_refs: tuple[RecordRef, ...] = field(default_factory=tuple)
     data: Mapping[str, Any] = field(default_factory=FrozenMap)
+    role: str = "subject"
+    seed: int | None = None
 
     def __post_init__(self) -> None:
         if (
@@ -648,7 +808,21 @@ class Trial(SemanticRecord):
             _record_refs(self.observation_refs, label="trial observation references"),
         )
         object.__setattr__(self, "data", _freeze_map(self.data))
+        role = _require_text(self.role, "trial role")
+        if role not in _TRIAL_ROLES:
+            raise ValueError(f"unsupported trial role: {role}")
+        object.__setattr__(self, "role", role)
+        if self.seed is not None:
+            object.__setattr__(self, "seed", _nonnegative_int(self.seed, "trial seed"))
         super().__post_init__()
+
+    def identity_data(self) -> dict[str, Any]:
+        data = super().identity_data()
+        if self.role == "subject":
+            data.pop("role")
+        if self.seed is None:
+            data.pop("seed")
+        return data
 
 
 @_register
@@ -661,6 +835,7 @@ class Measurement(SemanticRecord):
     unit: str | None = None
     target_snapshot: TargetSnapshot | None = None
     observation_refs: tuple[RecordRef, ...] = field(default_factory=tuple)
+    metric_ref: RecordRef | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "metric", _require_text(self.metric, "measurement metric"))
@@ -680,6 +855,60 @@ class Measurement(SemanticRecord):
             "observation_refs",
             _record_refs(self.observation_refs, label="measurement observation references"),
         )
+        if self.metric_ref is not None and (
+            not isinstance(self.metric_ref, RecordRef) or self.metric_ref.record_type != "metric"
+        ):
+            raise TypeError("measurement metric_ref must reference a Metric")
+        super().__post_init__()
+
+    def identity_data(self) -> dict[str, Any]:
+        data = super().identity_data()
+        if self.metric_ref is None:
+            data.pop("metric_ref")
+        return data
+
+
+@_register
+@dataclass(frozen=True, kw_only=True)
+class TrialResult(SemanticRecord):
+    """Exactly correlated measurements and validity for one Trial."""
+
+    RECORD_TYPE: ClassVar[str] = "trial_result"
+
+    trial: Trial
+    disposition: str
+    observations: tuple[Observation, ...] = field(default_factory=tuple)
+    measurements: tuple[Measurement, ...] = field(default_factory=tuple)
+    reason: str | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.trial, Trial):
+            raise TypeError("trial result requires a Trial")
+        disposition = _require_text(self.disposition, "trial result disposition")
+        if disposition not in _TRIAL_RESULT_DISPOSITIONS:
+            raise ValueError(f"unsupported trial result disposition: {disposition}")
+        object.__setattr__(self, "disposition", disposition)
+        observations = tuple(self.observations)
+        if any(not isinstance(item, Observation) for item in observations):
+            raise TypeError("trial result observations must be Observation records")
+        if len({item.ref for item in observations}) != len(observations):
+            raise ValueError("trial result observations must be distinct")
+        object.__setattr__(self, "observations", observations)
+        measurements = tuple(self.measurements)
+        if any(not isinstance(item, Measurement) for item in measurements):
+            raise TypeError("trial result measurements must be Measurement records")
+        if disposition == "valid" and not measurements:
+            raise ValueError("valid trial results require measurements")
+        if disposition == "valid" and not observations:
+            raise ValueError("valid trial results require observations")
+        object.__setattr__(self, "measurements", measurements)
+        object.__setattr__(
+            self,
+            "reason",
+            None if self.reason is None else _require_text(self.reason, "trial result reason"),
+        )
+        if disposition != "valid" and self.reason is None:
+            raise ValueError("invalid or inconclusive trial results require a reason")
         super().__post_init__()
 
 

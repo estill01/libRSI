@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from .errors import RSITransitionError
+from .evaluation import ExperimentEvaluator
 from .identity import digest, thaw
 from .models import (
     CommandExperimentInput,
@@ -15,9 +16,11 @@ from .models import (
     ExperimentEvaluation,
 )
 from .records import (
+    DecisionRule,
     Evidence,
     ExperimentSpec,
     Hypothesis,
+    Metric,
     RecordRef,
     TargetRef,
     TargetSnapshot,
@@ -246,6 +249,25 @@ class ExperimentPolicy:
             "command experiment environment",
         )
         measurement_names = _measurement_names(requested_measurements)
+        if "command.passed" not in measurement_names:
+            raise ValueError("command experiments must request the command.passed Metric")
+        command_metrics = tuple(
+            Metric(
+                metric_id=name,
+                direction="increase" if name == "command.passed" else "target",
+                role="objective" if name == "command.passed" else "diagnostic",
+            )
+            for name in measurement_names
+        )
+        command_metric = next(
+            item for item in command_metrics if item.metric_id == "command.passed"
+        )
+        command_rule = DecisionRule(
+            metric=command_metric.ref,
+            kind="threshold",
+            operator=">=",
+            threshold=1.0,
+        )
 
         return ExperimentSpec(
             experiment_id=_require_text(experiment_id, "experiment id"),
@@ -260,6 +282,10 @@ class ExperimentPolicy:
             },
             environment=environment_requirements,
             requested_measurements=measurement_names,
+            metrics=command_metrics,
+            decision_rules=(command_rule,),
+            repetitions=1,
+            validity_requirements={"require_all_metrics": False},
             lineage=(hypothesis.ref,),
         )
 
@@ -293,6 +319,8 @@ class ExperimentPolicy:
         ) = _command_spec_context(spec)
         _validate_observation(observation, expected_input_root=spec.root)
         self._validate_evidence_weight()
+        if spec.metrics:
+            ExperimentEvaluator.projection(spec)
 
         passed = (
             not observation.invalid

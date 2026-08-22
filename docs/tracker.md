@@ -236,7 +236,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 1 | Canonical immutable records and identity | 0 | `accepted` |
 | 2 | Hypothesis/experiment referential integrity | 1 | `accepted` |
 | 3 | General epistemics and aggregation | 1, 2 | `accepted` |
-| 4 | Generic experiments, metrics, and evaluation | 1, 3 | `not-started` |
+| 4 | Generic experiments, metrics, and evaluation | 1, 3 | `in-progress` |
 | 5 | Targets, snapshots, and currentness | 1, 4 | `not-started` |
 | 6 | Persistent knowledge and SQLite store | 1, 5 | `not-started` |
 | 7 | Durable semantic Run/Event/Action engine | 1, 6 | `not-started` |
@@ -558,7 +558,7 @@ Stop before generic metric, trial, and experiment execution semantics.
 
 ## Block 4 — Generic experiments, measurements, metrics, and evaluation
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 
