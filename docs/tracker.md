@@ -244,7 +244,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 9 | Provider-neutral reasoner contract | 3, 7, 8 | `accepted` |
 | 10 | Validation workflow and result | 3–9 | `accepted` |
 | 11 | Investigation workflow and result | 10 | `accepted` |
-| 12 | Intervention and candidate lifecycle | 5, 11 | `in-progress` |
+| 12 | Intervention and candidate lifecycle | 5, 11 | `accepted` |
 | 13 | Goals, constraints, and evaluation contracts | 5, 12 | `not-started` |
 | 14 | Comparative evaluation and selection | 4, 12, 13 | `not-started` |
 | 15 | Complete improvement workflow and result | 10–14 | `not-started` |
@@ -1642,7 +1642,7 @@ Stop before proposing or implementing target changes.
 
 ## Block 12 — Generic intervention and candidate lifecycle
 
-Status: `in-progress`
+Status: `accepted`
 
 ### Objective
 
@@ -1694,7 +1694,38 @@ Review lineage, extensibility, currentness, absent-capability handoff, and candi
 
 ### Completion evidence
 
-Pending.
+- Capability level selected: the middle structured level—a universal intervention,
+  request/result/handoff, candidate-only policy, and restartable workflow. A thin DTO
+  handoff would not preserve currentness or lifecycle semantics; a domain execution
+  framework would cross the host-effect boundary and was intentionally omitted.
+- Material implementation: commit `43aacf0e4900edc98f7a3d392b3a656f3ecae3fc`
+  adds the structured `librsi.interventions` package (`records`, `actions`, `policy`,
+  and `workflow`), exact Implementer dispatch integration, compatibility projections,
+  package documentation, and separated record/action/dispatch/workflow/adversarial
+  tests.
+- Exact accepted candidate root:
+  `4c51c5ecc2d05c5cd08d6d5f23a65125f637f8d5da7e9e7ec188932945da01ad`
+  over 18 paths relative to base
+  `6f5c3b4c2ccdcda78042371e14c04bbc5375adcb`, excluding the unrelated untracked
+  `uv.lock`.
+- Independent semantic review: accepted the exact root after verifying canonical
+  RuntimeEngine replay across started, waiting, submitted-success, completed, failed,
+  cancelled, and retry-budget states; explicit dispatcher currentness before provider
+  execution; exact result/failure/outcome settlement; non-software extensibility; and
+  the absence of comparison, application, or domain implementation authority.
+- Validation: Ruff format/check passed; mypy passed across 54 source files; the focused
+  Block 12 suite passed 59 tests; the full suite passed 382 tests at 90.63% branch
+  coverage. The built wheel installed independently and passed all 59 focused tests on
+  Python 3.11, 3.12, and 3.13.
+- Acceptance reconciliation: an intervention can be emitted as a complete serializable
+  candidate-only handoff without an Implementer; managed and external implementations
+  traverse the same exact action/result/runtime path; stale or unobserved dispatch fails
+  before provider invocation; candidate state must differ from the unchanged
+  authoritative baseline; domain payloads remain confined to `specification`; and
+  evidence, constraints, artifacts, action/result correlation, and lifecycle lineage are
+  exact.
+- Stop reconciliation: Block 12 introduces no evaluation-contract operationalization,
+  candidate comparison/acceptance, target application, or domain-specific engine.
 
 ### Stop
 
