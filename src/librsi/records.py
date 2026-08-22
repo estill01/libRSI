@@ -180,10 +180,14 @@ class EvidenceRef(RecordRef):
         super().__init__("evidence", root)
 
     @classmethod
-    def from_evidence(cls, evidence: Evidence) -> EvidenceRef:
-        if not isinstance(evidence, Evidence):
+    def from_record(cls, record: SemanticRecord) -> EvidenceRef:
+        if not isinstance(record, Evidence):
             raise TypeError("EvidenceRef requires an Evidence record")
-        return cls(evidence.root)
+        return cls(record.root)
+
+    @classmethod
+    def from_evidence(cls, evidence: Evidence) -> EvidenceRef:
+        return cls.from_record(evidence)
 
 
 def _identity_value(value: Any) -> Any:
