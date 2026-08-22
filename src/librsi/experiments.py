@@ -16,9 +16,7 @@ from .models import (
 )
 from .records import Evidence, ExperimentSpec, Hypothesis, TargetRef, TargetSnapshot
 
-_COMMAND_CRITERIA = frozenset(
-    {"accepted_exit_codes", "stdout_contains", "stderr_not_contains"}
-)
+_COMMAND_CRITERIA = frozenset({"accepted_exit_codes", "stdout_contains", "stderr_not_contains"})
 
 
 def _require_text(value: str, label: str) -> str:
@@ -206,8 +204,12 @@ class ExperimentPolicy:
             raise ValueError("canonical command experiments require a target snapshot")
         hypothesis_refs = tuple(ref for ref in spec.lineage if ref.record_type == "hypothesis")
         if len(hypothesis_refs) != 1:
-            raise ValueError("canonical command experiments require exactly one hypothesis reference")
-        accepted_codes, required_stdout, forbidden_stderr = _validate_command_criteria(spec.criteria)
+            raise ValueError(
+                "canonical command experiments require exactly one hypothesis reference"
+            )
+        accepted_codes, required_stdout, forbidden_stderr = _validate_command_criteria(
+            spec.criteria
+        )
         _validate_observation(observation)
         self._validate_evidence_weight()
 
