@@ -246,7 +246,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 11 | Investigation workflow and result | 10 | `accepted` |
 | 12 | Intervention and candidate lifecycle | 5, 11 | `accepted` |
 | 13 | Goals, constraints, and evaluation contracts | 5, 12 | `completed` |
-| 14 | Comparative evaluation and selection | 4, 12, 13 | `in-progress` |
+| 14 | Comparative evaluation and selection | 4, 12, 13 | `completed` |
 | 15 | Complete improvement workflow and result | 10–14 | `not-started` |
 | 16 | Application, verification, and rollback | 15 | `not-started` |
 | 17 | Generalized RSI and self-change governance | 7, 16 | `not-started` |
@@ -1817,7 +1817,7 @@ Stop before ranking or accepting candidates.
 
 ## Block 14 — Comparative evaluation, candidate selection, and search boundary
 
-Status: `in-progress`
+Status: `completed`
 
 ### Objective
 
@@ -1869,7 +1869,13 @@ Review no-regression, none-accepted, uncertainty, Pareto, and proposal-versus-se
 
 ### Completion evidence
 
-Pending.
+- Accepted exact candidate root: `ab4bc3c176326459eb35f97d9b5d87806a235935eebd7eb574d36d9a9893714e`.
+- Implementation commit: `6afbcc9cd4e5f11984bf390c07f0282f6f582694` (`feat: add comparative candidate selection`).
+- Independent semantic review: accepted after adversarial reproduction and correction of direct-record authority bypass, reversed ranking/order identity forks, sparse per-metric evidence promotion, and untyped review-governance bypass. The accepted review re-ran all prior probes and found no remaining material Block 14 defect.
+- Local validation: Ruff lint and format checks clean; mypy clean across 64 source files; full suite `468 passed` at `90.55%` branch coverage.
+- Built-wheel matrix: the focused 46-test Block 14 suite passed from the built wheel on Python 3.11, 3.12, and 3.13.
+- Public surface: structured `librsi.comparison` records, policy/statistics, and proposal-only search modules are exported without adding a runtime dependency, optimizer algorithm, application authority, or domain-specific core field.
+- Workspace hygiene: the unrelated untracked `uv.lock` remained excluded and byte/mtime-identical (`134695`, `1787379167`).
 
 ### Stop
 
