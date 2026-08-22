@@ -6,6 +6,7 @@ import pytest
 
 from librsi import (
     CommandObservation,
+    Evidence,
     ExperimentSpec,
     Hypothesis,
     Question,
@@ -45,6 +46,37 @@ def _hypothesis() -> tuple[Hypothesis, TargetSnapshot]:
     return hypothesis, snapshot
 
 
+def _command_spec() -> tuple[Hypothesis, TargetSnapshot, ExperimentSpec]:
+    hypothesis, snapshot = _hypothesis()
+    spec = RSIKernel().experiments.design_command(
+        experiment_id="latency-1",
+        hypothesis=hypothesis,
+        target_snapshot=snapshot,
+        design={"isolation": "subprocess"},
+        success_criteria={"accepted_exit_codes": [0], "stdout_contains": ["OK"]},
+        command=["python", "probe.py"],
+        cwd="/workspace",
+    )
+    return hypothesis, snapshot, spec
+
+
+def _observation(
+    spec: ExperimentSpec,
+    *,
+    exit_code: int | None = 0,
+    stdout: str = "OK\n",
+    stderr: str = "",
+    invalid: bool = False,
+) -> CommandObservation:
+    return CommandObservation(
+        exit_code=exit_code,
+        stdout=stdout,
+        stderr=stderr,
+        invalid=invalid,
+        exact_input_root=spec.root,
+    )
+
+
 def test_canonical_hypothesis_is_complete_and_origin_bound() -> None:
     target, _ = _target()
     question = Question(prompt="Why is the queue slow?", target=target)
@@ -74,6 +106,18 @@ def test_canonical_hypothesis_creation_fails_closed() -> None:
 
     with pytest.raises(ValueError, match="prediction"):
         policy.create(target=target, statement="H", predictions=())
+    with pytest.raises(TypeError, match="sequence of mappings"):
+        policy.create(
+            target=target,
+            statement="H",
+            predictions="not-predictions",  # type: ignore[arg-type]
+        )
+    with pytest.raises(TypeError, match="only mappings"):
+        policy.create(
+            target=target,
+            statement="H",
+            predictions=("not-a-mapping",),  # type: ignore[arg-type]
+        )
     with pytest.raises(ValueError, match="status"):
         policy.create(
             target=target,
@@ -86,6 +130,20 @@ def test_canonical_hypothesis_creation_fails_closed() -> None:
             target="scheduler",  # type: ignore[arg-type]
             statement="H",
             predictions=({"observable": True},),
+        )
+    with pytest.raises(TypeError, match="causal model"):
+        policy.create(
+            target=target,
+            statement="H",
+            predictions=({"observable": True},),
+            causal_model=[],  # type: ignore[arg-type]
+        )
+    with pytest.raises(TypeError, match="metadata"):
+        policy.create(
+            target=target,
+            statement="H",
+            predictions=({"observable": True},),
+            metadata=[],  # type: ignore[arg-type]
         )
 
 
@@ -118,27 +176,35 @@ def test_command_experiment_binds_all_material_inputs_and_exact_hypothesis() -> 
     assert command.cwd == "/workspace"
 
 
-def test_evaluation_consumes_spec_criteria_and_produces_exact_evidence() -> None:
+def test_command_design_rejects_ambiguous_optional_inputs_and_measurements() -> None:
     hypothesis, snapshot = _hypothesis()
     policy = RSIKernel().experiments
-    spec = policy.design_command(
-        experiment_id="latency-1",
-        hypothesis=hypothesis,
-        target_snapshot=snapshot,
-        design={"isolation": "subprocess"},
-        success_criteria={
-            "accepted_exit_codes": [0],
-            "stdout_contains": ["OK"],
-            "stderr_not_contains": ["ERROR"],
-        },
-        command=["python", "probe.py"],
-        cwd="/workspace",
-    )
+    common = {
+        "experiment_id": "strict-inputs",
+        "hypothesis": hypothesis,
+        "target_snapshot": snapshot,
+        "design": {"isolation": "subprocess"},
+        "success_criteria": {"accepted_exit_codes": [0]},
+        "command": ["python"],
+        "cwd": "/workspace",
+    }
 
-    evidence = policy.evaluate_command(
-        spec=spec,
-        observation=CommandObservation(exit_code=0, stdout="OK\n", stderr=""),
-    )
+    with pytest.raises(TypeError, match="experiment inputs"):
+        policy.design_command(**common, inputs=[])  # type: ignore[arg-type]
+    with pytest.raises(TypeError, match="environment"):
+        policy.design_command(**common, environment=[])  # type: ignore[arg-type]
+    with pytest.raises(TypeError, match="requested measurements"):
+        policy.design_command(**common, requested_measurements="p95_ms")  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="at least one requested measurement"):
+        policy.design_command(**common, requested_measurements=())
+
+
+def test_evaluation_consumes_spec_criteria_and_produces_exact_evidence() -> None:
+    hypothesis, snapshot, spec = _command_spec()
+    policy = RSIKernel().experiments
+    observation = _observation(spec)
+
+    evidence = policy.evaluate_command(spec=spec, observation=observation)
 
     assert evidence.evidence_type == "support"
     assert evidence.weight == 0.7
@@ -146,6 +212,7 @@ def test_evaluation_consumes_spec_criteria_and_produces_exact_evidence() -> None
     assert evidence.source_refs == (spec.ref,)
     assert evidence.target_snapshot == snapshot
     assert evidence.data["experiment_root"] == spec.root
+    assert evidence.data["observation_input_root"] == spec.root
     assert evidence.data["criteria"]["stdout_contains"] == ("OK",)  # type: ignore[index]
 
     updated = RSIKernel().hypotheses.apply(hypothesis=hypothesis, evidence=evidence)
@@ -153,23 +220,32 @@ def test_evaluation_consumes_spec_criteria_and_produces_exact_evidence() -> None
     assert updated.lineage[-2:] == (hypothesis.ref, evidence.ref)
 
 
+def test_observation_must_echo_the_exact_input_root() -> None:
+    _, _, spec = _command_spec()
+    policy = RSIKernel().experiments
+
+    with pytest.raises(ValueError, match="exact input root"):
+        policy.evaluate_command(
+            spec=spec,
+            observation=CommandObservation(exit_code=0, stdout="OK\n", stderr=""),
+        )
+    with pytest.raises(ValueError, match="does not match"):
+        policy.evaluate_command(
+            spec=spec,
+            observation=CommandObservation(
+                exit_code=0,
+                stdout="OK\n",
+                stderr="",
+                exact_input_root="a" * 64,
+            ),
+        )
+
+
 def test_evidence_cannot_update_a_different_or_stale_hypothesis_version() -> None:
-    hypothesis, snapshot = _hypothesis()
+    hypothesis, _, spec = _command_spec()
     experiments = RSIKernel().experiments
     hypotheses = RSIKernel().hypotheses
-    spec = experiments.design_command(
-        experiment_id="latency-1",
-        hypothesis=hypothesis,
-        target_snapshot=snapshot,
-        design={"isolation": "subprocess"},
-        success_criteria={"accepted_exit_codes": [0]},
-        command=["python", "probe.py"],
-        cwd="/workspace",
-    )
-    evidence = experiments.evaluate_command(
-        spec=spec,
-        observation=CommandObservation(exit_code=0, stdout="", stderr=""),
-    )
+    evidence = experiments.evaluate_command(spec=spec, observation=_observation(spec))
     updated = hypotheses.apply(hypothesis=hypothesis, evidence=evidence)
 
     with pytest.raises(ValueError, match="exact hypothesis"):
@@ -182,6 +258,31 @@ def test_evidence_cannot_update_a_different_or_stale_hypothesis_version() -> Non
     )
     with pytest.raises(ValueError, match="exact hypothesis"):
         hypotheses.apply(hypothesis=other, evidence=evidence)
+
+
+def test_hypothesis_update_requires_exact_target_and_explicit_weight() -> None:
+    hypothesis, _ = _hypothesis()
+    other_target = TargetRef(target_id="other", kind="software")
+    other_snapshot = TargetSnapshot(target=other_target, state={"revision": "other"})
+    policy = RSIKernel().hypotheses
+
+    wrong_target = Evidence(
+        evidence_type="support",
+        data={"ok": True},
+        subject_refs=(hypothesis.ref,),
+        target_snapshot=other_snapshot,
+        weight=0.5,
+    )
+    with pytest.raises(ValueError, match="target does not match"):
+        policy.apply(hypothesis=hypothesis, evidence=wrong_target)
+
+    missing_weight = Evidence(
+        evidence_type="support",
+        data={"ok": True},
+        subject_refs=(hypothesis.ref,),
+    )
+    with pytest.raises(ValueError, match="explicit weight"):
+        policy.apply(hypothesis=hypothesis, evidence=missing_weight)
 
 
 def test_experiment_criteria_cannot_be_replaced_at_evaluation_time() -> None:
@@ -205,36 +306,32 @@ def test_experiment_criteria_cannot_be_replaced_at_evaluation_time() -> None:
         command=["python", "probe.py"],
         cwd="/workspace",
     )
-    observation = CommandObservation(exit_code=0, stdout="A\n", stderr="")
+    observation_a = _observation(criterion_a, stdout="A\n")
 
     assert criterion_a.root != criterion_b.root
     assert (
-        policy.evaluate_command(spec=criterion_a, observation=observation).evidence_type
+        policy.evaluate_command(spec=criterion_a, observation=observation_a).evidence_type
         == "support"
     )
+    with pytest.raises(ValueError, match="does not match"):
+        policy.evaluate_command(spec=criterion_b, observation=observation_a)
+
+    observation_b = _observation(criterion_b, stdout="A\n")
     assert (
-        policy.evaluate_command(spec=criterion_b, observation=observation).evidence_type
+        policy.evaluate_command(spec=criterion_b, observation=observation_b).evidence_type
         == "counterexample"
     )
     assert "success_criteria" not in inspect.signature(policy.evaluate_command).parameters
 
 
 def test_invalid_execution_is_zero_weight_null_evidence_and_preserves_confidence() -> None:
-    hypothesis, snapshot = _hypothesis()
+    hypothesis, _, spec = _command_spec()
     experiments = RSIKernel().experiments
     hypotheses = RSIKernel().hypotheses
-    spec = experiments.design_command(
-        experiment_id="invalid-run",
-        hypothesis=hypothesis,
-        target_snapshot=snapshot,
-        design={"isolation": "subprocess"},
-        success_criteria={"accepted_exit_codes": [0]},
-        command=["python", "probe.py"],
-        cwd="/workspace",
-    )
     evidence = experiments.evaluate_command(
         spec=spec,
-        observation=CommandObservation(
+        observation=_observation(
+            spec,
             exit_code=None,
             stdout="",
             stderr="timed out",
@@ -266,7 +363,50 @@ def test_target_currentness_binding_fails_closed() -> None:
         )
 
 
-def test_hand_built_malformed_specs_and_criteria_fail_closed() -> None:
+def test_hand_built_malformed_specs_fail_before_execution_or_evaluation() -> None:
+    hypothesis, snapshot = _hypothesis()
+    policy = RSIKernel().experiments
+
+    malformed = ExperimentSpec(
+        experiment_id="manual",
+        kind="command",
+        target_snapshot=snapshot,
+        design={"isolation": "subprocess"},
+        criteria={"accepted_exit_codes": [0]},
+        inputs={"command": ["python"], "cwd": "/workspace"},
+        requested_measurements=("command.passed",),
+    )
+    with pytest.raises(ValueError, match="exactly one hypothesis"):
+        policy.prepare_command(malformed)
+
+    two_hypotheses = ExperimentSpec(
+        experiment_id="manual-2",
+        kind="command",
+        target_snapshot=snapshot,
+        design={"isolation": "subprocess"},
+        criteria={"accepted_exit_codes": [0]},
+        inputs={"command": ["python"], "cwd": "/workspace"},
+        requested_measurements=("command.passed",),
+        lineage=(hypothesis.ref, RecordRef("hypothesis", "a" * 64)),
+    )
+    with pytest.raises(ValueError, match="exactly one hypothesis"):
+        policy.prepare_command(two_hypotheses)
+
+    missing_cwd = ExperimentSpec(
+        experiment_id="manual-3",
+        kind="command",
+        target_snapshot=snapshot,
+        design={"isolation": "subprocess"},
+        criteria={"accepted_exit_codes": [0]},
+        inputs={"command": ["python"]},
+        requested_measurements=("command.passed",),
+        lineage=(hypothesis.ref,),
+    )
+    with pytest.raises(ValueError, match="canonical cwd"):
+        policy.prepare_command(missing_cwd)
+
+
+def test_command_criteria_fail_closed() -> None:
     hypothesis, snapshot = _hypothesis()
     policy = RSIKernel().experiments
 
@@ -289,35 +429,6 @@ def test_hand_built_malformed_specs_and_criteria_fail_closed() -> None:
             success_criteria={"accepted_exit_codes": ["0"]},
             command=["python"],
             cwd="/workspace",
-        )
-
-    malformed = ExperimentSpec(
-        experiment_id="manual",
-        kind="command",
-        target_snapshot=snapshot,
-        design={"isolation": "subprocess"},
-        criteria={"accepted_exit_codes": [0]},
-        inputs={"command": ["python"], "cwd": "/workspace"},
-    )
-    with pytest.raises(ValueError, match="exactly one hypothesis"):
-        policy.evaluate_command(
-            spec=malformed,
-            observation=CommandObservation(exit_code=0, stdout="", stderr=""),
-        )
-
-    two_hypotheses = ExperimentSpec(
-        experiment_id="manual-2",
-        kind="command",
-        target_snapshot=snapshot,
-        design={"isolation": "subprocess"},
-        criteria={"accepted_exit_codes": [0]},
-        inputs={"command": ["python"], "cwd": "/workspace"},
-        lineage=(hypothesis.ref, RecordRef("hypothesis", "a" * 64)),
-    )
-    with pytest.raises(ValueError, match="exactly one hypothesis"):
-        policy.evaluate_command(
-            spec=two_hypotheses,
-            observation=CommandObservation(exit_code=0, stdout="", stderr=""),
         )
 
 
@@ -350,10 +461,7 @@ def test_non_command_specs_and_invalid_policy_weights_fail_closed() -> None:
         cwd="/workspace",
     )
     with pytest.raises(ValueError, match="between zero and one"):
-        bad_weight_policy.evaluate_command(
-            spec=spec,
-            observation=CommandObservation(exit_code=0, stdout="", stderr=""),
-        )
+        bad_weight_policy.evaluate_command(spec=spec, observation=_observation(spec, stdout=""))
 
 
 def test_legacy_wrappers_are_explicitly_deprecated_but_remain_available() -> None:
