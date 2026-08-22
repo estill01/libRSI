@@ -15,8 +15,9 @@ the included transactional SQLite backend needs no service and labels retrieved
 target-bound records as current, stale, unbound, or incomparable.
 An independent `librsi.runtime` package provides canonical Run/Event/State/Action
 records, a pure deterministic transition engine, and an opt-in `RuntimeStore` with a
-replay-checked SQLite implementation. It emits exact actions but does not resolve or
-execute capabilities.
+replay-checked SQLite implementation. The separate `librsi.capabilities` package maps
+exact action kinds to eight granular host protocols and explicit automatic, external,
+human-reserved, or unavailable postures without creating another state machine.
 
 ## Install
 
@@ -114,9 +115,16 @@ load validates the append-only chain, materialized state, and deterministic repl
 The runtime and knowledge stores remain distinct authorities and may optionally share
 one SQLite file without sharing schema versioning or record types.
 
-The library performs no target, provider, subprocess, filesystem, or dispatch effects.
-Persistence is opt-in through explicitly constructed stores; `RSIKernel` does not open
-a database or infer a storage location. See
+`CapabilityDispatcher` is optional control-plane convenience around that same engine.
+It invokes only explicitly supplied, automatically authorized capability objects; an
+external host can submit the same exact `ActionResult`, and hybrid mode may leave other
+actions external, human-reserved, or unavailable. Capability success never creates an
+`Outcome`, promotes knowledge, or grants selection/application authority on its own.
+
+The base distribution ships no target, provider, subprocess, filesystem, worker, or
+transport implementation. Any effects occur only inside a capability object explicitly
+supplied by the host. Persistence and dispatch are opt-in; `RSIKernel` does not open a
+database, infer a storage location, or construct capabilities. See
 [`src/librsi/README.md`](src/librsi/README.md) for the module map and complete
 integration boundary. The maintained implementation plan evolves this deterministic
 core toward higher-level validation, investigation, improvement, and RSI workflows

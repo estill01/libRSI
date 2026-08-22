@@ -36,6 +36,9 @@ The current implementation owns portable primitives including:
   structured failures, terminal outcomes, and duplicate-result protection; and
 - an independent replaceable runtime-store contract with a transactional,
   replay-validated SQLite reference backend.
+- eight granular structural capability protocols with explicit automatic, external,
+  human-reserved, and unavailable routing; and
+- deterministic managed/external/hybrid dispatch through the same runtime transitions.
 
 ## Package structure
 
@@ -57,6 +60,13 @@ The current implementation owns portable primitives including:
 - `runtime/store.py` — backend-neutral append/resume persistence contract;
 - `runtime/sqlite_schema.py` and `runtime/sqlite.py` — isolated exact-schema SQLite
   runtime durability with append-only events and replay-checked materialized state;
+- `capabilities/protocols.py` — Inspector, Retriever, Reasoner, Experimenter,
+  Implementer, Reviewer, Applier, and Verifier host contracts;
+- `capabilities/records.py` — explicit routes, resolutions, plans, and dispatch batches;
+- `capabilities/registry.py` — deterministic action-kind resolution and implementation
+  lookup without semantic authority;
+- `capabilities/dispatcher.py` — optional automatic-frontier execution and external
+  `next`/`submit` equivalence through the Block 7 runtime engine;
 - `hypotheses.py` — canonical hypothesis creation/evidence updates plus legacy wrappers;
 - `experiments.py` — immutable command specs, host execution inputs, and evidence interpretation;
 - `ports.py` — typed host interfaces such as `ExperimentRunner`;
@@ -103,12 +113,19 @@ knowledge projections never determine runtime lifecycle state. Every runtime res
 reconstructs the complete event prefix and verifies the materialized transitions
 against the pure engine before returning state.
 
-The runtime emits exact pending `Action` records but does not resolve or execute them.
-The library does not open a database from the composition root, mutate targets or
-files, run Git/subprocess operations, call a model/provider, schedule workers, or send
-messages. Hosts choose whether and where to construct either store and perform effects
-through governed adapters. These reference backends do not make libRSI a generic
-workflow, MLOps, storage, coding-agent, or server infrastructure platform.
+The runtime emits exact pending `Action` records. The optional capability dispatcher
+may invoke a host-supplied object only when the exact action kind is configured for
+automatic authority; external and hybrid hosts submit the same `ActionResult` through
+the same runtime transition. Human-reserved and unavailable actions remain structured
+and pending. A successful capability result cannot itself create an Outcome, promote
+knowledge, select a candidate, or authorize application.
+
+The base distribution does not open a database from the composition root, mutate
+targets or files, run Git/subprocess operations, call a model/provider, schedule
+workers, or send messages. Hosts choose whether and where to construct stores and
+which explicit capability objects may perform effects. These reference components do
+not make libRSI a generic workflow, MLOps, storage, coding-agent, or server
+infrastructure platform.
 
 A canonical command runner should copy
 `CommandExperimentInput.exact_input_root` into the returned
