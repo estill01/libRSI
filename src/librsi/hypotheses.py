@@ -34,9 +34,7 @@ def _optional_mapping(value: Mapping[str, Any] | None, label: str) -> Mapping[st
 def _prediction_sequence(
     predictions: Sequence[Mapping[str, Any]],
 ) -> tuple[Mapping[str, Any], ...]:
-    if isinstance(predictions, (str, bytes, bytearray)) or not isinstance(
-        predictions, Sequence
-    ):
+    if isinstance(predictions, (str, bytes, bytearray)) or not isinstance(predictions, Sequence):
         raise TypeError("canonical hypothesis predictions must be a sequence of mappings")
     items = tuple(predictions)
     if not items:
