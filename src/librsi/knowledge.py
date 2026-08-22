@@ -45,6 +45,7 @@ KNOWLEDGE_RECORD_TYPES = frozenset(
         "target_snapshot",
         "trial",
         "trial_result",
+        "validation_result",
     }
 )
 _CURRENTNESS_LABELS = frozenset({"current", "stale", "unbound", "incomparable", "unassessed"})

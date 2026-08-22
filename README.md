@@ -22,6 +22,10 @@ The `librsi.reasoning` package adds strict provider-neutral reflection, hypothes
 experiment-design, explanation, intervention, decomposition, and revision proposals.
 Managed and external reasoners answer the same exact runtime action; their output is a
 lineage-bearing proposal, never evidence, validated knowledge, or application authority.
+The `librsi.validation` package is the first vertical workflow built on those primitives:
+it validates a `Claim` directly, reuses only current stored evidence, emits the smallest
+explicit evidence gap when needed, and returns a provenance-complete `ValidationResult`
+whose disposition is supported, contradicted, bounded, or inconclusive.
 
 ## Install
 
@@ -136,6 +140,40 @@ object implementing the zero-provider `ReasoningBackend` protocol, or consume th
 serialized reasoning `Action` itself and return the same `ActionResult`. Downstream
 evidence or intervention decisions can use `require_reasoning_derivation()` to prove
 that both the proposal and every original input remain in lineage.
+
+Claim-only validation does not require a goal or intervention:
+
+```python
+from librsi import Claim, Evidence, validate
+
+claim = Claim(statement="The service remains available", kind="behavioral")
+evidence = tuple(
+    Evidence(
+        evidence_type="support",
+        data={"sample": sample},
+        subject_refs=(claim.ref,),
+        source_refs=(claim.ref,),
+        weight=1.0,
+    )
+    for sample in (1, 2)
+)
+result = validate(claim=claim, evidence=evidence)
+assert result.disposition == "supported"
+```
+
+`ValidationWorkflow.start()`, `step()`, `submit()`, and `resume()` expose the same exact
+runtime transitions and restart projection to external hosts. `resume()` returns a
+`ValidationUpdate`; hosts append any returned reconciliation transitions before
+continuing. `run_managed()` accepts the existing granular `Experimenter` protocol. The
+workflow reconciles every direct or managed submission against the persisted canonical
+frontier before mutation; when reused knowledge is present, pass the same
+`knowledge_store` to `submit()` or `run_managed()` so its exact roots can be revalidated.
+The convenience `validate()` path carries that store through the same transitions;
+when neither current knowledge, explicit evidence, nor a collector is available it
+returns an explicit inconclusive result rather than synthesizing support from narrative.
+Block 10 uses the canonical built-in epistemic policy in result identity; alternate
+sufficiency policies require a versioned semantic policy contract rather than silent
+runtime injection.
 
 The base distribution ships no target, provider, subprocess, filesystem, worker, or
 transport implementation. Any effects occur only inside a capability object explicitly
