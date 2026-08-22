@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from ..errors import RSICapabilityError
+from ..records import TargetSnapshot
 from ..runtime import (
     TERMINAL_RUN_STATUSES,
     ActionResult,
@@ -31,11 +32,16 @@ class CapabilityDispatcher:
                     "be configured on CapabilityDispatcher"
                 )
             if route.action_kind not in {
+                "implement-intervention",
                 "reason",
                 "validation-evidence",
             }:
                 continue
-            expected_family = "reasoner" if route.action_kind == "reason" else "experimenter"
+            expected_family = {
+                "implement-intervention": "implementer",
+                "reason": "reasoner",
+                "validation-evidence": "experimenter",
+            }[route.action_kind]
             if route.family != expected_family:
                 raise RSICapabilityError(
                     f"{route.action_kind} actions require an exact {expected_family} route"
@@ -53,6 +59,7 @@ class CapabilityDispatcher:
         result: ActionResult,
         *,
         authority: str,
+        current_snapshot: TargetSnapshot | None = None,
     ) -> RuntimeUpdate:
         if not isinstance(result, ActionResult):
             raise TypeError("capability submission requires an ActionResult")
@@ -74,9 +81,20 @@ class CapabilityDispatcher:
             from ..validation.actions import ValidationEvidenceResultValidator
 
             ValidationEvidenceResultValidator().validate(state, result)
+        elif result.action.kind == "implement-intervention":
+            from ..interventions.actions import ImplementationResultValidator
+
+            validator = ImplementationResultValidator()
+            validator.require_current_frontier(
+                state,
+                result.action,
+                current_snapshot,
+            )
+            validator.validate(state, result)
         self._registry.validate(state, result)
         resolution = self._registry.resolve(result.action)
         expected_family = {
+            "implement-intervention": "implementer",
             "reason": "reasoner",
             "validation-evidence": "experimenter",
         }.get(result.action.kind)
@@ -98,14 +116,25 @@ class CapabilityDispatcher:
         result: ActionResult,
         *,
         authority: str = "external",
+        current_snapshot: TargetSnapshot | None = None,
     ) -> RuntimeUpdate:
         """Apply an explicitly external or human-reserved result through RuntimeEngine."""
 
         if authority not in {"external", "human-reserved"}:
             raise RSICapabilityError("external submission authority is unsupported")
-        return self._submit_authorized(state, result, authority=authority)
+        return self._submit_authorized(
+            state,
+            result,
+            authority=authority,
+            current_snapshot=current_snapshot,
+        )
 
-    def advance(self, state: RunState) -> DispatchBatch:
+    def advance(
+        self,
+        state: RunState,
+        *,
+        current_snapshot: TargetSnapshot | None = None,
+    ) -> DispatchBatch:
         """Execute currently automatic actions once in canonical pending order."""
 
         initial_plan = self.next(state)
@@ -119,8 +148,21 @@ class CapabilityDispatcher:
                 break
             if resolution.action.ref not in {item.ref for item in current.pending_actions}:
                 raise RSICapabilityError("automatic action is no longer pending")
+            if resolution.action.kind == "implement-intervention":
+                from ..interventions.actions import ImplementationResultValidator
+
+                ImplementationResultValidator().require_current_frontier(
+                    current,
+                    resolution.action,
+                    current_snapshot,
+                )
             result = self._registry.execute(resolution)
-            update = self._submit_authorized(current, result, authority="automatic")
+            update = self._submit_authorized(
+                current,
+                result,
+                authority="automatic",
+                current_snapshot=current_snapshot,
+            )
             if update.transition is None:
                 raise RSICapabilityError("automatic dispatch unexpectedly produced no transition")
             results.append(result)

@@ -45,6 +45,10 @@ The current implementation owns portable primitives including:
 - pre-transition schema/currentness validation plus proposal-to-decision lineage guards.
 - a first-class claim-only validation workflow with current-knowledge reuse, bounded
   evidence-gap actions, four distinct result dispositions, and complete provenance.
+- a bounded competing-hypothesis investigation workflow with exact branch rosters,
+  observation-only experiment design, and evidence-bound findings; and
+- a generic intervention-to-candidate lifecycle with exact rationale/currentness,
+  complete absent-Implementer handoffs, and no authoritative application operation.
 
 ## Package structure
 
@@ -85,6 +89,17 @@ The current implementation owns portable primitives including:
 - `validation/policy.py` — deterministic evidence sufficiency and public disposition;
 - `validation/workflow.py` — low-level stepped and convenience validation over the
   authoritative runtime, current knowledge, and existing Experimenter capability;
+- `investigation/records.py`, `investigation/actions.py`, `investigation/policy.py`, and
+  `investigation/workflow.py` — typed competing-hypothesis search, complete-frontier
+  codecs, deterministic branch policy, and restartable specialized execution;
+- `interventions/records.py` — the universal intervention envelope, exact candidate-only
+  request/result/handoff records, and compatibility projections;
+- `interventions/actions.py` — exact Implementer codecs and nonreplaceable pre-transition
+  result validation for `implement-intervention`;
+- `interventions/policy.py` — currentness and prospective-candidate construction with no
+  application authority;
+- `interventions/workflow.py` — restartable absent, managed, and external Implementer
+  paths over the canonical runtime;
 - `hypotheses.py` — canonical hypothesis creation/evidence updates plus legacy wrappers;
 - `experiments.py` — immutable command specs, host execution inputs, and evidence interpretation;
 - `ports.py` — typed host interfaces such as `ExperimentRunner`;
@@ -191,6 +206,29 @@ mutation, application, or target-change authority can hide. A dedicated
 `InvestigationFinding` cannot synthesize text beyond a supported hypothesis
 statement, and terminal stop causes are derived from branches plus exact failed-result
 lineage. Investigation never proposes or applies a target change.
+
+The intervention package begins only after that epistemic boundary. An
+`InterventionSpec` binds one exact baseline, rationale references, current supporting
+Evidence, expected effects, risks, constraints, validation plan, rollback expectations,
+and a domain-owned `specification` mapping. Its canonical Run has one bounded
+`implement-intervention` action. If no Implementer is connected, the waiting projection
+contains a complete serializable `ImplementationHandoff`; the generic capability
+dispatcher can alternatively route the same action through an exact Implementer route.
+Both managed and external results pass libRSI's nonreplaceable validator before runtime
+mutation. Generic dispatcher `advance()` and `submit()` calls for this reserved action
+must also receive an explicit current target snapshot; currentness is checked before an
+automatic Implementer is called and again before submission.
+
+Successful preparation yields a `CandidateSnapshot` whose prospective state must differ
+from the baseline and whose evidence/artifact lineage is exact. It also yields an
+`ImplementationResult` and `Outcome` whose authoritative target snapshot is still the
+baseline. Only the preparation status `prepared` exists here. There is deliberately no
+`apply` method, applied status, comparison/acceptance decision, or domain-specific
+implementation engine in this package. Hosts may place software patches, laboratory
+plans, physical-process settings, document edits, or other domain payloads inside the
+generic specification and artifact boundaries without adding identity-bearing core
+fields. The original low-level `Intervention` and `Candidate` records remain compatible
+through explicit projections rather than a second lifecycle.
 
 The base distribution does not open a database from the composition root, mutate
 targets or files, run Git/subprocess operations, call a model/provider, schedule

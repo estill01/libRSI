@@ -128,6 +128,9 @@ It invokes only explicitly supplied, automatically authorized capability objects
 external host can submit the same exact `ActionResult`, and hybrid mode may leave other
 actions external, human-reserved, or unavailable. Capability success never creates an
 `Outcome`, promotes knowledge, or grants selection/application authority on its own.
+Intervention dispatch is additionally fail-closed: `advance()` or `submit()` requires an
+explicit `current_snapshot` and verifies it against the intervention baseline before an
+Implementer is called or a result can mutate runtime state.
 
 Structured reasoning uses the same boundary. `ReasoningRequest` binds its inputs and
 exact target snapshot, `ReasoningResult` validates one of seven closed proposal schemas,
@@ -216,6 +219,45 @@ selects `measure`, `observe`, or `retrieve`, bounded measurement identifiers, an
 evidence criteria. It cannot add operation/procedure payloads, intervention, candidate,
 implementation, mutation, application, or target-change authority. Target changes begin in
 later lifecycle blocks.
+
+Proposed changes enter a separate intervention-to-candidate lifecycle:
+
+```python
+from librsi import InterventionSpec, InterventionWorkflow
+
+intervention = InterventionSpec.create(
+    intervention_id="bounded-change",
+    baseline=current_snapshot,
+    kind="host.domain_change",
+    specification={"domain_owned": "payload"},
+    rationale=("The cited evidence supports preparing this candidate",),
+    supporting_refs=(claim.ref,),
+    evidence=(supporting_evidence,),
+    expected_effects={"metric": {"direction": "increase"}},
+    risks=("The expected effect may not reproduce",),
+    constraints=(),
+    validation_plan={"measure": "metric"},
+    rollback_expectations={"restore": current_snapshot.ref.to_dict()},
+)
+waiting = InterventionWorkflow().start(
+    intervention,
+    current_snapshot=current_snapshot,
+).progress
+assert waiting.handoff is not None
+assert waiting.handoff.authority == "candidate-only"
+```
+
+`librsi.interventions` separates the universal `InterventionSpec`, exact Implementer
+action/result codecs, candidate-only policy, and restartable workflow into distinct
+modules. Domain data lives only in `specification`; evidence rationale, risks,
+constraints, validation plan, rollback expectations, baseline currentness, and lineage
+remain generic and identity-bound. Without an Implementer, the workflow returns a
+complete serializable handoff. With a host-supplied Implementer, it may prepare a
+prospective `CandidateSnapshot`, but the `ImplementationResult` and terminal `Outcome`
+continue to name the unchanged authoritative baseline. The package intentionally has no
+candidate `apply` operation, domain implementation engine, comparison, or acceptance
+shortcut. The legacy low-level `Intervention` and `Candidate` records remain available;
+the structured records provide explicit compatibility projections.
 
 The base distribution ships no target, provider, subprocess, filesystem, worker, or
 transport implementation. Any effects occur only inside a capability object explicitly
