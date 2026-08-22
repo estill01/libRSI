@@ -239,7 +239,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 4 | Generic experiments, metrics, and evaluation | 1, 3 | `accepted` |
 | 5 | Targets, snapshots, and currentness | 1, 4 | `accepted` |
 | 6 | Persistent knowledge and SQLite store | 1, 5 | `accepted` |
-| 7 | Durable semantic Run/Event/Action engine | 1, 6 | `not-started` |
+| 7 | Durable semantic Run/Event/Action engine | 1, 6 | `in-progress` |
 | 8 | Capability protocols and neutral dispatch | 7 | `not-started` |
 | 9 | Provider-neutral reasoner contract | 3, 7, 8 | `not-started` |
 | 10 | Validation workflow and result | 3–9 | `not-started` |
@@ -926,7 +926,7 @@ Stop before durable run/event/action lifecycle implementation.
 
 ## Block 7 — Durable semantic Run/Event/State/Action engine
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 

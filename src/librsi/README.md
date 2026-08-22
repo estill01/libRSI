@@ -32,6 +32,10 @@ The current implementation owns portable primitives including:
   and replay-bound evidence projection; and
 - immutable command experiment specifications whose design, criteria, target,
   inputs, environment, measurements, and hypothesis reference are all identity-bound.
+- one pure replayable Run/Event/State/Action transition engine with explicit budgets,
+  structured failures, terminal outcomes, and duplicate-result protection; and
+- an independent replaceable runtime-store contract with a transactional,
+  replay-validated SQLite reference backend.
 
 ## Package structure
 
@@ -48,6 +52,11 @@ The current implementation owns portable primitives including:
 - `knowledge.py` — backend-neutral reusable-knowledge, query, and currentness contracts;
 - `sqlite_schema.py` — exact local schema and rollback-safe migration contract;
 - `sqlite_knowledge.py` — minimal transactional SQLite reference persistence;
+- `runtime/records.py` — canonical runs, budgets, events, actions, results, and states;
+- `runtime/engine.py` — pure transitions, step projection, replay, and terminal policy;
+- `runtime/store.py` — backend-neutral append/resume persistence contract;
+- `runtime/sqlite_schema.py` and `runtime/sqlite.py` — isolated exact-schema SQLite
+  runtime durability with append-only events and replay-checked materialized state;
 - `hypotheses.py` — canonical hypothesis creation/evidence updates plus legacy wrappers;
 - `experiments.py` — immutable command specs, host execution inputs, and evidence interpretation;
 - `ports.py` — typed host interfaces such as `ExperimentRunner`;
@@ -86,13 +95,20 @@ The historical `propose()`, `apply_evidence()`, `command_input()`, and
 compatibility wrappers. They preserve legacy hashes and behavior but should not be
 used by new orchestration code when exact referential integrity matters.
 
-The **current** implementation owns one thin, replaceable SQLite schema for canonical
-knowledge and per-run provenance. It intentionally does not store runtime Run/Event/
-Action state, open a database from the composition root, mutate targets or files, run
-Git/subprocess operations, or call a model/provider. Hosts choose whether and where to
-construct a `KnowledgeStore` and execute experiments and effects through governed
-adapters. The reference backend does not make libRSI a generic workflow, MLOps,
-storage, coding-agent, or server infrastructure platform.
+The **current** implementation owns two independent replaceable persistence
+contracts: reusable canonical knowledge and authoritative runtime history. Their thin
+SQLite reference backends use separate owned schemas and versioning, although a host
+may place both in one file. Runtime records never enter the knowledge store, and
+knowledge projections never determine runtime lifecycle state. Every runtime resume
+reconstructs the complete event prefix and verifies the materialized transitions
+against the pure engine before returning state.
+
+The runtime emits exact pending `Action` records but does not resolve or execute them.
+The library does not open a database from the composition root, mutate targets or
+files, run Git/subprocess operations, call a model/provider, schedule workers, or send
+messages. Hosts choose whether and where to construct either store and perform effects
+through governed adapters. These reference backends do not make libRSI a generic
+workflow, MLOps, storage, coding-agent, or server infrastructure platform.
 
 A canonical command runner should copy
 `CommandExperimentInput.exact_input_root` into the returned

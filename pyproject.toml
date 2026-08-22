@@ -43,8 +43,11 @@ dev = [
 
 [tool.setuptools]
 package-dir = {"" = "src"}
-packages = ["librsi"]
 include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["librsi*"]
 
 [tool.setuptools.package-data]
 librsi = ["README.md", "py.typed"]

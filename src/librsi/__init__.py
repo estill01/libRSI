@@ -87,12 +87,37 @@ from .records import (
     serialize_record,
 )
 from .reviews import ReviewPolicy
+from .runtime import (
+    ACTION_RESULT_DISPOSITIONS,
+    RUN_STATUSES,
+    RUNTIME_EVENT_KINDS,
+    RUNTIME_FAILURE_CLASSES,
+    RUNTIME_SCHEMA_VERSION,
+    TERMINAL_RUN_STATUSES,
+    Action,
+    ActionResult,
+    Event,
+    Run,
+    RunBudget,
+    RunState,
+    RuntimeEngine,
+    RuntimeFailure,
+    RuntimeStep,
+    RuntimeStore,
+    RuntimeUpdate,
+    SQLiteRuntimeStore,
+    Transition,
+    persist_transitions,
+)
 from .selections import SelectionPolicy
 from .selector_policies import SelectorPolicy
 from .sqlite_knowledge import SQLiteKnowledgeStore
 from .targets import Target, TargetPolicy
 
 __all__ = [
+    "ACTION_RESULT_DISPOSITIONS",
+    "Action",
+    "ActionResult",
     "ArtifactRef",
     "BELIEF_STATUSES",
     "BeliefState",
@@ -108,6 +133,7 @@ __all__ = [
     "DecisionRule",
     "Evaluation",
     "EvaluationDisposition",
+    "Event",
     "Evidence",
     "EvidenceAggregator",
     "EvidenceRelationship",
@@ -144,13 +170,26 @@ __all__ = [
     "Question",
     "RSIKernel",
     "RSITransitionError",
+    "RUNTIME_EVENT_KINDS",
+    "RUNTIME_FAILURE_CLASSES",
+    "RUNTIME_SCHEMA_VERSION",
     "RecordRef",
     "ReflectionPolicy",
     "ReviewPolicy",
+    "RUN_STATUSES",
+    "Run",
+    "RunBudget",
+    "RunState",
+    "RuntimeEngine",
+    "RuntimeFailure",
+    "RuntimeStep",
+    "RuntimeStore",
+    "RuntimeUpdate",
     "SelectionPolicy",
     "SelectorPolicy",
     "SemanticRecord",
     "SQLiteKnowledgeStore",
+    "SQLiteRuntimeStore",
     "STANDARD_CLAIM_KINDS",
     "TargetRef",
     "TargetSnapshot",
@@ -159,6 +198,8 @@ __all__ = [
     "TargetComparison",
     "TargetComponent",
     "TargetPolicy",
+    "TERMINAL_RUN_STATUSES",
+    "Transition",
     "Trial",
     "TrialDisposition",
     "TrialResult",
@@ -171,6 +212,7 @@ __all__ = [
     "serialize_record",
     "initial_belief",
     "label_currentness",
+    "persist_transitions",
 ]
 
 __version__ = "0.2.0"

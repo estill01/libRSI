@@ -345,6 +345,12 @@ def _register(record_cls: type[RecordT]) -> type[RecordT]:
     return record_cls
 
 
+def register_record_type(record_cls: type[RecordT]) -> type[RecordT]:
+    """Register a structured libRSI submodule's canonical record type."""
+
+    return _register(record_cls)
+
+
 @_register
 @dataclass(frozen=True, kw_only=True)
 class TargetRef(SemanticRecord):

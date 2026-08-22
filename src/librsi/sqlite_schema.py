@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import sqlite3
 
+from .sqlite_support import create_if_missing, validate_schema_objects
+
 KNOWLEDGE_SCHEMA_VERSION = 1
 
 _TABLE_DEFINITIONS = {
@@ -80,65 +82,15 @@ _INDEX_DEFINITIONS = {
 }
 
 
-def _normalize_sql(value: str) -> str:
-    normalized: list[str] = []
-    quote: str | None = None
-    pending_space = False
-    index = 0
-    while index < len(value):
-        character = value[index]
-        if quote is not None:
-            normalized.append(character)
-            if character == quote:
-                if index + 1 < len(value) and value[index + 1] == quote:
-                    normalized.append(value[index + 1])
-                    index += 1
-                else:
-                    quote = None
-        elif character in {"'", '"'}:
-            if pending_space and normalized:
-                normalized.append(" ")
-            pending_space = False
-            quote = character
-            normalized.append(character)
-        elif character.isspace():
-            pending_space = True
-        else:
-            if pending_space and normalized:
-                normalized.append(" ")
-            pending_space = False
-            normalized.append(character.upper())
-        index += 1
-    return "".join(normalized).strip()
-
-
-def _create_if_missing(definition: str, *, kind: str) -> str:
-    prefix = f"CREATE {kind} "
-    return definition.replace(prefix, f"{prefix}IF NOT EXISTS ", 1)
-
-
 def validate_knowledge_schema(connection: sqlite3.Connection) -> None:
     """Reject any claimed schema that differs from the complete owned v1 shape."""
 
-    for kind, definitions in (
-        ("table", _TABLE_DEFINITIONS),
-        ("index", _INDEX_DEFINITIONS),
-    ):
-        for name, definition in definitions.items():
-            row = connection.execute(
-                "SELECT type, sql FROM sqlite_master WHERE name = ?",
-                (name,),
-            ).fetchone()
-            if (
-                row is None
-                or row[0] != kind
-                or not isinstance(row[1], str)
-                or _normalize_sql(row[1]) != _normalize_sql(definition)
-            ):
-                raise ValueError(f"SQLite knowledge schema is incomplete for {kind} {name!r}")
-
-    if connection.execute("PRAGMA foreign_key_check").fetchone() is not None:
-        raise ValueError("SQLite knowledge schema violates referential integrity")
+    validate_schema_objects(
+        connection,
+        tables=_TABLE_DEFINITIONS,
+        indexes=_INDEX_DEFINITIONS,
+        label="knowledge",
+    )
 
 
 def migrate_knowledge_schema(connection: sqlite3.Connection) -> None:
@@ -154,9 +106,9 @@ def migrate_knowledge_schema(connection: sqlite3.Connection) -> None:
     connection.execute("BEGIN IMMEDIATE")
     try:
         for definition in _TABLE_DEFINITIONS.values():
-            connection.execute(_create_if_missing(definition, kind="TABLE"))
+            connection.execute(create_if_missing(definition, kind="TABLE"))
         for definition in _INDEX_DEFINITIONS.values():
-            connection.execute(_create_if_missing(definition, kind="INDEX"))
+            connection.execute(create_if_missing(definition, kind="INDEX"))
         validate_knowledge_schema(connection)
         connection.execute(f"PRAGMA user_version = {KNOWLEDGE_SCHEMA_VERSION}")
         connection.commit()
