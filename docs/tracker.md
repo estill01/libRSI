@@ -235,7 +235,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 0 | Architecture contract and compatibility baseline | — | `accepted` |
 | 1 | Canonical immutable records and identity | 0 | `accepted` |
 | 2 | Hypothesis/experiment referential integrity | 1 | `accepted` |
-| 3 | General epistemics and aggregation | 1, 2 | `not-started` |
+| 3 | General epistemics and aggregation | 1, 2 | `accepted` |
 | 4 | Generic experiments, metrics, and evaluation | 1, 3 | `not-started` |
 | 5 | Targets, snapshots, and currentness | 1, 4 | `not-started` |
 | 6 | Persistent knowledge and SQLite store | 1, 5 | `not-started` |
@@ -450,7 +450,7 @@ Stop before general epistemic aggregation.
 
 ## Block 3 — General epistemic model and pluggable aggregation
 
-Status: `not-started`
+Status: `accepted`
 
 ### Objective
 
@@ -502,7 +502,55 @@ Review exact provenance, compatibility, contradictory evidence, and aggregator a
 
 ### Completion evidence
 
-Pending.
+- Repository commit: `a585aa5370dc6ece38c8bc1f0b6a89d6c389b609`.
+- External/domain revision or root: not applicable; Block 3 is a deterministic
+  in-memory library boundary.
+- Inputs: authoritative base `a5fa63540a14e34cfdea156a56533e43336b928a`,
+  accepted Blocks 1–2, and tracker capability-frame SHA-256
+  `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+- Outputs: `src/librsi/epistemics.py`, canonical `BeliefState` in
+  `src/librsi/records.py`, the `HypothesisPolicy` aggregation adapter, public
+  exports/composition, and `tests/test_block3_epistemics.py`.
+- Focused validation: Python 3.12 focused Block 3 review suite, `14 passed`;
+  referential-integrity and `0.2.0` compatibility tests remained green.
+- Mapped validation: Python 3.12 Ruff and format checks passed; mypy passed all
+  16 source files; full suite `71 passed` at `90.77%` branch coverage; sdist/wheel
+  build and isolated wheel import smoke passed.
+- Candidate freeze: content root
+  `cca6fc7b78590bf265b4c2ca518ce43e20001f3f32ce17e70be6a76879f90b86`
+  remained unchanged through mapped validation and final independent review.
+- Remediation closure: independent review found and rechecked two fail-closed
+  defects—replaceable aggregators can no longer reinterpret null/infrastructure
+  evidence, and stale prior belief cannot be rebound to a newer target snapshot.
+- Resource posture: deterministic in-memory fixtures only; no provider, storage,
+  subprocess-experiment, hosted-model, or external-target effects.
+- Independent review: Hubble, read-only, against base `a5fa63540a14e34cfdea156a56533e43336b928a`
+  and the frozen candidate root; final disposition `accepted` with no material findings.
+- Product-capability review:
+  - Trigger: consequential posture.
+  - Frame identity: `docs/tracker.md`, Block 3,
+    `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+  - Capability added or preserved: Claims and Hypotheses aggregate conflicting,
+    provenance-bound evidence through replaceable policy while null evidence stays neutral.
+  - Paths compared: local hard-coded `hypotheses.py`; bounded-general epistemics
+    seam; new architectural subsystem.
+  - Selected level and owner: bounded-general `epistemics.py`, reusing
+    `records.py` for canonical state and `hypotheses.py` only as compatibility adapter.
+  - Protected-capability result: exact subject/snapshot/provenance, invalid-run
+    neutrality, public low-level APIs, and legacy scalar outputs preserved by tests.
+  - Rejected alternatives: the local path would leave Claim aggregation absent;
+    a larger reasoner/store/workflow subsystem would be speculative Block 6–10 work.
+  - Tradeoffs and uncertainty: one linear reference policy and strict single-snapshot
+    aggregation are deliberate; Bayesian/domain policies remain replaceable implementations.
+  - Frozen-candidate proof: commit `a585aa5370dc6ece38c8bc1f0b6a89d6c389b609`,
+    candidate root above, `71 passed`, and accepted independent behavioral review.
+- Retained open work: none within Block 3.
+- Decision/continuation posture: not applicable; Block 4 is dependency-safe.
+- Post-block audit: accepted; no metric, trial, persistence, reasoner, or workflow
+  implementation crossed the Block 3 Stop.
+- Git durability: implementation commit `a585aa5370dc6ece38c8bc1f0b6a89d6c389b609`
+  was pushed non-force to `origin/codex/block-03-epistemics`; this evidence-only
+  successor is the final Block 3 tracker checkpoint.
 
 ### Stop
 
