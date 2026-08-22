@@ -263,6 +263,21 @@ candidate `apply` operation, domain implementation engine, comparison, or accept
 shortcut. The legacy low-level `Intervention` and `Candidate` records remain available;
 the structured records provide explicit compatibility projections.
 
+Candidate comparison is a separate structured package rather than an optimizer shortcut.
+Construct one `CandidateTrialBatch` per candidate from the same exact
+`EvaluationContract`, baseline/candidate experiment, and complete trial results, then call
+`ComparativeSelectionPolicy.select(...)`. The result exposes every objective and
+guardrail interval, minimum-effect outcome, invalid-trial count, pairwise dominance edge,
+and the final single, Pareto, or `none-accepted` disposition. It never infers improvement
+from successful execution alone and never hides conflicting objectives in one score.
+When review governance is enabled, an exact accepted `CandidateReview` must cover the
+candidate, experiment, and evaluation; untyped references cannot unlock selection.
+
+External numerical or model-driven search systems may implement `CandidateProposer` and
+return `SearchProposal`. That record has fixed `proposal-only` authority: candidate
+generation remains replaceable, while evidence interpretation and acceptance remain in
+libRSI.
+
 The base distribution ships no target, provider, subprocess, filesystem, worker, or
 transport implementation. Any effects occur only inside a capability object explicitly
 supplied by the host. Persistence and dispatch are opt-in; `RSIKernel` does not open a

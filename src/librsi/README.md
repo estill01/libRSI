@@ -237,6 +237,24 @@ generic specification and artifact boundaries without adding identity-bearing co
 fields. The original low-level `Intervention` and `Candidate` records remain compatible
 through explicit projections rather than a second lifecycle.
 
+`librsi.comparison` is the next semantic layer. `CandidateTrialBatch` binds one
+prospective candidate to one exact `EvaluationContract`, baseline/candidate
+`ExperimentSpec`, complete `TrialResult` set, and recomputed generic `Evaluation`.
+`ComparativeSelectionPolicy` derives per-metric uncertainty intervals, applies minimum
+meaningful effects and every guardrail conservatively, and then reports one candidate,
+a transparent non-dominated Pareto set, or `none-accepted`. Rankings contain pairwise
+dominance references rather than an opaque aggregate score. Invalid or insufficient
+trials, mismatched baselines, divergent metric definitions, and required-but-missing
+typed accepting review make a candidate ineligible before ranking. Configured review
+governance uses an exact `CandidateReview` over the candidate, experiment, and evaluation;
+an arbitrary reference or rejected review cannot satisfy it.
+
+Replaceable optimizers connect only through `CandidateProposer`, `SearchRequest`, and
+`SearchProposal`. A proposal can name bounded prospective candidates and rationale, but
+its fixed `proposal-only` authority cannot accept, rank, apply, or mutate anything.
+Selection always recomputes from exact trial evidence under the library-owned contract
+and risk policy.
+
 The base distribution does not open a database from the composition root, mutate
 targets or files, run Git/subprocess operations, call a model/provider, schedule
 workers, or send messages. Hosts choose whether and where to construct stores and
