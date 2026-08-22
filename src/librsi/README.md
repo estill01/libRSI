@@ -45,6 +45,9 @@ The current implementation owns portable primitives including:
 - `targets.py` — generic target composition, capabilities, snapshots, and currentness;
 - `epistemics.py` — typed belief state and replaceable evidence aggregation;
 - `evaluation.py` — generic trials, metric rules, evaluation, and evidence projection;
+- `knowledge.py` — backend-neutral reusable-knowledge, query, and currentness contracts;
+- `sqlite_schema.py` — exact local schema and rollback-safe migration contract;
+- `sqlite_knowledge.py` — minimal transactional SQLite reference persistence;
 - `hypotheses.py` — canonical hypothesis creation/evidence updates plus legacy wrappers;
 - `experiments.py` — immutable command specs, host execution inputs, and evidence interpretation;
 - `ports.py` — typed host interfaces such as `ExperimentRunner`;
@@ -83,11 +86,13 @@ The historical `propose()`, `apply_evidence()`, `command_input()`, and
 compatibility wrappers. They preserve legacy hashes and behavior but should not be
 used by new orchestration code when exact referential integrity matters.
 
-The **current** implementation intentionally owns no database schema, filesystem
-mutation, Git operation, subprocess, or model/provider call. Hosts execute experiments
-and effects through governed adapters. Future architecture Blocks may ship replaceable
-SQLite/local-execution/service defaults, but those defaults do not make libRSI a generic
-workflow, MLOps, storage, coding-agent, or server infrastructure platform.
+The **current** implementation owns one thin, replaceable SQLite schema for canonical
+knowledge and per-run provenance. It intentionally does not store runtime Run/Event/
+Action state, open a database from the composition root, mutate targets or files, run
+Git/subprocess operations, or call a model/provider. Hosts choose whether and where to
+construct a `KnowledgeStore` and execute experiments and effects through governed
+adapters. The reference backend does not make libRSI a generic workflow, MLOps,
+storage, coding-agent, or server infrastructure platform.
 
 A canonical command runner should copy
 `CommandExperimentInput.exact_input_root` into the returned

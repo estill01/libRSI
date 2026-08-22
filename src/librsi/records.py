@@ -520,6 +520,30 @@ class TargetComparison(SemanticRecord):
 
 @_register
 @dataclass(frozen=True, kw_only=True)
+class KnowledgeRelationship(SemanticRecord):
+    """One exact, typed relationship between canonical knowledge records."""
+
+    RECORD_TYPE: ClassVar[str] = "knowledge_relationship"
+
+    source: RecordRef
+    relationship: str
+    target: RecordRef
+    attributes: Mapping[str, Any] = field(default_factory=FrozenMap)
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.source, RecordRef) or not isinstance(self.target, RecordRef):
+            raise TypeError("knowledge relationship endpoints must be RecordRef values")
+        object.__setattr__(
+            self,
+            "relationship",
+            _require_text(self.relationship, "knowledge relationship"),
+        )
+        object.__setattr__(self, "attributes", _freeze_map(self.attributes))
+        super().__post_init__()
+
+
+@_register
+@dataclass(frozen=True, kw_only=True)
 class Claim(SemanticRecord):
     RECORD_TYPE: ClassVar[str] = "claim"
 

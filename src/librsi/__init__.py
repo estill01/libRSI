@@ -30,6 +30,16 @@ from .experiments import ExperimentPolicy
 from .hypotheses import HypothesisPolicy, ReflectionPolicy
 from .identity import FrozenMap
 from .kernel import RSIKernel
+from .knowledge import (
+    KNOWLEDGE_RECORD_TYPES,
+    KnowledgeCurrentness,
+    KnowledgeQuery,
+    KnowledgeStore,
+    KnowledgeWrite,
+    StoredKnowledge,
+    bound_target_snapshots,
+    label_currentness,
+)
 from .models import (
     CheckpointDecision,
     CommandExperimentInput,
@@ -57,6 +67,7 @@ from .records import (
     Goal,
     Hypothesis,
     Intervention,
+    KnowledgeRelationship,
     Measurement,
     Metric,
     Observation,
@@ -78,6 +89,7 @@ from .records import (
 from .reviews import ReviewPolicy
 from .selections import SelectionPolicy
 from .selector_policies import SelectorPolicy
+from .sqlite_knowledge import SQLiteKnowledgeStore
 from .targets import Target, TargetPolicy
 
 __all__ = [
@@ -114,6 +126,12 @@ __all__ = [
     "HypothesisProposal",
     "HypothesisUpdate",
     "Intervention",
+    "KNOWLEDGE_RECORD_TYPES",
+    "KnowledgeCurrentness",
+    "KnowledgeQuery",
+    "KnowledgeRelationship",
+    "KnowledgeStore",
+    "KnowledgeWrite",
     "LinearEvidenceAggregator",
     "Measurement",
     "Metric",
@@ -132,6 +150,7 @@ __all__ = [
     "SelectionPolicy",
     "SelectorPolicy",
     "SemanticRecord",
+    "SQLiteKnowledgeStore",
     "STANDARD_CLAIM_KINDS",
     "TargetRef",
     "TargetSnapshot",
@@ -144,11 +163,14 @@ __all__ = [
     "TrialDisposition",
     "TrialResult",
     "TrialRole",
+    "StoredKnowledge",
     "aggregate_evidence",
+    "bound_target_snapshots",
     "deserialize_record",
     "record_from_dict",
     "serialize_record",
     "initial_belief",
+    "label_currentness",
 ]
 
 __version__ = "0.2.0"

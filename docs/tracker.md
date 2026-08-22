@@ -238,7 +238,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 3 | General epistemics and aggregation | 1, 2 | `accepted` |
 | 4 | Generic experiments, metrics, and evaluation | 1, 3 | `accepted` |
 | 5 | Targets, snapshots, and currentness | 1, 4 | `accepted` |
-| 6 | Persistent knowledge and SQLite store | 1, 5 | `not-started` |
+| 6 | Persistent knowledge and SQLite store | 1, 5 | `in-progress` |
 | 7 | Durable semantic Run/Event/Action engine | 1, 6 | `not-started` |
 | 8 | Capability protocols and neutral dispatch | 7 | `not-started` |
 | 9 | Provider-neutral reasoner contract | 3, 7, 8 | `not-started` |
@@ -797,7 +797,7 @@ Stop before persistent knowledge storage or target application.
 
 ## Block 6 — Persistent knowledge and `KnowledgeStore`
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 
