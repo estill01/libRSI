@@ -1,10 +1,19 @@
 # libRSI module map
 
-`librsi` is the reusable, host-agnostic policy library extracted from Software
+`librsi` is the reusable, host-agnostic semantic core extracted from Software
 Factory's recursive program evolution, hypothesis-testing, and selection-quality
-loops.
+loops. The current package is still a low-level deterministic policy/record library;
+the maintained architecture expands it toward evidence-driven validation,
+investigation, improvement, and governed recursive self-improvement.
 
-It owns the portable part of recursive self-improvement:
+The long-term product boundary is semantic rather than infrastructural: libRSI owns
+how targets, claims, evidence, experiments, interventions, candidates, decisions,
+applications, verification, and self-change governance relate. Models, coding agents,
+sandboxes, schedulers, experiment platforms, storage systems, and transports remain
+replaceable capabilities/backends except for thin reference implementations needed to
+make the library useful out of the box.
+
+The current implementation owns portable primitives including:
 
 - exact-state checkpoint materiality;
 - stable program-change and review identities;
@@ -68,10 +77,13 @@ The historical `propose()`, `apply_evidence()`, `command_input()`, and
 compatibility wrappers. They preserve legacy hashes and behavior but should not be
 used by new orchestration code when exact referential integrity matters.
 
-It intentionally owns no database schema, filesystem mutation, Git operation,
-subprocess, model/provider call, or product-specific ontology. A host records policy
-decisions in its existing authoritative store and executes experiments and effects
-through governed adapters. A canonical command runner should copy
+The **current** implementation intentionally owns no database schema, filesystem
+mutation, Git operation, subprocess, or model/provider call. Hosts execute experiments
+and effects through governed adapters. Future architecture Blocks may ship replaceable
+SQLite/local-execution/service defaults, but those defaults do not make libRSI a generic
+workflow, MLOps, storage, coding-agent, or server infrastructure platform.
+
+A canonical command runner should copy
 `CommandExperimentInput.exact_input_root` into the returned
 `CommandObservation.exact_input_root`. Invalid experiment execution is classified as
 zero-weight null evidence; infrastructure failure is never treated as falsification on
@@ -92,10 +104,13 @@ if decision.material:
     record_checkpoint(decision)
 ```
 
-Software Factory's `EvolutionService` is one reference adapter. It persists RSI
-records in the existing factory database and retains ownership of tracker changes,
-validation, commits, and other effects. `LearningService` is the reference hypothesis
-and experiment adapter: it persists hypotheses and invokes commands, while `librsi`
-interprets their epistemic result. Its default command port is
-`software_factory.experiment_runner.SubprocessExperimentRunner`; other hosts can
-inject a container, remote-job, simulator, or shadow-traffic runner.
+Software Factory is a reference consumer, not a dependency of libRSI. As generic
+Target/Capability/Intervention/Outcome contracts stabilize, Software Factory should
+incrementally map its mission state, candidate worktrees/effects, experiments, and
+application/verification machinery onto those libRSI contracts. The required
+dependency direction remains Software Factory → libRSI, never the reverse.
+
+Other hosts may provide local processes, containers, remote jobs, simulators,
+physical-system adapters, numerical optimizers, LLM-program optimizers, or other
+capabilities while libRSI retains the semantic/evidence/selection authority defined by
+its contracts.
