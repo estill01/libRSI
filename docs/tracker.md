@@ -239,7 +239,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 4 | Generic experiments, metrics, and evaluation | 1, 3 | `accepted` |
 | 5 | Targets, snapshots, and currentness | 1, 4 | `accepted` |
 | 6 | Persistent knowledge and SQLite store | 1, 5 | `accepted` |
-| 7 | Durable semantic Run/Event/Action engine | 1, 6 | `not-started` |
+| 7 | Durable semantic Run/Event/Action engine | 1, 6 | `accepted` |
 | 8 | Capability protocols and neutral dispatch | 7 | `not-started` |
 | 9 | Provider-neutral reasoner contract | 3, 7, 8 | `not-started` |
 | 10 | Validation workflow and result | 3–9 | `not-started` |
@@ -926,7 +926,7 @@ Stop before durable run/event/action lifecycle implementation.
 
 ## Block 7 — Durable semantic Run/Event/State/Action engine
 
-Status: `not-started`
+Status: `accepted`
 
 ### Objective
 
@@ -977,7 +977,89 @@ Review event authority, transition validity, duplicate/idempotent submission, re
 
 ### Completion evidence
 
-Pending.
+- Repository commit: `fc2a65b844d84e559d35ee2e00de2079d30e2d78`.
+- External/domain revision or root: not applicable; Block 7 uses pure bounded traces
+  and temporary SQLite databases, with no provider, worker, hosted store, external
+  target, or capability execution.
+- Inputs: authoritative base `780158c0249cdc116bd8af0e62f9bdf99c6d0473`,
+  accepted Blocks 1 and 6, architecture-contract sections 3 and 8, the durable
+  runtime scope revision, and tracker capability-frame SHA-256
+  `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+- Outputs: structured `librsi.runtime` records, budgets, failure classes, and terminal
+  outcomes; pure deterministic request/result/complete/fail/cancel transitions;
+  step and full-trace replay APIs; a replaceable `RuntimeStore` contract; an exact,
+  rollback-safe, independently versioned SQLite runtime schema; append-only events,
+  replay-checked materialized state, resume, and duplicate-transition protection;
+  public exports and truthful package documentation; and split record, engine, store,
+  and SQLite-integrity tests.
+- Focused validation: Python 3.14 focused Block 7 suite, `38 passed`, covering resume
+  after every transition, replay equivalence, exact duplicate result and transition
+  no-ops, stale/wrong/divergent result rejection, terminal mutation, bound/unbound
+  outcome correlation, action/failure/retry/resource budgets, multi-pending reservation
+  accounting, alternative store substitution, migration rollback, raw tampering,
+  same-file knowledge/runtime coexistence, and interruption rollback. The combined
+  protected Blocks 6–7 suite passed `72` tests.
+- Mapped validation: Python 3.14 Ruff and format checks passed; mypy passed all
+  28 source files; full suite `184 passed` at `90.33%` branch coverage with
+  `ResourceWarning` treated as error; sdist/wheel build and isolated Python 3.11
+  installed-wheel runtime/SQLite resume and multi-pending budget smokes passed.
+- Candidate freeze: content root
+  `d4ca331ec1b317ab214bcf479b23d380632cde569e1819c3ad2b153f7c66edd0`
+  remained unchanged through final mapped validation and accepted independent review;
+  exactly 18 candidate files were included and unrelated untracked `uv.lock` was
+  excluded and left untouched.
+- Remediation closure: three read-only review rounds found and rechecked three
+  fail-closed semantic edges. Exact failed, cancelled, and later-completed result
+  resubmissions now remain idempotent after terminalization while divergent or unseen
+  terminal submissions reject; all terminal outcomes match the run's exact intent and
+  target snapshot; and successful results cannot make actual resource usage plus
+  remaining pending reservations exceed a run budget.
+- Resource posture: immutable bounded traces, in-memory/temporary-file SQLite, and one
+  isolated installed-wheel environment only; no live worker, scheduler, provider,
+  model, target mutation, subprocess experiment, transport, messaging, tracing, or
+  automatic dispatch system was used or introduced.
+- Independent review: Hubble, read-only, against base
+  `780158c0249cdc116bd8af0e62f9bdf99c6d0473` and the final frozen candidate root;
+  final disposition `accepted`, all three predecessor findings closed, no material
+  successor findings, Block 6 protected, and the Block 7 Stop compliant.
+- Product-capability review:
+  - Trigger: consequential posture.
+  - Frame identity: `docs/tracker.md`, Block 7,
+    `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+  - Capability added or preserved: one control-plane-neutral semantic run can survive
+    interruption, reject stale or duplicate authority, account for explicit budgets,
+    and reconstruct exactly from its append-only event prefix.
+  - Paths compared: a local mutable run object; a bounded-general pure runtime plus
+    replaceable durable store; and a workflow, worker, scheduling, messaging, or
+    orchestration platform.
+  - Selected level and owner: canonical lifecycle records in `runtime/records.py`,
+    pure authority transitions in `runtime/engine.py`, backend-neutral persistence in
+    `runtime/store.py`, and thin exact SQLite ownership in `runtime/sqlite_schema.py`
+    and `runtime/sqlite.py`.
+  - Protected-capability result: canonical record identity, exact intent/target
+    binding, deterministic replay, explicit terminal outcomes and budgets, append-only
+    durability, knowledge/runtime separation, zero base dependencies, and structured
+    wheel packaging are covered by focused, mapped, and installed-wheel proof.
+  - Rejected alternatives: a mutable local object cannot resume or prove replay; a
+    general orchestrator would add speculative dispatch, worker, scheduling,
+    messaging, transport, provider, and tracing authority reserved for later Blocks or
+    permanently host-owned infrastructure.
+  - Tradeoffs and uncertainty: the SQLite reference validates the entire bounded
+    history and materialized projection on every resume for fail-closed semantics;
+    indexed scale, compaction, distributed coordination, and richer stores remain
+    replaceable backend concerns rather than Block 7 core authority.
+  - Frozen-candidate proof: commit
+    `fc2a65b844d84e559d35ee2e00de2079d30e2d78`, candidate root above, `184 passed`,
+    installed-wheel replay/resume proof, and accepted independent adversarial review.
+- Retained open work: none within Block 7.
+- Decision/continuation posture: not applicable; Block 8 is dependency-safe.
+- Post-block audit: accepted; no capability resolution, automatic dispatch, provider
+  execution, worker fleet, generic scheduler, transport, messaging, or tracing crossed
+  the Block 7 Stop.
+- Git durability: implementation commit
+  `fc2a65b844d84e559d35ee2e00de2079d30e2d78` was pushed non-force to
+  `origin/codex/block-07-runtime`; this evidence-only successor is the final Block 7
+  tracker checkpoint.
 
 ### Stop
 

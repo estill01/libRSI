@@ -13,6 +13,10 @@ requiring repository or Git concepts.
 Canonical knowledge can be persisted through a replaceable `KnowledgeStore` contract;
 the included transactional SQLite backend needs no service and labels retrieved
 target-bound records as current, stale, unbound, or incomparable.
+An independent `librsi.runtime` package provides canonical Run/Event/State/Action
+records, a pure deterministic transition engine, and an opt-in `RuntimeStore` with a
+replay-checked SQLite implementation. It emits exact actions but does not resolve or
+execute capabilities.
 
 ## Install
 
@@ -82,9 +86,37 @@ echo the exact spec/input root. Evidence names the exact hypothesis, experiment,
 target snapshot it bears on, and a stale or different hypothesis rejects that evidence.
 The `0.2.0` scalar APIs remain available as deprecated compatibility wrappers.
 
-The library performs no target or runtime effects. Persistence is opt-in through an
-explicitly constructed knowledge store; `RSIKernel` does not open a database or infer
-a storage location. See
+A host can durably record the same semantic run after each pure transition:
+
+```python
+from librsi import Action, Goal, Run, RuntimeEngine, SQLiteRuntimeStore
+
+run = Run(run_id="validation-1", intent=Goal(statement="Validate candidate").ref)
+started = RuntimeEngine.start(run)
+requested = RuntimeEngine.request(
+    started.state,
+    Action(run=run.ref, action_id="evaluate", kind="evaluate"),
+)
+assert started.transition is not None
+assert requested.transition is not None
+
+with SQLiteRuntimeStore("runtime.sqlite") as store:
+    store.append(started.transition)
+    store.append(requested.transition)
+    continuation = store.resume(run.run_id)
+
+assert continuation is not None
+# The host executes continuation.pending_actions through its own governed adapter.
+```
+
+`RuntimeEngine` performs no I/O. Exact duplicate transitions are no-ops, while every
+load validates the append-only chain, materialized state, and deterministic replay.
+The runtime and knowledge stores remain distinct authorities and may optionally share
+one SQLite file without sharing schema versioning or record types.
+
+The library performs no target, provider, subprocess, filesystem, or dispatch effects.
+Persistence is opt-in through explicitly constructed stores; `RSIKernel` does not open
+a database or infer a storage location. See
 [`src/librsi/README.md`](src/librsi/README.md) for the module map and complete
 integration boundary. The maintained implementation plan evolves this deterministic
 core toward higher-level validation, investigation, improvement, and RSI workflows
