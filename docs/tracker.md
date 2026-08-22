@@ -242,7 +242,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 7 | Durable semantic Run/Event/Action engine | 1, 6 | `accepted` |
 | 8 | Capability protocols and neutral dispatch | 7 | `accepted` |
 | 9 | Provider-neutral reasoner contract | 3, 7, 8 | `accepted` |
-| 10 | Validation workflow and result | 3–9 | `not-started` |
+| 10 | Validation workflow and result | 3–9 | `in-progress` |
 | 11 | Investigation workflow and result | 10 | `not-started` |
 | 12 | Intervention and candidate lifecycle | 5, 11 | `not-started` |
 | 13 | Goals, constraints, and evaluation contracts | 5, 12 | `not-started` |
@@ -1349,7 +1349,7 @@ Stop before composing validation or investigation workflows.
 
 ## Block 10 — First-class validation workflow and `ValidationResult`
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 

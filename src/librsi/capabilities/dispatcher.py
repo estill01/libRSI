@@ -22,11 +22,12 @@ class CapabilityDispatcher:
         if not isinstance(registry, CapabilityRegistry):
             raise TypeError("capability dispatcher requires a CapabilityRegistry")
         for route in registry.routes:
-            if route.action_kind != "reason":
+            if route.action_kind not in {"reason", "validation-evidence"}:
                 continue
-            if route.family != "reasoner":
+            expected_family = "reasoner" if route.action_kind == "reason" else "experimenter"
+            if route.family != expected_family:
                 raise RSICapabilityError(
-                    "structured reasoning actions require an exact reasoner route"
+                    f"{route.action_kind} actions require an exact {expected_family} route"
                 )
         self._registry = registry
 
@@ -51,10 +52,20 @@ class CapabilityDispatcher:
             from ..reasoning.validation import ReasoningResultValidator
 
             ReasoningResultValidator().validate(state, result)
+        elif result.action.kind == "validation-evidence":
+            from ..validation.actions import ValidationEvidenceResultValidator
+
+            ValidationEvidenceResultValidator().validate(state, result)
         self._registry.validate(state, result)
         resolution = self._registry.resolve(result.action)
-        if result.action.kind == "reason" and resolution.family != "reasoner":
-            raise RSICapabilityError("structured reasoning actions require an exact reasoner route")
+        expected_family = {
+            "reason": "reasoner",
+            "validation-evidence": "experimenter",
+        }.get(result.action.kind)
+        if expected_family is not None and resolution.family != expected_family:
+            raise RSICapabilityError(
+                f"{result.action.kind} actions require an exact {expected_family} route"
+            )
         if resolution.posture == "unavailable":
             raise RSICapabilityError("unavailable capability results cannot be submitted")
         if resolution.posture != authority:

@@ -43,6 +43,8 @@ The current implementation owns portable primitives including:
   generation, experiment design, explanation, intervention generation, problem
   decomposition, and approach revision; and
 - pre-transition schema/currentness validation plus proposal-to-decision lineage guards.
+- a first-class claim-only validation workflow with current-knowledge reuse, bounded
+  evidence-gap actions, four distinct result dispositions, and complete provenance.
 
 ## Package structure
 
@@ -77,6 +79,12 @@ The current implementation owns portable primitives including:
 - `reasoning/adapters.py` — zero-provider backend protocol and managed Reasoner adapter;
 - `reasoning/validation.py` — pre-transition response validation and downstream
   Evidence/Intervention lineage guards;
+- `validation/records.py` — claim-only request, evidence-gap, batch, and result records;
+- `validation/actions.py` — exact runtime codecs and nonreplaceable evidence-result
+  validation for the reserved `validation-evidence` action;
+- `validation/policy.py` — deterministic evidence sufficiency and public disposition;
+- `validation/workflow.py` — low-level stepped and convenience validation over the
+  authoritative runtime, current knowledge, and existing Experimenter capability;
 - `hypotheses.py` — canonical hypothesis creation/evidence updates plus legacy wrappers;
 - `experiments.py` — immutable command specs, host execution inputs, and evidence interpretation;
 - `ports.py` — typed host interfaces such as `ExperimentRunner`;
@@ -138,6 +146,22 @@ bearing fields; the dispatcher always applies its nonreplaceable canonical valid
  before any optional host validator on the reserved `reason` path. A successful result
  references only its proposal record: narration may
 explain a proposal but cannot become evidence or validated knowledge merely by saying so.
+
+The validation workflow composes, but does not replace, those lower layers. Its Run
+intent is the exact `Claim` rather than a synthetic goal; current stored evidence can
+complete the run without an action, while an evidence gap becomes one bounded canonical
+action. Managed and external hosts return the same evidence-batch `ActionResult`.
+Supported, contradicted, bounded, and inconclusive results cite the exact belief,
+evidence, target snapshot, runtime, and reused-versus-gathered provenance. Stale evidence,
+free-form success narration, duplicate actions, and infrastructure failures cannot be
+silently converted into support or counterevidence. `ValidationWorkflow.resume()`
+reconstructs that projection only from an exact persisted run and exact-root reused
+knowledge, returning any deterministic reconciliation transitions in a
+`ValidationUpdate`; drifted requests, evidence frontiers, actions, and outcomes fail
+closed. Direct and managed submission perform that same reconciliation before runtime
+mutation; any reused evidence must still resolve through the supplied `KnowledgeStore`.
+The initial validation contract uses the canonical built-in epistemic policy;
+alternate sufficiency policies require an explicit versioned semantic policy contract.
 
 The base distribution does not open a database from the composition root, mutate
 targets or files, run Git/subprocess operations, call a model/provider, schedule
