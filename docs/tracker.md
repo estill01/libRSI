@@ -243,7 +243,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 8 | Capability protocols and neutral dispatch | 7 | `accepted` |
 | 9 | Provider-neutral reasoner contract | 3, 7, 8 | `accepted` |
 | 10 | Validation workflow and result | 3–9 | `accepted` |
-| 11 | Investigation workflow and result | 10 | `not-started` |
+| 11 | Investigation workflow and result | 10 | `in-progress` |
 | 12 | Intervention and candidate lifecycle | 5, 11 | `not-started` |
 | 13 | Goals, constraints, and evaluation contracts | 5, 12 | `not-started` |
 | 14 | Comparative evaluation and selection | 4, 12, 13 | `not-started` |
@@ -1499,7 +1499,7 @@ Stop before multi-hypothesis investigation or intervention generation.
 
 ## Block 11 — Investigation and scientific-understanding workflow
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 

@@ -175,6 +175,48 @@ Block 10 uses the canonical built-in epistemic policy in result identity; altern
 sufficiency policies require a versioned semantic policy contract rather than silent
 runtime injection.
 
+Questions with competing explanations use the separate investigation workflow:
+
+```python
+from librsi import InvestigationRequest, InvestigationWorkflow, Question
+
+request = InvestigationRequest.for_question(
+    investigation_id="mechanism-study",
+    question=Question(prompt="Which mechanism explains the observation?"),
+    max_hypotheses=3,
+    max_experiments=4,
+)
+update = InvestigationWorkflow().start(request)
+assert update.progress.state.pending_actions[0].kind == "investigation-reason"
+```
+
+That first reserved action requests a structured competing-hypothesis proposal. Subsequent
+frontiers request one exact experiment design or experiment at a time. Sequential mode
+finishes one lane before the next; parallel mode activates all viable lanes and
+round-robins the least-tested branch, preserving deterministic persistence while keeping
+search alternatives live. Null or otherwise inconclusive evidence can trigger a bounded
+redesign. Supported findings repeat only the exact hypothesis statement and cite its
+canonical evidence; reasoner narration never becomes a conclusion. Falsified branches,
+unavailable evidence, experiment/redesign budgets, and unresolved alternatives remain
+explicit in `InvestigationResult`.
+
+`InvestigationWorkflow.start()`, `step()`, `submit()`, `resume()`, and `run_managed()`
+use the same Block 7 runtime. Managed Reasoner and Experimenter capabilities are invoked
+only after the persisted frontier and any reused `KnowledgeStore` roots reconcile
+exactly. Every reserved reasoning or experiment action embeds an `InvestigationFrontier`
+containing the complete ordered branch roster and the one policy-selected active branch.
+`CapabilityDispatcher` rejects investigation routes and results; only
+`InvestigationWorkflow.submit()` may validate and advance this specialized state machine.
+The public `derive_investigation_action()` function is the single action authority: it
+derives branch selection, design-versus-experiment phase, sequence, and budget eligibility
+from the complete roster, and builders, decoders, replay, and failed results require an
+exact match.
+Investigation experiment design uses a closed observation-only schema: a reasoner
+selects `measure`, `observe`, or `retrieve`, bounded measurement identifiers, and canonical
+evidence criteria. It cannot add operation/procedure payloads, intervention, candidate,
+implementation, mutation, application, or target-change authority. Target changes begin in
+later lifecycle blocks.
+
 The base distribution ships no target, provider, subprocess, filesystem, worker, or
 transport implementation. Any effects occur only inside a capability object explicitly
 supplied by the host. Persistence and dispatch are opt-in; `RSIKernel` does not open a
