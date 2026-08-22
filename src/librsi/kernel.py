@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 
 from .checkpoints import CheckpointPolicy
 from .epistemics import EpistemicPolicy
+from .evaluation import ExperimentEvaluator
 from .experiments import ExperimentPolicy
 from .hypotheses import HypothesisPolicy, ReflectionPolicy
 from .portfolios import PortfolioPolicy
@@ -29,5 +30,6 @@ class RSIKernel:
     selector_policies: SelectorPolicy = field(default_factory=SelectorPolicy)
     reflections: ReflectionPolicy = field(default_factory=ReflectionPolicy)
     epistemics: EpistemicPolicy = field(default_factory=EpistemicPolicy)
+    evaluator: ExperimentEvaluator = field(default_factory=ExperimentEvaluator)
     hypotheses: HypothesisPolicy = field(default_factory=HypothesisPolicy)
     experiments: ExperimentPolicy = field(default_factory=ExperimentPolicy)

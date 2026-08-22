@@ -20,6 +20,12 @@ from .epistemics import (
     initial_belief,
 )
 from .errors import RSITransitionError
+from .evaluation import (
+    EvaluationDisposition,
+    ExperimentEvaluator,
+    TrialDisposition,
+    TrialRole,
+)
 from .experiments import ExperimentPolicy
 from .hypotheses import HypothesisPolicy, ReflectionPolicy
 from .identity import FrozenMap
@@ -43,6 +49,7 @@ from .records import (
     Candidate,
     Claim,
     Constraint,
+    DecisionRule,
     Evaluation,
     Evidence,
     EvidenceRef,
@@ -51,6 +58,7 @@ from .records import (
     Hypothesis,
     Intervention,
     Measurement,
+    Metric,
     Observation,
     Outcome,
     Question,
@@ -59,6 +67,7 @@ from .records import (
     TargetRef,
     TargetSnapshot,
     Trial,
+    TrialResult,
     deserialize_record,
     record_from_dict,
     serialize_record,
@@ -80,7 +89,9 @@ __all__ = [
     "CommandExperimentInput",
     "CommandObservation",
     "Constraint",
+    "DecisionRule",
     "Evaluation",
+    "EvaluationDisposition",
     "Evidence",
     "EvidenceAggregator",
     "EvidenceRelationship",
@@ -88,6 +99,7 @@ __all__ = [
     "EVIDENCE_RELATIONSHIPS",
     "EpistemicPolicy",
     "ExperimentEvaluation",
+    "ExperimentEvaluator",
     "ExperimentPolicy",
     "ExperimentRunner",
     "ExperimentSpec",
@@ -100,6 +112,7 @@ __all__ = [
     "Intervention",
     "LinearEvidenceAggregator",
     "Measurement",
+    "Metric",
     "Observation",
     "Outcome",
     "PolicyEvaluationUpdate",
@@ -119,6 +132,9 @@ __all__ = [
     "TargetRef",
     "TargetSnapshot",
     "Trial",
+    "TrialDisposition",
+    "TrialResult",
+    "TrialRole",
     "aggregate_evidence",
     "deserialize_record",
     "record_from_dict",
