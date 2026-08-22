@@ -682,6 +682,8 @@ class Evidence(SemanticRecord):
             "subject_refs",
             _record_refs(self.subject_refs, label="evidence subject references"),
         )
+        if any(item.record_type == "goal" for item in self.subject_refs):
+            raise ValueError("declarative Goals cannot be treated as evidentiary subjects")
         object.__setattr__(
             self,
             "source_refs",

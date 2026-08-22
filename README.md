@@ -26,6 +26,10 @@ The `librsi.validation` package is the first vertical workflow built on those pr
 it validates a `Claim` directly, reuses only current stored evidence, emits the smallest
 explicit evidence gap when needed, and returns a provenance-complete `ValidationResult`
 whose disposition is supported, contradicted, bounded, or inconclusive.
+The `librsi.intent` package turns declarative goals into typed `EvaluationContract`
+records with exact baselines, objectives, constraints, guardrails, and stopping rules.
+Operationalization proposals remain proposals; missing measurement facts are returned
+explicitly instead of being invented.
 
 ## Install
 

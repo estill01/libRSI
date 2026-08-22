@@ -33,12 +33,14 @@ class CapabilityDispatcher:
                 )
             if route.action_kind not in {
                 "implement-intervention",
+                "operationalize-goal",
                 "reason",
                 "validation-evidence",
             }:
                 continue
             expected_family = {
                 "implement-intervention": "implementer",
+                "operationalize-goal": "reasoner",
                 "reason": "reasoner",
                 "validation-evidence": "experimenter",
             }[route.action_kind]
@@ -70,7 +72,17 @@ class CapabilityDispatcher:
             raise RSICapabilityError(
                 "investigation results must be submitted through InvestigationWorkflow"
             )
-        if result.action.kind == "reason":
+        if result.action.kind == "operationalize-goal":
+            from ..intent.actions import OperationalizationResultValidator
+
+            operationalization_validator = OperationalizationResultValidator()
+            operationalization_validator.require_current_frontier(
+                state,
+                result.action,
+                current_snapshot,
+            )
+            operationalization_validator.validate(state, result)
+        elif result.action.kind == "reason":
             # The reserved structured-reasoning path is validated by libRSI itself.
             # Host validators configured on the registry run in addition below and
             # cannot weaken or replace this authority boundary.
@@ -84,17 +96,18 @@ class CapabilityDispatcher:
         elif result.action.kind == "implement-intervention":
             from ..interventions.actions import ImplementationResultValidator
 
-            validator = ImplementationResultValidator()
-            validator.require_current_frontier(
+            implementation_validator = ImplementationResultValidator()
+            implementation_validator.require_current_frontier(
                 state,
                 result.action,
                 current_snapshot,
             )
-            validator.validate(state, result)
+            implementation_validator.validate(state, result)
         self._registry.validate(state, result)
         resolution = self._registry.resolve(result.action)
         expected_family = {
             "implement-intervention": "implementer",
+            "operationalize-goal": "reasoner",
             "reason": "reasoner",
             "validation-evidence": "experimenter",
         }.get(result.action.kind)
@@ -152,6 +165,14 @@ class CapabilityDispatcher:
                 from ..interventions.actions import ImplementationResultValidator
 
                 ImplementationResultValidator().require_current_frontier(
+                    current,
+                    resolution.action,
+                    current_snapshot,
+                )
+            elif resolution.action.kind == "operationalize-goal":
+                from ..intent.actions import OperationalizationResultValidator
+
+                OperationalizationResultValidator().require_current_frontier(
                     current,
                     resolution.action,
                     current_snapshot,
