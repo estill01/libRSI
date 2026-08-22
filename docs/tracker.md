@@ -242,7 +242,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 7 | Durable semantic Run/Event/Action engine | 1, 6 | `accepted` |
 | 8 | Capability protocols and neutral dispatch | 7 | `accepted` |
 | 9 | Provider-neutral reasoner contract | 3, 7, 8 | `accepted` |
-| 10 | Validation workflow and result | 3–9 | `in-progress` |
+| 10 | Validation workflow and result | 3–9 | `accepted` |
 | 11 | Investigation workflow and result | 10 | `not-started` |
 | 12 | Intervention and candidate lifecycle | 5, 11 | `not-started` |
 | 13 | Goals, constraints, and evaluation contracts | 5, 12 | `not-started` |
@@ -1349,7 +1349,7 @@ Stop before composing validation or investigation workflows.
 
 ## Block 10 — First-class validation workflow and `ValidationResult`
 
-Status: `in-progress`
+Status: `accepted`
 
 ### Objective
 
@@ -1401,7 +1401,97 @@ Review evidence sufficiency/currentness, workflow/runtime ownership, outcome lin
 
 ### Completion evidence
 
-Pending.
+- Repository commit: `cb51e49f434230316652a43535ecdb0131d7c830`.
+- External/domain revision or root: not applicable; Block 10 used canonical immutable
+  records, deterministic in-memory and SQLite fixtures, and a synthetic physical-process
+  sentinel without live target mutation, provider/model execution, or external service.
+- Inputs: authoritative base `7ead49ccd03c15b59ac327e1325ffc0b96b3cdd5`,
+  accepted Blocks 3–9, architecture-contract sections 10–11, the Block 10 scope
+  revision, and tracker capability-frame SHA-256
+  `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+- Outputs: a structured `librsi.validation` package split across canonical request,
+  evidence-batch, progress, update, and result records; action/result codecs and a
+  nonreplaceable dispatcher validator; an owned canonical sufficiency policy; and a
+  bounded workflow with start, step, submit, resume, managed, and convenience entry
+  points over the Block 7 runtime. Knowledge lookup now filters and revalidates exact
+  subject, evidence type, validity, and currentness. Public exports and documentation
+  describe the store-revalidation contract and the four result dispositions.
+- Focused validation: Python 3.14 Block 10 suite, `46 passed`, covering sufficient
+  current-knowledge short-circuiting, stale/admissibility filtering, all four outcome
+  classes, exact gap planning, bounded multi-frontier work, persisted restart from each
+  transition, non-software managed execution, direct/managed/external equivalence,
+  canonical result and belief identity, action/result codecs, duplicate rejection,
+  narrative non-authority, and pre-effect rejection of forged policy, run, frontier,
+  evidence-origin, and intervention-oriented state. The combined protected Blocks 6–10
+  suite passed `175` tests.
+- Mapped validation: Python 3.14 Ruff and format checks passed; mypy passed all 44 source
+  files; the full suite passed `287` tests at `90.61%` branch coverage with
+  `ResourceWarning` treated as error. The focused `46` tests passed independently on
+  Python 3.11, 3.12, and 3.13. Isolated sdist and wheel builds succeeded, and a fresh
+  Python 3.11 environment installed the wheel and completed a generic target-bound
+  validation with canonical Run identity and exact evidence provenance.
+- Candidate freeze: content root
+  `6d573e5fbc5ec40c88b78a637302f8a72aa526c4cae5aa75970393230e426c0d`
+  remained unchanged through final mapped validation and independent review; exactly 16
+  candidate files were included. The unrelated untracked `uv.lock` was excluded and
+  remained untouched at 134,695 bytes with mtime `1787379167`.
+- Resource posture: current knowledge is queried before action issuance; one exact gap
+  action is pending at a time; execution stops at sufficiency, explicit unavailability,
+  failure, or the declared action budget. Tests use bounded fake capabilities, temporary
+  SQLite stores, an isolated artifact build, and one installed-wheel environment; no
+  intervention, candidate, target application, provider, scheduler, transport, or
+  generic workflow platform was introduced.
+- Independent review: Hubble, read-only, against base
+  `7ead49ccd03c15b59ac327e1325ffc0b96b3cdd5` and each frozen candidate; final
+  disposition `accepted` at the root above. Successive adversarial probes found and
+  drove remediation of interrupted-state reconstruction, invalid dispatcher evidence,
+  incomplete knowledge admissibility/currentness, replaceable Run/belief/result state,
+  substituted persisted gaps/outcomes, policy subclass/equality/time-of-check bypasses,
+  forged direct progress/evidence origins/run budgets, and managed effects occurring
+  before reconciliation. Final direct and managed paths share resume-based canonical
+  frontier reconciliation before runtime mutation or any host effect; all earlier
+  findings and Blocks 6–9 protections were independently reprobed closed.
+- Product-capability review:
+  - Trigger: consequential posture.
+  - Frame identity: `docs/tracker.md`, Block 10,
+    `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+  - Capability added or preserved: a caller can now validate one exact claim using
+    current reusable knowledge and the smallest bounded evidence plan, receive a
+    supported, contradicted, bounded, or inconclusive result, persist and resume the
+    run, and choose external or managed collection without changing semantic outcome.
+  - Paths compared: a one-shot helper over caller-supplied evidence; the selected
+    bounded-general validation package over canonical knowledge, epistemics,
+    capabilities, and runtime; and a general workflow/agent engine spanning validation,
+    investigation, and intervention.
+  - Selected level and owner: identity and outcome semantics in
+    `validation/records.py`, canonical sufficiency in `validation/policy.py`, exact
+    capability correlation in `validation/actions.py`, and lifecycle composition plus
+    restart reconciliation in `validation/workflow.py`.
+  - Protected-capability result: currentness, exact evidence provenance,
+    reused-versus-gathered origin, invalid-execution neutrality, runtime sole mutation
+    authority, provider neutrality, low-level zero-dependency use, external-host parity,
+    and software/non-software domain neutrality are covered by focused and mapped proof.
+  - Rejected alternatives: a one-shot helper cannot expose or resume evidence gaps and
+    would conceal runtime/provenance drift; a general workflow or agent engine would
+    duplicate lifecycle authority and prematurely cross the investigation/intervention
+    boundary.
+  - Tradeoffs and uncertainty: submission with reused evidence must receive the same
+    `KnowledgeStore` so exact roots can be revalidated; alternate sufficiency semantics
+    require a future versioned policy contract rather than silent injection. This
+    explicit discipline is retained to keep validation identity stable.
+  - Frozen-candidate proof: implementation commit
+    `cb51e49f434230316652a43535ecdb0131d7c830`, candidate root above, `287 passed`,
+    installed-wheel validation proof, and accepted independent exact-root review.
+- Retained open work: none within Block 10.
+- Decision/continuation posture: not applicable; Block 11 is dependency-safe.
+- Post-block audit: accepted; no multi-hypothesis investigation, candidate generation,
+  intervention proposal/application, hosted provider, optimizer, worker/scheduler,
+  transport, messaging, tracing, or second lifecycle/evidence authority crossed the
+  Block 10 Stop.
+- Git durability: implementation commit
+  `cb51e49f434230316652a43535ecdb0131d7c830` was pushed non-force to
+  `origin/codex/block-10-validation-workflow`; this evidence-only successor is the final
+  Block 10 tracker checkpoint.
 
 ### Stop
 
