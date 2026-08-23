@@ -79,4 +79,7 @@ def load_projection(store: ProjectionStore, projection_root: str) -> Projection 
     projection = deserialize_projection(serialized)
     if projection.projection_root != projection_root:
         raise ValueError("persisted projection does not match its lookup root")
+    canonical = _without_transport_metadata(projection)
+    if serialized != serialize_projection(canonical):
+        raise ValueError("persisted projection is not the exact metadata-free canonical document")
     return projection

@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from dataclasses import replace
+
+import pytest
+
 from librsi import (
     Action,
     ActionResult,
@@ -152,6 +156,45 @@ def test_failed_validation_projection_retains_runtime_settlement() -> None:
     )
     assert deserialize_projection(serialize_projection(projection)) == projection
 
+    forged_action = replace(failed_result.terminal_result.action, kind="unrelated-provider-action")
+    forged_result = replace(failed_result.terminal_result, action=forged_action)
+    with pytest.raises(ValueError, match="validation evidence action"):
+        replace(
+            failed_result,
+            terminal_result=forged_result,
+            lineage=(*failed_result.lineage[:-2], forged_result.ref, failed_result.lineage[-1]),
+        )
+
+    fabricated_payload = replace(
+        failed_result.terminal_result,
+        payload={"fabricated": "semantic output"},
+    )
+    with pytest.raises(ValueError, match="cannot contain batch outputs"):
+        replace(
+            failed_result,
+            terminal_result=fabricated_payload,
+            lineage=(
+                *failed_result.lineage[:-2],
+                fabricated_payload.ref,
+                failed_result.lineage[-1],
+            ),
+        )
+
+    arbitrary_budget_failure = RuntimeFailure(
+        classification="budget-exhausted",
+        message="fabricated budget settlement",
+        details={"limit": 999},
+    )
+    with pytest.raises(ValueError, match="result and failure have drifted"):
+        replace(
+            failed_result,
+            terminal_failure=arbitrary_budget_failure,
+            lineage=(
+                *failed_result.lineage[:-1],
+                arbitrary_budget_failure.ref,
+            ),
+        )
+
 
 def test_cancelled_validation_projection_remains_distinct_from_failure() -> None:
     request = ValidationRequest.for_claim(
@@ -207,3 +250,12 @@ def test_failed_investigation_projection_uses_the_runtime_failure_outcome() -> N
     assert result.terminal_failure == failed.progress.state.failures[-1]
     assert outcome_for_result(result) == failed.progress.state.outcome
     assert project_result(result).outcome.status == "failed"
+
+    assert result.failure_result is not None
+    fabricated = replace(result.failure_result, payload={"proposal": "fabricated"})
+    with pytest.raises(ValueError, match="cannot contain proposal outputs"):
+        replace(
+            result,
+            failure_result=fabricated,
+            lineage=(*result.lineage[:-2], fabricated.ref, result.lineage[-1]),
+        )

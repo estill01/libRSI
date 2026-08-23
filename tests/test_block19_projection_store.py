@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from dataclasses import replace
+
 import pytest
 
 from librsi import (
@@ -76,6 +78,28 @@ def test_load_rejects_wrong_lookup_roots_and_corrupted_documents() -> None:
         load_projection(_WrongKeyStore(), "z" * 64)
     with pytest.raises(ValueError, match="SHA-256"):
         load_projection(_WrongKeyStore(), projection.projection_root.upper())
+
+    canonical = project_result(workflow_results()[0])
+
+    class _InjectedMetadataStore:
+        def put(self, projection_root: str, serialized: str) -> None:
+            pass
+
+        def get(self, projection_root: str) -> str | None:
+            return serialize_projection(replace(canonical, metadata={"injected": True}))
+
+    with pytest.raises(ValueError, match="metadata-free canonical document"):
+        load_projection(_InjectedMetadataStore(), canonical.projection_root)
+
+    class _NoncanonicalBytesStore:
+        def put(self, projection_root: str, serialized: str) -> None:
+            pass
+
+        def get(self, projection_root: str) -> str | None:
+            return serialize_projection(canonical) + "\n"
+
+    with pytest.raises(ValueError, match="metadata-free canonical document"):
+        load_projection(_NoncanonicalBytesStore(), canonical.projection_root)
 
 
 def test_projection_store_contract_is_required_and_missing_values_are_neutral() -> None:

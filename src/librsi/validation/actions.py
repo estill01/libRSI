@@ -108,6 +108,23 @@ def validation_batch_from_action_result(
     return batch
 
 
+def validate_validation_evidence_result_shape(
+    result: ActionResult,
+) -> ValidationEvidenceRequest:
+    """Validate one result without requiring a mutable runtime frontier."""
+
+    if not isinstance(result, ActionResult):
+        raise TypeError("validation evidence validation requires an ActionResult")
+    request = validation_evidence_request_from_action(result.action)
+    if result.disposition == "succeeded":
+        validation_batch_from_action_result(result)
+    elif result.output_refs or result.payload:
+        raise ValueError("failed validation evidence results cannot contain batch outputs")
+    if result.disposition != "succeeded" and not isinstance(result.failure, RuntimeFailure):
+        raise ValueError("failed validation evidence results require a RuntimeFailure")
+    return request
+
+
 class ValidationEvidenceResultValidator:
     """Non-authoritative schema/currentness validation before runtime mutation."""
 
@@ -116,16 +133,10 @@ class ValidationEvidenceResultValidator:
     def validate(self, state: RunState, result: ActionResult) -> None:
         if not isinstance(state, RunState):
             raise TypeError("validation evidence validation requires a RunState")
-        if not isinstance(result, ActionResult):
-            raise TypeError("validation evidence validation requires an ActionResult")
-        request = validation_evidence_request_from_action(result.action)
+        request = validate_validation_evidence_result_shape(result)
         validation = request.validation
         if (
             state.run.intent != validation.claim.ref
             or state.run.target_snapshot != validation.target_snapshot
         ):
             raise ValueError("validation evidence request is stale or mismatched for the run")
-        if result.disposition == "succeeded":
-            validation_batch_from_action_result(result)
-        elif result.output_refs or result.payload:
-            raise ValueError("failed validation evidence results cannot contain batch outputs")

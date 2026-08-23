@@ -447,14 +447,43 @@ class ValidationResult(SemanticRecord):
         else:
             if not isinstance(terminal_result, ActionResult):
                 raise TypeError("failed validation requires its exact terminal ActionResult")
-            if terminal_result.action.run != self.run:
-                raise ValueError("validation terminal result belongs to another Run")
             if not isinstance(terminal_failure, RuntimeFailure):
                 raise TypeError("failed validation requires its exact RuntimeFailure")
+            from .actions import (
+                make_validation_evidence_action,
+                validate_validation_evidence_result_shape,
+            )
+            from .policy import ValidationPolicy
+
+            evidence_policy = ValidationPolicy()
+            action_request = validate_validation_evidence_result_shape(terminal_result)
+            expected_request = ValidationEvidenceRequest.for_gaps(
+                validation=self.validation,
+                sequence=action_request.sequence,
+                known_evidence_refs=evidence_policy.evidence_refs(evidence),
+                gaps=evidence_policy.gaps(self.belief, evidence),
+            )
             if (
-                terminal_result.failure != terminal_failure
-                and terminal_failure.classification != "budget-exhausted"
+                action_request != expected_request
+                or action_request.sequence > self.validation.max_evidence_actions
+                or terminal_result.action
+                != make_validation_evidence_action(
+                    run=self.validation.canonical_run(),
+                    request=expected_request,
+                )
             ):
+                raise ValueError("validation terminal result is not policy-derived")
+            result_failure = terminal_result.failure
+            if result_failure is None:  # pragma: no cover - ActionResult invariant
+                raise RuntimeError("validation terminal result lost its RuntimeFailure")
+            expected_terminal_failure = result_failure
+            if terminal_status == "failed" and result_failure.retryable:
+                expected_terminal_failure = RuntimeFailure(
+                    classification="budget-exhausted",
+                    message="runtime retry budget is exhausted",
+                    details={"retries": 0, "limit": 0},
+                )
+            if terminal_failure != expected_terminal_failure:
                 raise ValueError("validation terminal result and failure have drifted")
             if terminal_status == "failed" and terminal_result.disposition != "failed":
                 raise ValueError("failed validation requires a failed terminal result")

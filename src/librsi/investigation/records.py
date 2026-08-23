@@ -813,10 +813,17 @@ class InvestigationResult(SemanticRecord):
                 )
             if not isinstance(terminal_failure, RuntimeFailure):
                 raise TypeError("investigation runtime failure requires its RuntimeFailure")
-            if (
-                failure_result.failure != terminal_failure
-                and terminal_failure.classification != "budget-exhausted"
-            ):
+            result_failure = failure_result.failure
+            if result_failure is None:  # pragma: no cover - ActionResult invariant
+                raise RuntimeError("investigation terminal result lost its RuntimeFailure")
+            expected_terminal_failure = result_failure
+            if terminal_status == "failed" and result_failure.retryable:
+                expected_terminal_failure = RuntimeFailure(
+                    classification="budget-exhausted",
+                    message="runtime retry budget is exhausted",
+                    details={"retries": 0, "limit": 0},
+                )
+            if terminal_failure != expected_terminal_failure:
                 raise ValueError("investigation terminal result and failure have drifted")
             if terminal_status == "failed" and failure_result.disposition != "failed":
                 raise ValueError("failed investigation requires a failed terminal result")
@@ -840,24 +847,33 @@ class InvestigationResult(SemanticRecord):
         object.__setattr__(self, "branches", branches)
 
         if failure_result is not None:
+            from ..reasoning import validate_reasoning_result_shape
             from .actions import (
                 _investigation_reasoning_context,
-                investigation_experiment_request_from_action,
+                derive_investigation_action,
+                validate_investigation_experiment_result_shape,
             )
             from .policy import InvestigationPolicy
 
             if failure_result.action.kind == "investigation-reason":
+                validate_reasoning_result_shape(
+                    failure_result,
+                    target_snapshot=self.investigation.target_snapshot,
+                )
                 failure_investigation, failure_frontier, _, _ = _investigation_reasoning_context(
                     failure_result.action
                 )
             else:
-                experiment_request = investigation_experiment_request_from_action(
-                    failure_result.action
-                )
+                experiment_request = validate_investigation_experiment_result_shape(failure_result)
                 failure_investigation = experiment_request.investigation
                 failure_frontier = experiment_request.frontier
             if failure_investigation != self.investigation:
                 raise ValueError("investigation runtime failure belongs to another request")
+            if failure_result.action != derive_investigation_action(
+                self.investigation,
+                failure_frontier.branches,
+            ):
+                raise ValueError("investigation runtime failure action is not policy-derived")
             expected_branches = InvestigationPolicy().settle(
                 self.investigation,
                 failure_frontier.branches,

@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from ..records import Evidence, Intervention, SemanticRecord
+from ..records import Evidence, Intervention, SemanticRecord, TargetSnapshot
 from ..runtime import ActionResult, RunState
 from .actions import REASONING_ACTION_KIND, reasoning_request_from_action
 from .actions import reasoning_result_from_action_result as decode_result
-from .records import ReasoningResult
+from .records import ReasoningRequest, ReasoningResult
 
 
 @dataclass(frozen=True)
@@ -20,16 +20,28 @@ class ReasoningResultValidator:
     def validate(self, state: RunState, result: ActionResult) -> None:
         if not isinstance(state, RunState):
             raise TypeError("reasoning validation requires a RunState")
-        if not isinstance(result, ActionResult):
-            raise TypeError("reasoning validation requires an ActionResult")
-        request = reasoning_request_from_action(result.action)
+        request = validate_reasoning_result_shape(result)
         if request.target_snapshot != state.run.target_snapshot:
             raise ValueError("reasoning request target snapshot is stale or mismatched")
-        if result.disposition == "succeeded":
-            decode_result(result)
-            return
-        if result.output_refs or result.payload:
-            raise ValueError("failed reasoning results cannot contain proposal outputs")
+
+
+def validate_reasoning_result_shape(
+    result: ActionResult,
+    *,
+    target_snapshot: TargetSnapshot | None = None,
+) -> ReasoningRequest:
+    """Validate one reasoning result independently of runtime membership."""
+
+    if not isinstance(result, ActionResult):
+        raise TypeError("reasoning validation requires an ActionResult")
+    request = reasoning_request_from_action(result.action)
+    if target_snapshot is not None and request.target_snapshot != target_snapshot:
+        raise ValueError("reasoning request target snapshot is stale or mismatched")
+    if result.disposition == "succeeded":
+        decode_result(result)
+    elif result.output_refs or result.payload:
+        raise ValueError("failed reasoning results cannot contain proposal outputs")
+    return request
 
 
 def require_reasoning_derivation(
