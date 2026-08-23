@@ -322,7 +322,7 @@ content with libRSI merely to save threads.
 | 16 | Application, verification, and rollback | 15 | `completed` |
 | 17 | Generalized RSI and self-change governance | 7, 16 | `completed` |
 | 18 | Embedded/managed local runtime and high-level Python facade | 6, 8, 15–17 | `completed` |
-| 19 | Outcome serialization and external projections | 10, 11, 15–18 | `not-started` |
+| 19 | Outcome serialization and external projections | 10, 11, 15–18 | `in-progress` |
 | 20 | CLI, target admission, and external-agent protocol | 7, 19 | `not-started` |
 | 21 | Managed service, HTTP, and MCP projections | 7, 8, 19, 20 | `not-started` |
 | 22 | Optional provider/Codex app-server integrations | 9, 18–20 | `not-started` |
@@ -2484,7 +2484,7 @@ Stop before stabilizing external outcome projections or CLI schemas.
 
 ## Block 19 — Structured Outcome serialization, events, and external consumption
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 
@@ -2516,6 +2516,12 @@ Stabilize versioned canonical projections for every workflow outcome across Pyth
 ### Deliverables and recorded state
 
 - Outcome module/schemas, projection adapters, golden fixtures, compatibility tests, and consumer documentation.
+- Capability framing selects a structured `librsi.projections` namespace over the
+  canonical workflow result and runtime-event records. Typed envelope records own the
+  stable external schema, codec modules own deterministic JSON and reconstruction, and
+  event adapters project canonical runtime events. Existing workflow records remain
+  the sole semantic owners; projections cannot write runtime state or promote transport
+  metadata into semantic identity.
 
 ### Resource and economy contract
 
