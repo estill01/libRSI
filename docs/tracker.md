@@ -322,7 +322,7 @@ content with libRSI merely to save threads.
 | 16 | Application, verification, and rollback | 15 | `completed` |
 | 17 | Generalized RSI and self-change governance | 7, 16 | `completed` |
 | 18 | Embedded/managed local runtime and high-level Python facade | 6, 8, 15–17 | `completed` |
-| 19 | Outcome serialization and external projections | 10, 11, 15–18 | `not-started` |
+| 19 | Outcome serialization and external projections | 10, 11, 15–18 | `completed` |
 | 20 | CLI, target admission, and external-agent protocol | 7, 19 | `not-started` |
 | 21 | Managed service, HTTP, and MCP projections | 7, 8, 19, 20 | `not-started` |
 | 22 | Optional provider/Codex app-server integrations | 9, 18–20 | `not-started` |
@@ -2484,7 +2484,7 @@ Stop before stabilizing external outcome projections or CLI schemas.
 
 ## Block 19 — Structured Outcome serialization, events, and external consumption
 
-Status: `not-started`
+Status: `completed`
 
 ### Objective
 
@@ -2516,6 +2516,12 @@ Stabilize versioned canonical projections for every workflow outcome across Pyth
 ### Deliverables and recorded state
 
 - Outcome module/schemas, projection adapters, golden fixtures, compatibility tests, and consumer documentation.
+- Capability framing selects a structured `librsi.projections` namespace over the
+  canonical workflow result and runtime-event records. Typed envelope records own the
+  stable external schema, codec modules own deterministic JSON and reconstruction, and
+  event adapters project canonical runtime events. Existing workflow records remain
+  the sole semantic owners; projections cannot write runtime state or promote transport
+  metadata into semantic identity.
 
 ### Resource and economy contract
 
@@ -2535,7 +2541,118 @@ Review completeness, versioning, round trips, currentness, cross-mode equivalenc
 
 ### Completion evidence
 
-Pending.
+- Repository implementation commits:
+  `52d5fcee9af770293c000c2e916be56be6782bab`,
+  `f051fe0cf951e5a33670af9fd91a7de244a77878`,
+  `07cccf9cec3fef9637e4d0fbd3357d1797f70fb5`, and
+  `e7b831de11ed9dcfd180e1403cccf0578ce55980`.
+- External/domain revision or root: not applicable. Block 19 used deterministic
+  workflow results, runtime events, in-memory projection persistence, and temporary
+  build/install environments; it performed no provider call, transport effect, target
+  mutation, or external-system write.
+- Inputs: completed Blocks 10, 11, and 15–18; canonical workflow-owned result and
+  `Outcome` derivation; canonical runtime events; architecture-contract section 11;
+  and tracker capability-frame SHA-256
+  `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+- Outputs: structured `librsi.projections` records, deterministic codecs, closed JSON
+  Schemas, workflow-owned `Outcome` adapters, canonical runtime-event projections,
+  exact in-memory persistence/reconstruction, versioned golden fixtures, public
+  exports, and consumer documentation. Complete validation and investigation results
+  now retain genuine completed, failed, cancelled, and retry-budget-exhausted runtime
+  settlement without granting projections lifecycle or policy authority.
+- Identity and persistence proof: projection identity excludes presentation metadata;
+  canonical serialization retains metadata explicitly but `load_projection()` accepts
+  only the exact metadata-free canonical bytes stored under the requested projection
+  root. Unknown schemas, incompatible versions, wrong record types, altered roots,
+  injected metadata, noncanonical whitespace, missing lineage/currentness, and
+  projection-store mutation attempts reject. The four completed workflow-result roots
+  and their outcome/projection roots remain fixed by the v1 golden contract.
+- Cross-mode and settlement proof: genuine managed, external, and hybrid validation
+  runs produce the same exact result, outcome, and projection roots. Workflow result
+  boundaries derive their exact policy action and typed result shape. Exceptional
+  validation results additionally retain the full terminal `RunState` and replay every
+  contiguous policy-derived action/result from `RuntimeEngine.start`, reconstructing
+  reused/gathered evidence and requiring exact terminal state equality. This rejects a
+  claimed sequence-2 failure when its sequence-1 action/evidence history is absent.
+  Investigation operational failures are likewise bound to the exact canonical
+  reasoning/experiment frontier and runtime settlement.
+- Focused validation: the final independent Block 19 run passed `31` tests. The mapped
+  Blocks 9, 10, 11, and 19 matrix passed `152` tests. Ruff formatting and lint passed
+  across `177` files, and mypy passed all `104` source files.
+- Mapped validation: the full CI-equivalent suite passed `646` tests at `90.58%`
+  branch coverage, above the configured `90%` gate. Its `24` warnings are the existing
+  deprecated v0.2 compatibility-wrapper warnings. A fresh sdist and wheel built
+  successfully; a clean Python 3.12 environment installed the wheel and passed an
+  exceptional-terminal-state replay plus projection round trip.
+- Candidate freeze: exact content root
+  `7a2a4a3f4ca414fdf13ab2e9dbb9ea2918d4450b483c4876783b871adf020748`
+  over `32` paths relative to base
+  `b69f55a8a88ba3bb78de98e1402cdacb4b16496a` remained unchanged through final review.
+  Unrelated untracked `uv.lock` was excluded and remained unchanged at size `134695`,
+  mtime `1787379167`, and SHA-256
+  `ea9a2eb3afc46401f2356ef098e005ec87ac33e27475e43bcd86eb4131ea960e`.
+- Remediation closure: independent review first identified collapsed operational
+  failure, incomplete control-mode proof, and loose record-type schemas; the first
+  remediation preserved exact settlement, added genuine managed/external/hybrid
+  execution, and closed the schemas. A second review found direct-result frontier and
+  persisted-document exactness gaps; the second remediation bound typed actions,
+  result shapes, failure settlement, and canonical stored bytes. The final review found
+  that a later validation sequence could omit preceding history; the final remediation
+  added exact terminal-state replay. Every reproduced finding is covered by a negative
+  regression and no finding remains open.
+- Independent semantic review: Hubble returned `ACCEPT` against exact HEAD
+  `e7b831de11ed9dcfd180e1403cccf0578ce55980` and the frozen content root above after
+  independently verifying `31` Block 19 tests. The review confirmed complete validation
+  reachability, adjacent roster/frontier/settlement substitution rejection, exact
+  metadata-free persistence, cross-mode equivalence, closed schemas, and preservation
+  of the Block 20 Stop.
+- Product-capability review:
+  - Trigger: consequential posture.
+  - Frame identity: `docs/tracker.md`, Block 19,
+    `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+  - Capability added or preserved: consumers can reconstruct complete, versioned
+    validation, investigation, improvement, RSI, outcome, and event projections without
+    knowing internal policy calls, while exact semantic identity and lifecycle ownership
+    remain in the canonical workflows/runtime.
+  - Paths compared: a thin lossy DTO serializer; the selected typed projection package
+    over complete canonical records; and an early transport/reporting platform. The
+    typed package was selected because it freezes reconstructable consumer contracts
+    without omitting settlement or crossing into CLI, HTTP, MCP, or presentation state.
+  - Selected level and owner: envelope identity and schemas in
+    `projections/records.py` and `projections/schemas.py`; canonical bytes and
+    reconstruction in `projections/codec.py`; workflow-owned outcome derivation in the
+    validation, investigation, improvement, and RSI owners; runtime-event observation
+    in `projections/events.py`; and replaceable persistence in
+    `projections/store.py`.
+  - Protected-capability result: run, target, intent, evidence, intervention,
+    application, currentness, failure, and event identity round-trip exactly;
+    presentation metadata is identity-neutral; control mode cannot change semantics;
+    and projections cannot write runtime state or become a second policy owner.
+  - Rejected alternatives: lossy DTOs cannot meet complete reconstruction and
+    operational-failure requirements; freezing transport/reporting concerns here would
+    mix presentation with identity and prematurely cross Blocks 20–21.
+  - Tradeoffs and uncertainty: stable v1 bytes intentionally make field additions a
+    versioned compatibility decision. Exceptional validation projections carry their
+    complete terminal runtime state so reachability is independently checkable rather
+    than trusting a terminal sequence. This increases failure-document size but removes
+    an ambiguity that would otherwise permit unreachable settlements.
+  - Frozen-candidate proof: implementation commits and exact content root above,
+    `646 passed`, distribution/install proof, and accepted independent exact-root review.
+- Resource posture: projection generation and reconstruction are deterministic and
+  bounded by the already canonical result/event rosters; the store is in-memory and
+  content-addressed; tests use existing dogfoods and temporary distribution
+  environments. No network, provider, subprocess orchestration, notification,
+  dashboard, or target mutation was introduced.
+- Retained open work: none within Block 19. CLI/agent commands, target admission,
+  managed service, HTTP, MCP, provider composition, consumer conformance, dogfoods, and
+  release work remain in Blocks 20–26.
+- Decision/continuation posture: not applicable; Block 20 is dependency-safe.
+- Post-block audit: accepted. No CLI, HTTP, MCP, transport, notification, reporting
+  dashboard, alternate lifecycle, or later-Block implementation crossed the Block 19
+  Stop.
+- Git durability: all implementation commits above were pushed non-force to
+  `origin/codex/block-19-outcome-projections`; this evidence-only successor is the final
+  Block 19 tracker checkpoint.
 
 ### Stop
 

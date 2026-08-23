@@ -53,6 +53,14 @@ stores, authority-scoped command execution, deterministic filesystem inspection,
 artifact directory, and structured standard-library logging. The facade owns no second
 lifecycle: `LibRSIRun.next()` and `submit()` expose the exact canonical actions and
 results used by managed execution.
+The `librsi.projections` package adds stable v1 external envelopes for every public
+workflow result and canonical runtime event. It reuses each workflow's canonical
+`Outcome` derivation, retains operational failure/cancellation settlement separately
+from epistemic inconclusiveness, and preserves
+the exact canonical result bytes/root, reconstructs through the registered record
+decoder, and keeps transport metadata outside semantic identity. A minimal replaceable
+`ProjectionStore` persists metadata-free canonical documents without becoming another
+runtime authority.
 
 ## Install
 
@@ -126,6 +134,33 @@ See [`examples/local_validation.py`](examples/local_validation.py) and
 Every local default can be supplied independently through `LibRSI.local(...)`. Construct
 plain `LibRSI(...)` for a host-neutral composition, or use `LibRSI.start(request)` when an
 external host should own the action loop.
+
+## Stable outcome projections
+
+Project any validation, investigation, improvement, or RSI result into the same
+versioned external contract:
+
+```python
+from librsi import OutcomeProjection, deserialize_projection, project_result, serialize_projection
+
+projection = project_result(result, metadata={"control_plane": "embedded"})
+wire_bytes = serialize_projection(projection)
+reconstructed = deserialize_projection(wire_bytes)
+
+assert isinstance(reconstructed, OutcomeProjection)
+assert reconstructed.projection_root == projection.projection_root
+assert reconstructed.result == result
+assert reconstructed.outcome.lineage[0] == result.ref
+```
+
+`projection_root` depends only on the schema, workflow, result root, and derived Outcome
+root. Session, request, or transport metadata may differ across embedded, managed, CLI,
+HTTP, or MCP callers without changing those semantic roots. `project_event()` and
+`project_transition()` expose the same contract for append-only runtime events;
+`persist_projection()` stores a metadata-free canonical document behind the small
+`ProjectionStore` protocol. Unknown versions, relabeled workflows, missing lineage,
+stale target snapshots, altered summary fields, and divergent persisted bytes fail
+closed.
 
 ## Expert hypothesis and experiment API
 

@@ -61,6 +61,9 @@ The current implementation owns portable primitives including:
 - a structured RSI governance layer with explicit meta-target classes, configured risk,
   distinct historical and forward-shadow evidence, independent-actor review,
   approval-bound activation, and ordinary application/verification/rollback reuse.
+- stable v1 outcome and runtime-event projection envelopes with complete canonical
+  result reconstruction, metadata-neutral semantic roots, published JSON Schemas, and
+  a replaceable exact-byte persistence contract.
 
 ## Package structure
 
@@ -142,6 +145,12 @@ The current implementation owns portable primitives including:
   and risk tiers, typed historical/shadow/review gates, canonical replay, an
   identity-bound activation approval, and `RSIResult` composition over the ordinary
   application lifecycle;
+- `projections/records.py`, `projections/outcomes.py`, and `projections/events.py` —
+  typed v1 external envelopes, exact workflow-result-to-Outcome derivation, and
+  canonical runtime-event projection;
+- `projections/codec.py`, `projections/schemas.py`, and `projections/store.py` — closed
+  deterministic JSON/reconstruction, published envelope schemas, and metadata-free
+  exact-byte persistence behind a replaceable protocol;
 - `hypotheses.py` — canonical hypothesis creation/evidence updates plus legacy wrappers;
 - `experiments.py` — immutable command specs, host execution inputs, and evidence interpretation;
 - `ports.py` — typed host interfaces such as `ExperimentRunner`;
@@ -324,6 +333,23 @@ workers, or send messages. Hosts choose whether and where to construct stores an
 which explicit capability objects may perform effects. These reference components do
 not make libRSI a generic workflow, MLOps, storage, coding-agent, or server
 infrastructure platform.
+
+`librsi.projections` is the external semantic boundary over those owners, not another
+lifecycle. `project_result()` accepts only exact `ValidationResult`,
+`InvestigationResult`, `ImprovementResult`, or `RSIResult` values and derives the one
+complete public `Outcome` from them. Its v1 JSON contains both root-checked canonical
+records plus stable workflow/result/outcome fields. Reconstruction delegates to the
+registered semantic record decoder, so an external projection cannot relax lineage,
+currentness, policy-derived disposition, application authority, or self-change
+governance. Validation and investigation failures retain their exact terminal status,
+`ActionResult`, and `RuntimeFailure`; projection delegates to the same workflow-owned
+outcome derivation used to reconcile runtime state, so operational failure cannot be
+relabeled as ordinary epistemic inconclusiveness. Runtime event projections similarly
+retain the exact canonical `Event` and
+derive every summary field from it. Transport metadata is serialized for correlation
+but excluded from `projection_root`; persistence deliberately strips it. CLI, HTTP, MCP,
+notifications, and dashboards remain later interface projections over this same
+contract.
 
 A canonical command runner should copy
 `CommandExperimentInput.exact_input_root` into the returned

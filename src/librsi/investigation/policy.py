@@ -12,7 +12,7 @@ from ..identity import FrozenMap
 from ..portfolios import PortfolioPolicy
 from ..reasoning import ReasoningRequest, ReasoningResult
 from ..records import BeliefState, Evidence, EvidenceRef, ExperimentSpec, Hypothesis, RecordRef
-from ..runtime import ActionResult
+from ..runtime import ActionResult, RuntimeFailure
 from .records import (
     InvestigationBranch,
     InvestigationEvidenceBatch,
@@ -467,8 +467,14 @@ class InvestigationPolicy:
         investigation: InvestigationRequest,
         branches: Sequence[InvestigationBranch],
         failure_result: ActionResult | None = None,
+        terminal_status: str | None = None,
+        terminal_failure: RuntimeFailure | None = None,
     ) -> InvestigationResult:
         items = tuple(branches)
+        if terminal_status is None:
+            terminal_status = "failed" if failure_result is not None else "completed"
+        if terminal_failure is None and failure_result is not None:
+            terminal_failure = failure_result.failure
         stop_reason = _investigation_stop_reason(items, failure_result)
         findings = tuple(
             InvestigationFinding.from_branch(branch)
@@ -493,7 +499,7 @@ class InvestigationPolicy:
         run = investigation.canonical_run().ref
         failure_lineage: tuple[RecordRef, ...] = ()
         if failure_result is not None:
-            failure = failure_result.failure
+            failure = terminal_failure
             if failure is None:
                 raise ValueError("investigation failure result lost its RuntimeFailure")
             failure_lineage = (failure_result.ref, failure.ref)
@@ -507,6 +513,8 @@ class InvestigationPolicy:
             evidence=evidence,
             unresolved=investigation_unresolved(items),
             failure_result=failure_result,
+            terminal_status=terminal_status,
+            terminal_failure=terminal_failure,
             lineage=(
                 investigation.ref,
                 run,

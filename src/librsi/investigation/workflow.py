@@ -10,7 +10,7 @@ from ..epistemics import EVIDENCE_RELATIONSHIPS
 from ..knowledge import KnowledgeQuery, KnowledgeStore, label_currentness
 from ..reasoning import ReasoningResult, reasoning_result_from_action_result
 from ..records import Evidence, EvidenceRef, Hypothesis, Outcome, Question, TargetSnapshot
-from ..runtime import Action, ActionResult, RunState, RuntimeEngine, Transition
+from ..runtime import Action, ActionResult, RunState, RuntimeEngine, RuntimeFailure, Transition
 from .actions import (
     INVESTIGATION_EXPERIMENT_ACTION_KIND,
     INVESTIGATION_REASONING_ACTION_KIND,
@@ -26,6 +26,36 @@ from .records import (
     InvestigationRequest,
     InvestigationResult,
 )
+
+
+def investigation_outcome(result: InvestigationResult) -> Outcome:
+    """Derive the canonical terminal Outcome owned by investigation semantics."""
+
+    if not isinstance(result, InvestigationResult):
+        raise TypeError("investigation outcome requires an InvestigationResult")
+    if result.terminal_status in {"failed", "cancelled"}:
+        terminal_result = result.failure_result
+        failure = result.terminal_failure
+        if terminal_result is None or failure is None:  # pragma: no cover - record invariant
+            raise RuntimeError("investigation failure settlement is incomplete")
+        return Outcome(
+            intent=result.investigation.question.ref,
+            status=result.terminal_status,
+            target_snapshot=result.investigation.target_snapshot,
+            unresolved=(failure.message,),
+            lineage=(terminal_result.ref, failure.ref),
+        )
+    evidence_refs = tuple(EvidenceRef.from_evidence(item) for item in result.evidence)
+    return Outcome(
+        intent=result.investigation.question.ref,
+        status=result.disposition,
+        target_snapshot=result.investigation.target_snapshot,
+        conclusions=tuple(item.statement for item in result.findings),
+        evidence_refs=evidence_refs,
+        unresolved=result.unresolved,
+        next_actions=(),
+        lineage=(result.ref, *(item.ref for item in result.findings), *evidence_refs),
+    )
 
 
 @dataclass(frozen=True)
@@ -67,6 +97,15 @@ class InvestigationProgress:
                 raise ValueError("investigation result does not match its progress projection")
             if self.state.status not in {"completed", "failed", "cancelled"}:
                 raise ValueError("investigation result requires a terminal runtime state")
+            if self.result.terminal_status != self.state.status:
+                raise ValueError("investigation result settlement does not match runtime status")
+            if self.state.status in {"failed", "cancelled"} and (
+                not self.state.results
+                or not self.state.failures
+                or self.result.failure_result != self.state.results[-1]
+                or self.result.terminal_failure != self.state.failures[-1]
+            ):
+                raise ValueError("investigation result lost exact runtime failure settlement")
         elif self.state.status in {"completed", "failed", "cancelled"}:
             raise ValueError("terminal investigation progress requires a result")
 
@@ -277,21 +316,7 @@ class InvestigationWorkflow:
 
     @staticmethod
     def _outcome(result: InvestigationResult) -> Outcome:
-        evidence_refs = tuple(EvidenceRef.from_evidence(item) for item in result.evidence)
-        return Outcome(
-            intent=result.investigation.question.ref,
-            status=result.disposition,
-            target_snapshot=result.investigation.target_snapshot,
-            conclusions=tuple(item.statement for item in result.findings),
-            evidence_refs=evidence_refs,
-            unresolved=result.unresolved,
-            next_actions=(),
-            lineage=(
-                result.ref,
-                *(item.ref for item in result.findings),
-                *evidence_refs,
-            ),
-        )
+        return investigation_outcome(result)
 
     def _result(
         self,
@@ -299,12 +324,16 @@ class InvestigationWorkflow:
         branches: Sequence[InvestigationBranch],
         *,
         failure_result: ActionResult | None = None,
+        terminal_status: str = "completed",
+        terminal_failure: RuntimeFailure | None = None,
     ) -> InvestigationResult:
         items = tuple(branches)
         return self._policy.build_result(
             investigation=investigation,
             branches=items,
             failure_result=failure_result,
+            terminal_status=terminal_status,
+            terminal_failure=terminal_failure,
         )
 
     def _reconstruct(
@@ -427,15 +456,10 @@ class InvestigationWorkflow:
                 investigation,
                 settled,
                 failure_result=state.results[-1],
+                terminal_status=state.status,
+                terminal_failure=failure,
             )
-            expected_outcome = Outcome(
-                intent=state.run.intent,
-                status=state.status,
-                target_snapshot=state.run.target_snapshot,
-                unresolved=(failure.message,),
-                lineage=(state.results[-1].ref, failure.ref),
-            )
-            if state.outcome != expected_outcome:
+            if state.outcome != self._outcome(result):
                 raise ValueError("persisted investigation failure outcome has drifted")
             return InvestigationUpdate(
                 progress=InvestigationProgress(

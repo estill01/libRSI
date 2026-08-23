@@ -25,6 +25,7 @@ from .workflow import (
     ValidationUpdate,
     ValidationWorkflow,
     validate,
+    validation_outcome,
 )
 
 __all__ = [
@@ -46,6 +47,7 @@ __all__ = [
     "make_validation_evidence_failure",
     "make_validation_evidence_result",
     "validate",
+    "validation_outcome",
     "validation_batch_from_action_result",
     "validation_evidence_request_from_action",
 ]

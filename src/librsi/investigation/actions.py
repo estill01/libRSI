@@ -6,7 +6,10 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 from ..identity import thaw
-from ..reasoning import ReasoningRequest, ReasoningResultValidator
+from ..reasoning import (
+    ReasoningRequest,
+    ReasoningResultValidator,
+)
 from ..reasoning.actions import (
     reasoning_request_from_action,
     reasoning_result_from_action_result,
@@ -416,6 +419,23 @@ def investigation_batch_from_action_result(
     return batch
 
 
+def validate_investigation_experiment_result_shape(
+    result: ActionResult,
+) -> InvestigationExperimentRequest:
+    """Validate one experiment result without requiring runtime membership."""
+
+    if not isinstance(result, ActionResult):
+        raise TypeError("investigation result validation requires an ActionResult")
+    request = investigation_experiment_request_from_action(result.action)
+    if result.disposition == "succeeded":
+        investigation_batch_from_action_result(result)
+    elif result.payload or result.output_refs:
+        raise ValueError("failed investigation results cannot contain batch outputs")
+    if result.disposition != "succeeded" and not isinstance(result.failure, RuntimeFailure):
+        raise ValueError("failed investigation results require a RuntimeFailure")
+    return request
+
+
 class InvestigationExperimentResultValidator:
     """Nonreplaceable validation before an investigation result mutates runtime."""
 
@@ -424,15 +444,6 @@ class InvestigationExperimentResultValidator:
     def validate(self, state: RunState, result: ActionResult) -> None:
         if not isinstance(state, RunState):
             raise TypeError("investigation result validation requires a RunState")
-        if not isinstance(result, ActionResult):
-            raise TypeError("investigation result validation requires an ActionResult")
-        request = investigation_experiment_request_from_action(result.action)
+        request = validate_investigation_experiment_result_shape(result)
         if state.run != request.investigation.canonical_run():
             raise ValueError("investigation experiment request is stale or mismatched")
-        if result.disposition == "succeeded":
-            investigation_batch_from_action_result(result)
-            return
-        if result.payload or result.output_refs:
-            raise ValueError("failed investigation results cannot contain batch outputs")
-        if not isinstance(result.failure, RuntimeFailure):
-            raise ValueError("failed investigation results require a RuntimeFailure")

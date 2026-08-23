@@ -19,7 +19,7 @@ from ..records import (
     TargetSnapshot,
     register_record_type,
 )
-from ..runtime import Run, RunBudget
+from ..runtime import ActionResult, Run, RunBudget, RunState, RuntimeFailure
 
 VALIDATION_DISPOSITIONS = frozenset({"supported", "contradicted", "bounded", "inconclusive"})
 VALIDATION_BATCH_DISPOSITIONS = frozenset({"collected", "unavailable"})
@@ -364,6 +364,10 @@ class ValidationResult(SemanticRecord):
     reused_evidence_refs: tuple[EvidenceRef, ...] = ()
     gathered_evidence_refs: tuple[EvidenceRef, ...] = ()
     unresolved: tuple[str, ...] = ()
+    terminal_status: str = "completed"
+    terminal_state: RunState | None = None
+    terminal_result: ActionResult | None = None
+    terminal_failure: RuntimeFailure | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.validation, ValidationRequest):
@@ -432,17 +436,101 @@ class ValidationResult(SemanticRecord):
         if disposition in {"supported", "contradicted"} and unresolved:
             raise ValueError("decisive validation cannot retain unresolved items")
         object.__setattr__(self, "unresolved", unresolved)
+
+        terminal_status = _require_text(self.terminal_status, "validation terminal status")
+        if terminal_status not in {"completed", "failed", "cancelled"}:
+            raise ValueError("validation terminal status must be completed, failed, or cancelled")
+        terminal_state = self.terminal_state
+        terminal_result = self.terminal_result
+        terminal_failure = self.terminal_failure
+        if terminal_status == "completed":
+            if (
+                terminal_state is not None
+                or terminal_result is not None
+                or terminal_failure is not None
+            ):
+                raise ValueError("completed validation cannot retain runtime failure settlement")
+        else:
+            if not isinstance(terminal_state, RunState):
+                raise TypeError("failed validation requires its exact terminal RunState")
+            if not isinstance(terminal_result, ActionResult):
+                raise TypeError("failed validation requires its exact terminal ActionResult")
+            if not isinstance(terminal_failure, RuntimeFailure):
+                raise TypeError("failed validation requires its exact RuntimeFailure")
+            from .actions import (
+                make_validation_evidence_action,
+                validate_validation_evidence_result_shape,
+            )
+            from .policy import ValidationPolicy
+
+            evidence_policy = ValidationPolicy()
+            action_request = validate_validation_evidence_result_shape(terminal_result)
+            expected_request = ValidationEvidenceRequest.for_gaps(
+                validation=self.validation,
+                sequence=action_request.sequence,
+                known_evidence_refs=evidence_policy.evidence_refs(evidence),
+                gaps=evidence_policy.gaps(self.belief, evidence),
+            )
+            if (
+                action_request != expected_request
+                or action_request.sequence > self.validation.max_evidence_actions
+                or terminal_result.action
+                != make_validation_evidence_action(
+                    run=self.validation.canonical_run(),
+                    request=expected_request,
+                )
+            ):
+                raise ValueError("validation terminal result is not policy-derived")
+            result_failure = terminal_result.failure
+            if result_failure is None:  # pragma: no cover - ActionResult invariant
+                raise RuntimeError("validation terminal result lost its RuntimeFailure")
+            expected_terminal_failure = result_failure
+            if terminal_status == "failed" and result_failure.retryable:
+                expected_terminal_failure = RuntimeFailure(
+                    classification="budget-exhausted",
+                    message="runtime retry budget is exhausted",
+                    details={"retries": 0, "limit": 0},
+                )
+            if terminal_failure != expected_terminal_failure:
+                raise ValueError("validation terminal result and failure have drifted")
+            if terminal_status == "failed" and terminal_result.disposition != "failed":
+                raise ValueError("failed validation requires a failed terminal result")
+            if terminal_status == "cancelled" and terminal_result.disposition != "cancelled":
+                raise ValueError("cancelled validation requires a cancelled terminal result")
+            if unresolved != (terminal_failure.message,):
+                raise ValueError("validation failure must retain the exact runtime message")
+            from .workflow import validate_validation_terminal_state
+
+            validate_validation_terminal_state(self, terminal_state)
+        object.__setattr__(self, "terminal_status", terminal_status)
+        object.__setattr__(self, "terminal_state", terminal_state)
+        object.__setattr__(self, "terminal_result", terminal_result)
+        object.__setattr__(self, "terminal_failure", terminal_failure)
         expected_lineage = (
             self.validation.ref,
             self.run,
             self.belief.ref,
             *(item.ref for item in evidence),
+            *((terminal_state.ref,) if terminal_state is not None else ()),
+            *((terminal_result.ref,) if terminal_result is not None else ()),
+            *((terminal_failure.ref,) if terminal_failure is not None else ()),
         )
         if _refs(self.lineage, "validation result lineage") != expected_lineage:
             raise ValueError(
                 "validation result lineage must retain request, run, belief, and evidence"
             )
         super().__post_init__()
+
+    def identity_data(self) -> dict[str, Any]:
+        """Preserve completed v1 roots while binding exceptional settlement exactly."""
+
+        data = super().identity_data()
+        if self.terminal_status == "completed":
+            data.pop("terminal_status")
+            data.pop("terminal_state")
+            data.pop("terminal_result")
+            data.pop("terminal_failure")
+        return data
 
     @property
     def subject_ref(self) -> RecordRef:

@@ -31,6 +31,135 @@ from .records import (
 )
 
 
+def validation_outcome(result: ValidationResult) -> Outcome:
+    """Derive the canonical terminal Outcome owned by validation semantics."""
+
+    if not isinstance(result, ValidationResult):
+        raise TypeError("validation outcome requires a ValidationResult")
+    if result.terminal_status in {"failed", "cancelled"}:
+        terminal_result = result.terminal_result
+        failure = result.terminal_failure
+        if terminal_result is None or failure is None:  # pragma: no cover - record invariant
+            raise RuntimeError("validation failure settlement is incomplete")
+        return Outcome(
+            intent=result.validation.claim.ref,
+            status=result.terminal_status,
+            target_snapshot=result.validation.target_snapshot,
+            unresolved=(failure.message,),
+            lineage=(terminal_result.ref, failure.ref),
+        )
+    conclusions: tuple[str, ...] = ()
+    if result.disposition == "supported":
+        conclusions = (f"Supported: {result.validation.claim.statement}",)
+    elif result.disposition == "contradicted":
+        conclusions = (f"Contradicted: {result.validation.claim.statement}",)
+    elif result.disposition == "bounded":
+        conclusions = (f"Bounded: {result.validation.claim.statement}",)
+    return Outcome(
+        intent=result.validation.claim.ref,
+        status=result.disposition,
+        target_snapshot=result.validation.target_snapshot,
+        conclusions=conclusions,
+        evidence_refs=tuple(EvidenceRef.from_evidence(item) for item in result.evidence),
+        unresolved=result.unresolved,
+        next_actions=result.unresolved if result.disposition == "inconclusive" else (),
+        lineage=(result.ref, result.belief.ref, *(item.ref for item in result.evidence)),
+    )
+
+
+def validate_validation_terminal_state(
+    result: ValidationResult,
+    state: RunState,
+) -> None:
+    """Replay an exceptional result's complete runtime roster to its exact state."""
+
+    if not isinstance(result, ValidationResult):
+        raise TypeError("validation terminal replay requires a ValidationResult")
+    if not isinstance(state, RunState):
+        raise TypeError("validation terminal replay requires a RunState")
+    validation = result.validation
+    if state.run != validation.canonical_run():
+        raise ValueError("validation terminal state does not use the canonical request Run")
+    if state.status != result.terminal_status or state.status not in {"failed", "cancelled"}:
+        raise ValueError("validation terminal state does not match its exceptional status")
+    if (
+        not state.results
+        or not state.failures
+        or state.results[-1] != result.terminal_result
+        or state.failures[-1] != result.terminal_failure
+    ):
+        raise ValueError("validation terminal state lost its exact runtime settlement")
+
+    evidence_by_ref = {EvidenceRef.from_evidence(item): item for item in result.evidence}
+    try:
+        working = {
+            reference: evidence_by_ref[reference] for reference in result.reused_evidence_refs
+        }
+    except KeyError as exc:  # pragma: no cover - ValidationResult partition invariant
+        raise ValueError("validation terminal replay lost reused evidence") from exc
+    gathered: dict[EvidenceRef, Evidence] = {}
+    policy = ValidationPolicy()
+    replayed = RuntimeEngine.start(state.run).state
+
+    for position, action_result in enumerate(state.results, start=1):
+        evidence_before = tuple(sorted(working.values(), key=lambda item: item.root))
+        belief_before = policy.belief(validation, evidence_before)
+        gaps = policy.gaps(belief_before, evidence_before)
+        if not gaps:
+            raise ValueError("validation terminal state requested work after evidence sufficiency")
+        expected_request = ValidationEvidenceRequest.for_gaps(
+            validation=validation,
+            sequence=position,
+            known_evidence_refs=policy.evidence_refs(evidence_before),
+            gaps=gaps,
+        )
+        expected_action = make_validation_evidence_action(
+            run=state.run,
+            request=expected_request,
+        )
+        if action_result.action != expected_action:
+            raise ValueError("validation terminal action is not reachable from its prior frontier")
+
+        requested = RuntimeEngine.request(replayed, expected_action).state
+        ValidationEvidenceResultValidator().validate(requested, action_result)
+        replayed = RuntimeEngine.submit(requested, action_result).state
+        is_last = position == len(state.results)
+        if action_result.disposition != "succeeded":
+            if not is_last:
+                raise ValueError("validation terminal state continued after a failed action")
+            expected_disposition = "cancelled" if state.status == "cancelled" else "failed"
+            if action_result.disposition != expected_disposition:
+                raise ValueError("validation terminal action does not match runtime status")
+            continue
+
+        batch = validation_batch_from_action_result(action_result)
+        for item in batch.evidence:
+            reference = EvidenceRef.from_evidence(item)
+            if reference in working:
+                raise ValueError("validation terminal state contains duplicate evidence")
+            working[reference] = item
+            gathered[reference] = item
+        evidence_after = tuple(sorted(working.values(), key=lambda item: item.root))
+        disposition = policy.disposition(
+            policy.belief(validation, evidence_after),
+            evidence_after,
+        )
+        stopped = (
+            batch.disposition == "unavailable"
+            or disposition != "inconclusive"
+            or position >= validation.max_evidence_actions
+        )
+        if stopped or is_last:
+            raise ValueError("validation terminal state is not reachable past its settled frontier")
+
+    if replayed != state:
+        raise ValueError("validation terminal state is not the exact runtime replay result")
+    if tuple(sorted(working.values(), key=lambda item: item.root)) != result.evidence:
+        raise ValueError("validation terminal replay does not derive the exact result evidence")
+    if tuple(sorted(gathered, key=lambda item: item.root)) != result.gathered_evidence_refs:
+        raise ValueError("validation terminal replay does not derive gathered evidence")
+
+
 @dataclass(frozen=True)
 class ValidationProgress:
     """Workflow projection; RunState remains the sole lifecycle authority."""
@@ -86,6 +215,16 @@ class ValidationProgress:
                 raise ValueError("validation result does not match its exact progress projection")
             if self.state.status not in {"completed", "failed", "cancelled"}:
                 raise ValueError("validation result requires a terminal runtime state")
+            if self.result.terminal_status != self.state.status:
+                raise ValueError("validation result settlement does not match runtime status")
+            if self.state.status in {"failed", "cancelled"} and (
+                not self.state.results
+                or not self.state.failures
+                or self.result.terminal_state != self.state
+                or self.result.terminal_result != self.state.results[-1]
+                or self.result.terminal_failure != self.state.failures[-1]
+            ):
+                raise ValueError("validation result lost exact runtime failure settlement")
         elif self.state.status in {"completed", "failed", "cancelled"}:
             raise ValueError("terminal validation progress requires a result")
 
@@ -218,6 +357,9 @@ class ValidationWorkflow:
             if unresolved is not None
             else self._policy.gaps(belief, evidence_items)
         )
+        terminal = state.status in {"failed", "cancelled"}
+        terminal_result = state.results[-1] if terminal and state.results else None
+        terminal_failure = state.failures[-1] if terminal and state.failures else None
         return ValidationResult(
             validation=validation,
             run=state.run.ref,
@@ -227,33 +369,24 @@ class ValidationWorkflow:
             reused_evidence_refs=tuple(reused),
             gathered_evidence_refs=tuple(gathered),
             unresolved=items,
+            terminal_status=state.status if terminal else "completed",
+            terminal_state=state if terminal else None,
+            terminal_result=terminal_result,
+            terminal_failure=terminal_failure,
             lineage=(
                 validation.ref,
                 state.run.ref,
                 belief.ref,
                 *(item.ref for item in evidence_items),
+                *((state.ref,) if terminal else ()),
+                *((terminal_result.ref,) if terminal_result is not None else ()),
+                *((terminal_failure.ref,) if terminal_failure is not None else ()),
             ),
         )
 
     @staticmethod
     def _outcome(result: ValidationResult) -> Outcome:
-        conclusions: tuple[str, ...] = ()
-        if result.disposition == "supported":
-            conclusions = (f"Supported: {result.validation.claim.statement}",)
-        elif result.disposition == "contradicted":
-            conclusions = (f"Contradicted: {result.validation.claim.statement}",)
-        elif result.disposition == "bounded":
-            conclusions = (f"Bounded: {result.validation.claim.statement}",)
-        return Outcome(
-            intent=result.validation.claim.ref,
-            status=result.disposition,
-            target_snapshot=result.validation.target_snapshot,
-            conclusions=conclusions,
-            evidence_refs=tuple(EvidenceRef.from_evidence(item) for item in result.evidence),
-            unresolved=result.unresolved,
-            next_actions=result.unresolved if result.disposition == "inconclusive" else (),
-            lineage=(result.ref, result.belief.ref, *(item.ref for item in result.evidence)),
-        )
+        return validation_outcome(result)
 
     def _finish(
         self,
@@ -393,7 +526,15 @@ class ValidationWorkflow:
             if outcome is None:  # pragma: no cover - terminal runtime invariant
                 raise RuntimeError("terminal validation failure lost its outcome")
             unresolved = outcome.unresolved or ("validation evidence execution failed",)
-            result = self._result(progress, unresolved=unresolved)
+            result = self._build_result(
+                validation=progress.validation,
+                state=submitted.state,
+                belief=progress.belief,
+                evidence=progress.evidence,
+                reused=progress.reused_evidence_refs,
+                gathered=progress.gathered_evidence_refs,
+                unresolved=unresolved,
+            )
             return ValidationUpdate(
                 progress=self._progress(
                     validation=progress.validation,
@@ -597,20 +738,8 @@ class ValidationWorkflow:
                 gathered=gathered_evidence_refs,
                 unresolved=expected_unresolved,
             )
-            if state.status == "completed" and state.outcome != self._outcome(result):
+            if state.outcome != self._outcome(result):
                 raise ValueError("persisted validation outcome has drifted from its exact result")
-            if state.status in {"failed", "cancelled"}:
-                if failure is None:  # pragma: no cover - branch assignment invariant
-                    raise RuntimeError("terminal validation failure lost its reason")
-                expected_outcome = Outcome(
-                    intent=state.run.intent,
-                    status=state.status,
-                    target_snapshot=state.run.target_snapshot,
-                    unresolved=(failure.message,),
-                    lineage=(state.results[-1].ref, failure.ref),
-                )
-                if state.outcome != expected_outcome:
-                    raise ValueError("persisted validation failure outcome has drifted")
 
         progress = ValidationProgress(
             validation=validation,

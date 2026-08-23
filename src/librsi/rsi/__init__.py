@@ -44,7 +44,7 @@ from .replay import (
     next_governance_action,
     replay_governance_state,
 )
-from .workflow import RSIProgress, RSIUpdate, RSIWorkflow, recurse
+from .workflow import RSIProgress, RSIUpdate, RSIWorkflow, recurse, rsi_outcome
 
 __all__ = [
     "FORWARD_SHADOW_ACTION_KIND",
@@ -86,6 +86,7 @@ __all__ = [
     "make_self_change_failure",
     "next_governance_action",
     "recurse",
+    "rsi_outcome",
     "replay_governance_state",
     "review_command_from_action",
     "review_from_result",

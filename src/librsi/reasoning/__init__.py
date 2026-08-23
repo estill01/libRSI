@@ -11,7 +11,11 @@ from .actions import (
 from .adapters import ReasoningBackend, StructuredReasoner
 from .records import ReasoningRequest, ReasoningResult
 from .schemas import REASONING_KINDS, REASONING_SCHEMA_VALIDATORS, validate_reasoning_content
-from .validation import ReasoningResultValidator, require_reasoning_derivation
+from .validation import (
+    ReasoningResultValidator,
+    require_reasoning_derivation,
+    validate_reasoning_result_shape,
+)
 
 __all__ = [
     "REASONING_ACTION_KIND",
@@ -29,4 +33,5 @@ __all__ = [
     "reasoning_result_from_action_result",
     "require_reasoning_derivation",
     "validate_reasoning_content",
+    "validate_reasoning_result_shape",
 ]
