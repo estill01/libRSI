@@ -47,6 +47,12 @@ effect-free. A classified improvement carries its governance requirement through
 ordinary handoff identity, so calling `apply_improvement` or `ApplicationWorkflow`
 directly cannot bypass self-change review: application rejects the request before host
 dispatch unless the exact matching `SelfChangeApproval` is present.
+The primary `LibRSI` facade now composes those same workflows for ordinary Python use.
+`LibRSI.local()` and `LibRSI.for_repo()` opt into replaceable SQLite runtime/knowledge
+stores, authority-scoped command execution, deterministic filesystem inspection, a local
+artifact directory, and structured standard-library logging. The facade owns no second
+lifecycle: `LibRSIRun.next()` and `submit()` expose the exact canonical actions and
+results used by managed execution.
 
 ## Install
 
@@ -65,7 +71,63 @@ python -m pip install -e '.[dev]'
 python -m pytest
 ```
 
-## Example
+## Quick start
+
+The facade can validate a typed claim with a small local setup while persisting the exact
+runtime transitions:
+
+```python
+from librsi import Evidence, LibRSI
+
+with LibRSI.for_repo(".") as lib:
+    claim = lib.claim("The service remains available", kind="behavioral")
+    snapshot = lib.snapshot()
+    evidence = tuple(
+        Evidence(
+            evidence_type="support",
+            data={"sample": sample},
+            subject_refs=(claim.ref,),
+            source_refs=(claim.ref,),
+            target_snapshot=snapshot,
+            weight=1.0,
+        )
+        for sample in (1, 2)
+    )
+    result = lib.validate(claim, target_snapshot=snapshot, evidence=evidence)
+
+assert result.disposition == "supported"
+```
+
+Hypothesis testing remains a first-class, evidence-bound path. The local runner receives
+canonical argv/cwd input, never invokes a shell, rejects work outside its configured root,
+and echoes the exact experiment root into the observation:
+
+```python
+import sys
+
+from librsi import LibRSI
+
+with LibRSI.local(".") as lib:
+    tested = lib.test_hypothesis(
+        "The local check reports READY",
+        command=(sys.executable, "-c", "print('READY')"),
+        success_criteria={
+            "accepted_exit_codes": [0],
+            "stdout_contains": ["READY"],
+        },
+    )
+
+assert tested.evidence.evidence_type == "support"
+assert tested.observation.exact_input_root == tested.experiment.root
+```
+
+See [`examples/local_validation.py`](examples/local_validation.py) and
+[`examples/local_hypothesis.py`](examples/local_hypothesis.py) for executable versions.
+Every local default can be supplied independently through `LibRSI.local(...)`. Construct
+plain `LibRSI(...)` for a host-neutral composition, or use `LibRSI.start(request)` when an
+external host should own the action loop.
+
+## Expert hypothesis and experiment API
 
 The canonical hypothesis/experiment path binds the proposition, target snapshot,
 experiment criteria, execution input, observation, and resulting evidence by exact
@@ -331,10 +393,12 @@ counterevidence. Failed rollback reports no authoritative snapshot. Every step c
 be submitted externally with its exact pre-effect and post-effect snapshots, and replay
 rejects stale, reordered, substituted, or duplicated effects.
 
-The base distribution ships no target, provider, subprocess, filesystem, worker, or
-transport implementation. Any effects occur only inside a capability object explicitly
-supplied by the host. Persistence and dispatch are opt-in; `RSIKernel` does not open a
-database, infer a storage location, or construct capabilities. See
+The deterministic core and `RSIKernel` still open no database, inspect no filesystem,
+start no process, infer no storage location, and construct no capabilities. Local effects
+exist only when a caller explicitly selects `LibRSI.local()`/`for_repo()` or supplies an
+adapter. The standard-library defaults are thin and independently replaceable; no worker,
+provider, transport, deployment, or generic repository-automation platform is included.
+Low-level APIs remain available from their original modules and from `librsi.expert`. See
 [`src/librsi/README.md`](src/librsi/README.md) for the module map and complete
 integration boundary. The maintained implementation plan evolves this deterministic
 core toward higher-level validation, investigation, improvement, and RSI workflows
