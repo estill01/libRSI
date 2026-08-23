@@ -248,7 +248,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 13 | Goals, constraints, and evaluation contracts | 5, 12 | `completed` |
 | 14 | Comparative evaluation and selection | 4, 12, 13 | `completed` |
 | 15 | Complete improvement workflow and result | 10–14 | `completed` |
-| 16 | Application, verification, and rollback | 15 | `not-started` |
+| 16 | Application, verification, and rollback | 15 | `in-progress` |
 | 17 | Generalized RSI and self-change governance | 7, 16 | `not-started` |
 | 18 | Local runtime and high-level Python facade | 6, 8, 15–17 | `not-started` |
 | 19 | Outcome serialization and external projections | 10, 11, 15–18 | `not-started` |
@@ -1950,7 +1950,7 @@ Stop before authoritative target application.
 
 ## Block 16 — Application, post-application verification, and rollback
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 
@@ -1982,6 +1982,9 @@ Apply an accepted candidate only through explicit authority/currentness gates, v
 ### Deliverables and recorded state
 
 - Application records/state transitions, handoff schemas, deterministic fake target/applier/verifier/rollback fixtures, and public result fields.
+- Capability framing selected the structured middle layer: application-specific typed records, policy, action codecs, canonical replay, and a restartable workflow compose the existing runtime plus `CapabilityRegistry` Applier/Verifier routes. A direct provider call would bypass durable authority/currentness and replay; a deployment orchestrator or new capability registry would duplicate existing owners and exceed this Block.
+- Post-application verification reuses the existing comparative-selection authority: the Verifier supplies an exact actual-state `CandidateTrialBatch`, while libRSI derives the `CandidateAssessment` and verified/rejected disposition from the original `EvaluationContract`, guardrails, and `RiskPolicy`. Host booleans and narration have no verification authority.
+- The shared runtime remains target-snapshot fixed by default. Application Runs alone declare their exact `ApplicationRequest` as identity-bound same-target transition authority, and successful `Outcome` records retain that authority while naming the produced or restored authoritative snapshot.
 
 ### Resource and economy contract
 
