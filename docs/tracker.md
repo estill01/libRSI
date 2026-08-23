@@ -1883,7 +1883,7 @@ Stop before the complete iterative improvement workflow or authoritative applica
 
 ## Block 15 — Complete improvement workflow and `ImprovementResult`
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 
@@ -1916,6 +1916,7 @@ Compose goals, investigation, interventions, candidates, experiments, and select
 ### Deliverables and recorded state
 
 - Improvement workflow/state/result, declarative and stepped APIs, budget policies, and two cross-domain dogfoods.
+- Capability framing selected the structured middle layer: typed records, policy, action codecs, and a restartable workflow that composes the existing operationalization, investigation, intervention, experiment, and comparison authorities. A one-shot facade would conceal lifecycle and budget state; a full optimizer/application orchestrator would exceed this block and collapse host authority into the library.
 
 ### Resource and economy contract
 
