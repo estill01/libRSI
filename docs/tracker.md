@@ -20,6 +20,11 @@ Completion means:
   application/verification/rollback, and governed self-change workflows;
 - externally driven, managed, and hybrid control produce semantically equivalent
   state and outcomes;
+- an operator can submit a target, objective, evaluation contract, capabilities,
+  and authority envelope to a standalone local service and receive a durable RSI
+  run that generates competing hypotheses, proposes discriminating tests,
+  interprets evidence, compares interventions, applies only when authorized,
+  verifies, and iterates;
 - a libRSI-owned consumer-conformance fixture and a deterministic non-software
   target both use the engine without leaking their ontologies into the core; and
 - the public Python, CLI, service, and MCP projections are versioned, tested,
@@ -90,7 +95,7 @@ TargetSnapshot + Claim/Question/Goal/Constraint
                     ↓
        canonical Outcome and event projections
                     ↓
- Python / CLI / Service / HTTP / MCP / host adapters
+ Python / embedded facade / CLI / managed service / HTTP / MCP / host adapters
 ```
 
 Canonical records and deterministic transitions own semantic truth. `KnowledgeStore`
@@ -99,6 +104,14 @@ Capability implementations execute work but cannot promote their own outputs to
 truth, selection, application, or self-change authority. Software Factory and other
 hosts import libRSI; libRSI never imports them. Transport/session state is never a
 second lifecycle owner.
+
+Managed standalone mode is a reference host over these same owners. It may use
+an optional reasoner/executor provider to generate hypotheses and carry out
+actions, but provider output remains a proposal or observation until canonical
+validation, evidence, comparison, authority, and application policies act. An
+embedded consumer may supply capabilities directly. Exactly one composition
+owner starts each provider process; a Software Factory-managed composition
+therefore does not let libRSI launch a competing Codex app-server.
 
 ## 3. Existing owners to reuse
 
@@ -154,6 +167,9 @@ the recorded source snapshot.
 - Thin SQLite/local defaults, optional reasoner/server/MCP adapters, a generic
   consumer integration contract with libRSI-owned conformance fixtures, and
   deterministic non-software dogfoods.
+- Embedded, externally driven, and managed standalone modes over the same
+  engine, including target/objective submission and autonomous hypothesis,
+  experiment, candidate, application, verification, and iteration workflows.
 
 ### Out of scope
 
@@ -162,6 +178,8 @@ the recorded source snapshot.
   API gateway, UI, notification service, or production multi-tenant control plane.
 - Automatic application authority, hidden model/provider authority, or a second
   lifecycle/knowledge/evidence ledger created by an adapter or transport.
+- Software Factory QA/supervision/delivery, Patent Studio domain behavior, a
+  public Codex app-server proxy, or a second controller inside the service.
 
 ### Proportionality
 
@@ -215,6 +233,16 @@ hardening without a reproduced in-scope failure is omitted.
   `completed-with-open-items`, and safe work continues rather than marking the whole
   program blocked.
 
+### Supervised execution and monitoring
+
+Each implementation thread for the remaining range uses one isolated
+`supervise-tracker-runs` group bound to the exact libRSI repository revision,
+tracker hash, requested range, and active Block. Supervisors observe and review
+changed state but do not implement libRSI, execute provider calls, or mutate
+consumer repositories. Software Factory and Patent Studio integration evidence
+is reviewed in its owning repository; no monitor combines their authority or
+content with libRSI merely to save threads.
+
 ### Completion-evidence template
 
 ```markdown
@@ -258,13 +286,13 @@ hardening without a reproduced in-scope failure is omitted.
 | 15 | Complete improvement workflow and result | 10–14 | `completed` |
 | 16 | Application, verification, and rollback | 15 | `completed` |
 | 17 | Generalized RSI and self-change governance | 7, 16 | `completed` |
-| 18 | Local runtime and high-level Python facade | 6, 8, 15–17 | `in-progress` |
+| 18 | Embedded/managed local runtime and high-level Python facade | 6, 8, 15–17 | `in-progress` |
 | 19 | Outcome serialization and external projections | 10, 11, 15–18 | `not-started` |
-| 20 | CLI and external-agent protocol | 7, 19 | `not-started` |
-| 21 | Service, HTTP, and MCP projections | 7, 8, 19, 20 | `not-started` |
-| 22 | Optional provider/backend integrations | 9, 18–20 | `not-started` |
+| 20 | CLI, target admission, and external-agent protocol | 7, 19 | `not-started` |
+| 21 | Managed service, HTTP, and MCP projections | 7, 8, 19, 20 | `not-started` |
+| 22 | Optional provider/Codex app-server integrations | 9, 18–20 | `not-started` |
 | 23 | Consumer integration contract and conformance kit | 5, 8, 12, 15–20 | `not-started` |
-| 24 | End-to-end architecture dogfoods | 10, 11, 15–23 | `not-started` |
+| 24 | End-to-end embedded/external/managed dogfoods | 10, 11, 15–23 | `not-started` |
 | 25 | Comprehensive cross-domain proof | 24 | `not-started` |
 | 26 | Public API, docs, packaging, migration, release gate | 21–25 | `not-started` |
 
@@ -2238,18 +2266,22 @@ Independent review is required for activation semantics, self-review separation,
 
 Stop before batteries-included local defaults and public facade consolidation.
 
-## Block 18 — Batteries-included local runtime and high-level Python facade
+## Block 18 — Embedded/managed local runtime and high-level Python facade
 
 Status: `in-progress`
 
 ### Objective
 
-Make local validation, investigation, improvement, and stepped execution useful with minimal configuration while retaining replaceability.
+Make local validation, investigation, improvement, and stepped execution useful
+with minimal configuration through one engine that supports embedded and
+managed-local composition while retaining replaceability.
 
 ### Target-product capability delta
 
 - Posture: `consequential`.
-- Intended capability gain: `LibRSI`, `local`, `for_repo`, workflow methods, SQLite, local command/filesystem/artifact defaults, and structured logging.
+- Intended capability gain: `LibRSI`, `local`, `for_repo`, embedded and managed
+  local composition, workflow methods, SQLite, local
+  command/filesystem/artifact defaults, and structured logging.
 - Potential capability loss or regression: defaults could become mandatory infrastructure or make repositories fundamental.
 - Protected-capability effect: low-level `RSIKernel`, external-host execution, independent component substitution, and generic targets remain supported.
 - Architecture and operating-model effect: assembles thin reference adapters around the canonical engine; it does not create another engine.
@@ -2263,11 +2295,14 @@ Make local validation, investigation, improvement, and stepped execution useful 
 
 - Implement the high-level facade and local constructors over canonical workflows/runtime.
 - Ship minimal SQLite, command, filesystem inspection, artifact-directory, and event/logging defaults behind protocols.
+- Define one composition contract used by embedded callers and the later managed
+  service; host selection cannot change canonical run/action/result semantics.
 - Preserve expert/low-level APIs and support per-component replacement.
 
 ### Scope and non-goals
 
-- In scope: local reference composition and Python usability.
+- In scope: local reference composition, embedded/managed host equivalence, and
+  Python usability.
 - Not in scope: generic repository automation, artifact/logging platforms, distributed orchestration, or mandatory server/provider dependencies.
 
 ### Deliverables and recorded state
@@ -2307,7 +2342,9 @@ Review facade/runtime equivalence, dependency minimality, component replacement,
 
 ### Negative tests
 
-- Reject hidden global state, mandatory repo fields, mandatory optional dependencies, facade-specific lifecycle semantics, and local execution outside configured authority.
+- Reject hidden global state, mandatory repo fields, mandatory optional
+  dependencies, facade/host-specific lifecycle semantics, two process owners,
+  and local execution outside configured authority.
 
 ### Completion evidence
 
@@ -2376,18 +2413,21 @@ Pending.
 
 Stop before CLI, HTTP, or MCP transport stabilization.
 
-## Block 20 — CLI and external-agent protocol
+## Block 20 — CLI, target admission, and external-agent protocol
 
 Status: `not-started`
 
 ### Objective
 
-Drive durable libRSI workflows through structured commands and JSON without inferring state from prose.
+Drive durable libRSI workflows and target submissions through structured
+commands and JSON without inferring state from prose.
 
 ### Target-product capability delta
 
 - Posture: `consequential`.
-- Intended capability gain: start/status/next/submit/resume/outcome operations for validation, investigation, and improvement.
+- Intended capability gain: target/objective/evaluation-contract submission plus
+  start/status/next/submit/resume/outcome operations for validation,
+  investigation, improvement, and governed RSI.
 - Potential capability loss or regression: CLI state or prose could diverge from the canonical runtime or silently accept stale results.
 - Protected-capability effect: explicit run/action/result identity, schema validation, restartability, and external-host neutrality.
 - Architecture and operating-model effect: CLI is a projection over runtime/service contracts, not a controller.
@@ -2400,12 +2440,15 @@ Drive durable libRSI workflows through structured commands and JSON without infe
 ### Required work
 
 - Add CLI entrypoint and structured validate/investigate/improve/status/next/submit/resume/outcome commands.
+- Add a structured `target submit` contract that binds the target snapshot,
+  objective, evaluation contract, capabilities, evidence/currentness baseline,
+  application authority, and resource limits before managed work may begin.
 - Bind input/output schemas to canonical records and runtime transitions.
 - Add interruption/restart, stale submission, and wheel-installed CLI dogfoods.
 
 ### Scope and non-goals
 
-- In scope: local CLI/external-agent projection.
+- In scope: local CLI/external-agent projection and standalone target admission.
 - Not in scope: HTTP/MCP, natural-language agent orchestration, shell inference, or application authority.
 
 ### Deliverables and recorded state
@@ -2422,11 +2465,15 @@ Review schema/runtime equivalence, restartability, error determinism, stale reje
 
 ### Acceptance
 
-- A complete run is externally driven through JSON; controller restart loses no state; `next` supplies exact context/schema; stale/invalid submission fails closed.
+- A complete run is externally driven through JSON; a target can be admitted
+  without prose-derived state; controller restart loses no state; `next`
+  supplies exact context/schema; stale/invalid submission fails closed.
 
 ### Negative tests
 
-- Reject unknown commands/schemas, wrong run/action IDs, duplicate advancement, malformed JSON, unsupported workflow claims, and CLI-only state.
+- Reject unknown commands/schemas, wrong run/action IDs, duplicate advancement,
+  malformed JSON, unsupported workflow claims, missing evaluation/application
+  authority, and CLI-only state.
 
 ### Completion evidence
 
@@ -2436,18 +2483,23 @@ Pending.
 
 Stop before HTTP/MCP compatibility or hosted-provider adapters.
 
-## Block 21 — libRSI service, HTTP, and MCP projections
+## Block 21 — Managed libRSI service, HTTP, and MCP projections
 
 Status: `not-started`
 
 ### Objective
 
-Expose the canonical runtime through one transport-independent service facade plus maintained HTTP and MCP projections.
+Expose the canonical runtime through one transport-independent service facade
+that supports externally driven and managed standalone execution, plus
+maintained HTTP and MCP projections.
 
 ### Target-product capability delta
 
 - Posture: `consequential`.
-- Intended capability gain: explicit durable run handles, remote lifecycle operations, knowledge queries, capability inspection, local stdio MCP, and maintained remote MCP transport.
+- Intended capability gain: explicit durable target/run handles, managed
+  validate/investigate/improve/RSI operations, remote lifecycle operations,
+  knowledge queries, capability inspection, local stdio MCP, and maintained
+  remote MCP transport.
 - Potential capability loss or regression: transport sessions could become state authority, network access could imply application authority, or premature schemas could freeze incomplete semantics.
 - Protected-capability effect: one runtime/store/outcome model, explicit capability authority, restartability, secret minimization, and optional dependencies.
 - Architecture and operating-model effect: `LibRSIService` delegates to canonical owners; HTTP/MCP remain thin replaceable transports.
@@ -2460,13 +2512,24 @@ Expose the canonical runtime through one transport-independent service facade pl
 ### Required work
 
 - Implement transport-independent service operations for runs, actions/results, outcomes, knowledge queries, and capability inspection.
+- Implement managed-service orchestration that repeatedly selects the next
+  canonical action, dispatches only configured capabilities/providers, submits
+  typed results, and stops on an outcome, explicit bound, unavailable
+  capability, or authority gate. It may not invent a second scheduler or
+  lifecycle.
+- In managed mode, generate multiple supported competing hypotheses, design
+  discriminating experiments and counterexamples, classify results as
+  supported/refuted/inconclusive, construct and compare interventions, select
+  one/many/none, apply only when authorized, verify, and iterate until the
+  evaluation contract or bounded stop is met.
 - Add versioned HTTP/JSON endpoints using a mature optional framework.
 - Add maintained MCP tools/resources over the service for stdio and the current maintained remote transport.
 - Enforce explicit run handles, restart, duplicate/stale safety, authority distinctions, bounded requests, structured errors, health/readiness, and graceful shutdown.
 
 ### Scope and non-goals
 
-- In scope: optional service/HTTP/MCP projections and basic operational hooks.
+- In scope: optional service/HTTP/MCP projections, bounded managed-local host,
+  and basic operational hooks.
 - Not in scope: an API gateway, generic workflow service, distributed scheduler, UI, notification platform, observability platform, or full multi-tenant control plane.
 
 ### Deliverables and recorded state
@@ -2483,11 +2546,18 @@ Independent review covers shared-runtime authority, network/application permissi
 
 ### Acceptance
 
-- One service facade backs HTTP and MCP; stdio and maintained remote MCP work; run handles survive restart; all projections share canonical outcomes; capabilities/authority are inspectable; stale/duplicate results fail safely.
+- One service facade backs HTTP and MCP; externally driven and managed runs are
+  semantically equivalent; stdio and maintained remote MCP work; target/run
+  handles survive restart; all projections share canonical outcomes;
+  capabilities/authority are inspectable; stale/duplicate results fail safely.
 
 ### Negative tests
 
-- Reject session-only state, anonymous remote mutation in configured protected mode, secret leakage, oversized requests, unsupported capability simulation, transport-root divergence, and unavailable Applier execution.
+- Reject session-only state, a managed-service second controller, autonomous
+  work without a bound objective/evaluation contract, anonymous remote mutation
+  in configured protected mode, secret leakage, oversized requests,
+  unsupported capability simulation, transport-root divergence, and
+  unavailable or unauthorized Applier execution.
 
 ### Completion evidence
 
@@ -2497,18 +2567,22 @@ Pending.
 
 Stop before production deployment, general platform features, or provider-specific adapters.
 
-## Block 22 — Optional reasoner, optimizer, and backend integrations
+## Block 22 — Optional reasoner, Codex app-server, optimizer, and backend integrations
 
 Status: `not-started`
 
 ### Objective
 
-Prove stable capability contracts with one maintained hosted-model reasoner adapter and only justified optional backend integrations.
+Prove stable capability contracts with one maintained hosted-model reasoner
+adapter, a Codex app-server adapter, and only justified optional backend
+integrations.
 
 ### Target-product capability delta
 
 - Posture: `consequential`.
-- Intended capability gain: managed structured reasoning and validated replaceability of selected optimizer/backend contracts.
+- Intended capability gain: managed structured reasoning, Codex-powered
+  hypothesis/experiment/candidate work, and validated replaceability of
+  selected optimizer/backend contracts.
 - Potential capability loss or regression: provider types, credentials, optimizer scores, or workflow engines could leak authority into core semantics.
 - Protected-capability effect: base install remains provider-free; external-agent mode remains first-class; proposals never become truth/selection/application automatically.
 - Architecture and operating-model effect: optional extras implement existing protocols without modifying canonical records.
@@ -2521,12 +2595,19 @@ Prove stable capability contracts with one maintained hosted-model reasoner adap
 ### Required work
 
 - Implement `ExternalAgentReasoner` and one maintained hosted-model reasoner extra through typed reasoning tasks.
+- Implement an optional Codex app-server reasoner/executor extra through the
+  domain-neutral typed client from `estill01/utils`; pin exact protocol/client
+  compatibility and keep app-server behind libRSI capability interfaces.
+- Make provider process ownership explicit: standalone libRSI may own its local
+  process; an embedding host may inject a provider; Software Factory-managed
+  libRSI must never start a competing process.
 - Add optimizer/experiment/orchestrator projections only when one named dogfood validates a stable contract.
 - Keep credentials/configuration outside canonical records and provide deterministic fake/offline contract tests.
 
 ### Scope and non-goals
 
-- In scope: optional adapters proving capability/backend substitution.
+- In scope: optional adapters proving capability/backend substitution,
+  including `librsi[codex]` or its package-equivalent extra.
 - Not in scope: a model gateway, optimizer implementation, agent framework, workflow platform, credential manager, or mandatory network dependency.
 
 ### Deliverables and recorded state
@@ -2543,11 +2624,16 @@ Review dependency isolation, provider-neutral schemas, credential hygiene, propo
 
 ### Acceptance
 
-- Base install needs no SDK; an optional extra enables maintained reasoning; provider swaps do not alter epistemic schema; external-agent execution remains equivalent.
+- Base install needs no SDK; an optional extra enables maintained Codex
+  reasoning/execution; provider swaps do not alter epistemic schema;
+  external-agent execution remains equivalent.
 
 ### Negative tests
 
-- Reject provider objects in canonical records, credential serialization/logging, model output truth promotion, optimizer self-selection, and base-import failure without extras.
+- Reject provider objects in canonical records, credential
+  serialization/logging, model output truth promotion, provider-completion as
+  evidence/acceptance, two app-server process owners, optimizer self-selection,
+  and base-import failure without extras.
 
 ### Completion evidence
 
@@ -2650,7 +2736,7 @@ Pending.
 Stop before modifying, pinning, migrating, or running tests in any external
 consumer repository, or claiming the full architecture proof owned by Block 24.
 
-## Block 24 — End-to-end architecture dogfoods
+## Block 24 — End-to-end embedded, external, and managed dogfoods
 
 Status: `not-started`
 
@@ -2674,6 +2760,14 @@ Prove the complete architecture through maintained deterministic workflows, inte
 ### Required work
 
 - Maintain validation-only, investigation-only, externally driven improvement, managed-equivalent improvement, interruption/resume, application-disabled, apply/verify/rollback, parallel search, and RSI/self-change scenarios.
+- Add a maintained managed-standalone dogfood that accepts a target/objective,
+  generates at least two materially competing hypotheses, runs discriminating
+  experiments, retains inconclusive evidence honestly, compares interventions,
+  selects one/many/none, applies only under an explicit authority envelope,
+  verifies the result, and iterates or stops for a typed reason.
+- Run the same scenario externally driven and through the managed service and
+  compare canonical roots/outcomes, including a Codex-provider fake and an
+  injected-provider composition with no competing process owner.
 - Reuse earlier vertical fixtures and assert canonical roots/outcomes across control planes.
 
 ### Scope and non-goals
@@ -2699,7 +2793,10 @@ Review scenario completeness, reuse, semantic equivalence, exact outcomes, failu
 
 ### Negative tests
 
-- Reject one-time/manual proof, managed/external root drift, nonresumable interruption, implicit application, failed rollback, losing-lane promotion, and self-change gate bypass.
+- Reject one-time/manual proof, managed/external root drift, single-hypothesis
+  theater, nondiscriminating experiments, inconclusive evidence promoted as
+  support, nonresumable interruption, implicit application, failed rollback,
+  losing-lane promotion, two process owners, and self-change gate bypass.
 
 ### Completion evidence
 
