@@ -31,6 +31,42 @@ from .records import (
 )
 
 
+def validation_outcome(result: ValidationResult) -> Outcome:
+    """Derive the canonical terminal Outcome owned by validation semantics."""
+
+    if not isinstance(result, ValidationResult):
+        raise TypeError("validation outcome requires a ValidationResult")
+    if result.terminal_status in {"failed", "cancelled"}:
+        terminal_result = result.terminal_result
+        failure = result.terminal_failure
+        if terminal_result is None or failure is None:  # pragma: no cover - record invariant
+            raise RuntimeError("validation failure settlement is incomplete")
+        return Outcome(
+            intent=result.validation.claim.ref,
+            status=result.terminal_status,
+            target_snapshot=result.validation.target_snapshot,
+            unresolved=(failure.message,),
+            lineage=(terminal_result.ref, failure.ref),
+        )
+    conclusions: tuple[str, ...] = ()
+    if result.disposition == "supported":
+        conclusions = (f"Supported: {result.validation.claim.statement}",)
+    elif result.disposition == "contradicted":
+        conclusions = (f"Contradicted: {result.validation.claim.statement}",)
+    elif result.disposition == "bounded":
+        conclusions = (f"Bounded: {result.validation.claim.statement}",)
+    return Outcome(
+        intent=result.validation.claim.ref,
+        status=result.disposition,
+        target_snapshot=result.validation.target_snapshot,
+        conclusions=conclusions,
+        evidence_refs=tuple(EvidenceRef.from_evidence(item) for item in result.evidence),
+        unresolved=result.unresolved,
+        next_actions=result.unresolved if result.disposition == "inconclusive" else (),
+        lineage=(result.ref, result.belief.ref, *(item.ref for item in result.evidence)),
+    )
+
+
 @dataclass(frozen=True)
 class ValidationProgress:
     """Workflow projection; RunState remains the sole lifecycle authority."""
@@ -86,6 +122,15 @@ class ValidationProgress:
                 raise ValueError("validation result does not match its exact progress projection")
             if self.state.status not in {"completed", "failed", "cancelled"}:
                 raise ValueError("validation result requires a terminal runtime state")
+            if self.result.terminal_status != self.state.status:
+                raise ValueError("validation result settlement does not match runtime status")
+            if self.state.status in {"failed", "cancelled"} and (
+                not self.state.results
+                or not self.state.failures
+                or self.result.terminal_result != self.state.results[-1]
+                or self.result.terminal_failure != self.state.failures[-1]
+            ):
+                raise ValueError("validation result lost exact runtime failure settlement")
         elif self.state.status in {"completed", "failed", "cancelled"}:
             raise ValueError("terminal validation progress requires a result")
 
@@ -218,6 +263,9 @@ class ValidationWorkflow:
             if unresolved is not None
             else self._policy.gaps(belief, evidence_items)
         )
+        terminal = state.status in {"failed", "cancelled"}
+        terminal_result = state.results[-1] if terminal and state.results else None
+        terminal_failure = state.failures[-1] if terminal and state.failures else None
         return ValidationResult(
             validation=validation,
             run=state.run.ref,
@@ -227,33 +275,22 @@ class ValidationWorkflow:
             reused_evidence_refs=tuple(reused),
             gathered_evidence_refs=tuple(gathered),
             unresolved=items,
+            terminal_status=state.status if terminal else "completed",
+            terminal_result=terminal_result,
+            terminal_failure=terminal_failure,
             lineage=(
                 validation.ref,
                 state.run.ref,
                 belief.ref,
                 *(item.ref for item in evidence_items),
+                *((terminal_result.ref,) if terminal_result is not None else ()),
+                *((terminal_failure.ref,) if terminal_failure is not None else ()),
             ),
         )
 
     @staticmethod
     def _outcome(result: ValidationResult) -> Outcome:
-        conclusions: tuple[str, ...] = ()
-        if result.disposition == "supported":
-            conclusions = (f"Supported: {result.validation.claim.statement}",)
-        elif result.disposition == "contradicted":
-            conclusions = (f"Contradicted: {result.validation.claim.statement}",)
-        elif result.disposition == "bounded":
-            conclusions = (f"Bounded: {result.validation.claim.statement}",)
-        return Outcome(
-            intent=result.validation.claim.ref,
-            status=result.disposition,
-            target_snapshot=result.validation.target_snapshot,
-            conclusions=conclusions,
-            evidence_refs=tuple(EvidenceRef.from_evidence(item) for item in result.evidence),
-            unresolved=result.unresolved,
-            next_actions=result.unresolved if result.disposition == "inconclusive" else (),
-            lineage=(result.ref, result.belief.ref, *(item.ref for item in result.evidence)),
-        )
+        return validation_outcome(result)
 
     def _finish(
         self,
@@ -393,7 +430,15 @@ class ValidationWorkflow:
             if outcome is None:  # pragma: no cover - terminal runtime invariant
                 raise RuntimeError("terminal validation failure lost its outcome")
             unresolved = outcome.unresolved or ("validation evidence execution failed",)
-            result = self._result(progress, unresolved=unresolved)
+            result = self._build_result(
+                validation=progress.validation,
+                state=submitted.state,
+                belief=progress.belief,
+                evidence=progress.evidence,
+                reused=progress.reused_evidence_refs,
+                gathered=progress.gathered_evidence_refs,
+                unresolved=unresolved,
+            )
             return ValidationUpdate(
                 progress=self._progress(
                     validation=progress.validation,
@@ -597,20 +642,8 @@ class ValidationWorkflow:
                 gathered=gathered_evidence_refs,
                 unresolved=expected_unresolved,
             )
-            if state.status == "completed" and state.outcome != self._outcome(result):
+            if state.outcome != self._outcome(result):
                 raise ValueError("persisted validation outcome has drifted from its exact result")
-            if state.status in {"failed", "cancelled"}:
-                if failure is None:  # pragma: no cover - branch assignment invariant
-                    raise RuntimeError("terminal validation failure lost its reason")
-                expected_outcome = Outcome(
-                    intent=state.run.intent,
-                    status=state.status,
-                    target_snapshot=state.run.target_snapshot,
-                    unresolved=(failure.message,),
-                    lineage=(state.results[-1].ref, failure.ref),
-                )
-                if state.outcome != expected_outcome:
-                    raise ValueError("persisted validation failure outcome has drifted")
 
         progress = ValidationProgress(
             validation=validation,

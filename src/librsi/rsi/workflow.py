@@ -14,7 +14,7 @@ from ..application import (
 )
 from ..capabilities import CapabilityRegistry, DispatchPlan
 from ..errors import RSICapabilityError
-from ..records import TargetSnapshot
+from ..records import Outcome, TargetSnapshot
 from ..runtime import ActionResult, RunState, RuntimeEngine, Transition
 from .actions import (
     FORWARD_SHADOW_ACTION_KIND,
@@ -41,6 +41,42 @@ _EXPECTED_GOVERNANCE_FAMILIES = {
     FORWARD_SHADOW_ACTION_KIND: "experimenter",
     INDEPENDENT_REVIEW_ACTION_KIND: "reviewer",
 }
+
+
+def rsi_outcome(result: RSIResult) -> Outcome:
+    """Derive the canonical public Outcome owned by the composite RSI workflow."""
+
+    if not isinstance(result, RSIResult):
+        raise TypeError("RSI outcome requires an RSIResult")
+    conclusions = {
+        "verified": ("self-change was applied and verified",),
+        "rolled-back": ("self-change was rolled back",),
+        "activation-disabled": ("self-change governance passed with activation disabled",),
+    }.get(result.disposition, ())
+    unresolved = {
+        "governance-failed": ("self-change governance failed operationally",),
+        "governance-rejected": ("self-change activation was not authorized",),
+        "application-failed": ("self-change application failed operationally",),
+        "rollback-failed": ("self-change rollback failed operationally",),
+        "rolled-back": ("the activated self-change did not verify",),
+    }.get(result.disposition, ())
+    next_actions = {
+        "activation-disabled": ("obtain explicit activation authority before application",),
+        "governance-failed": ("resolve operational failures before rerunning governance",),
+        "governance-rejected": ("revise the candidate or satisfy the failed gates",),
+        "application-failed": ("resolve application failures before another attempt",),
+        "rollback-failed": ("restore an authoritative target state before continuing",),
+        "rolled-back": ("revise or replace the rejected self-change candidate",),
+    }.get(result.disposition, ())
+    return Outcome(
+        intent=result.request.ref,
+        status=result.disposition,
+        target_snapshot=result.authoritative_snapshot,
+        conclusions=conclusions,
+        unresolved=unresolved,
+        next_actions=next_actions,
+        lineage=(result.ref, *result.lineage),
+    )
 
 
 @dataclass(frozen=True)

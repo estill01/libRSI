@@ -20,7 +20,7 @@ from ..records import (
     TargetSnapshot,
     register_record_type,
 )
-from ..runtime import ActionResult, Run, RunBudget
+from ..runtime import ActionResult, Run, RunBudget, RuntimeFailure
 
 INVESTIGATION_MODES = frozenset({"sequential", "parallel"})
 INVESTIGATION_BRANCH_STATUSES = frozenset({"active", "supported", "rejected", "retired"})
@@ -771,6 +771,8 @@ class InvestigationResult(SemanticRecord):
     evidence: tuple[Evidence, ...]
     unresolved: tuple[str, ...] = ()
     failure_result: ActionResult | None = None
+    terminal_status: str = "completed"
+    terminal_failure: RuntimeFailure | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.investigation, InvestigationRequest):
@@ -778,24 +780,52 @@ class InvestigationResult(SemanticRecord):
         expected_run = self.investigation.canonical_run().ref
         if not isinstance(self.run, RecordRef) or self.run != expected_run:
             raise ValueError("investigation result does not cite the canonical Run")
+        terminal_status = _require_text(self.terminal_status, "investigation terminal status")
+        if terminal_status not in {"completed", "failed", "cancelled"}:
+            raise ValueError(
+                "investigation terminal status must be completed, failed, or cancelled"
+            )
         failure_result = self.failure_result
+        terminal_failure = self.terminal_failure
         failure_lineage: tuple[RecordRef, ...] = ()
-        if failure_result is not None:
-            if not isinstance(failure_result, ActionResult):
-                raise TypeError("investigation runtime failure must be an ActionResult")
-            failure = failure_result.failure
-            if (
-                failure_result.disposition == "succeeded"
-                or failure is None
-                or failure_result.action.run != expected_run
-                or failure_result.action.kind
-                not in {"investigation-reason", "investigation-experiment"}
-            ):
+        if failure_result is not None and not isinstance(failure_result, ActionResult):
+            raise TypeError("investigation runtime failure must be an ActionResult")
+        if terminal_status == "completed":
+            if failure_result is not None or terminal_failure is not None:
+                if isinstance(failure_result, ActionResult) and (
+                    failure_result.disposition == "succeeded" or failure_result.failure is None
+                ):
+                    raise ValueError(
+                        "investigation runtime failure must be an exact failed workflow result"
+                    )
+                raise ValueError("completed investigation cannot retain runtime failure settlement")
+        else:
+            if failure_result is None:
+                raise ValueError(
+                    "investigation results require competing hypothesis branches or exact failure settlement"
+                )
+            if failure_result.action.run != expected_run or failure_result.action.kind not in {
+                "investigation-reason",
+                "investigation-experiment",
+            }:
                 raise ValueError(
                     "investigation runtime failure must be an exact failed workflow result"
                 )
-            failure_lineage = (failure_result.ref, failure.ref)
+            if not isinstance(terminal_failure, RuntimeFailure):
+                raise TypeError("investigation runtime failure requires its RuntimeFailure")
+            if (
+                failure_result.failure != terminal_failure
+                and terminal_failure.classification != "budget-exhausted"
+            ):
+                raise ValueError("investigation terminal result and failure have drifted")
+            if terminal_status == "failed" and failure_result.disposition != "failed":
+                raise ValueError("failed investigation requires a failed terminal result")
+            if terminal_status == "cancelled" and failure_result.disposition != "cancelled":
+                raise ValueError("cancelled investigation requires a cancelled terminal result")
+            failure_lineage = (failure_result.ref, terminal_failure.ref)
+        object.__setattr__(self, "terminal_status", terminal_status)
         object.__setattr__(self, "failure_result", failure_result)
+        object.__setattr__(self, "terminal_failure", terminal_failure)
         branches = tuple(self.branches)
         if len(branches) < 2 and failure_result is None:
             raise ValueError("investigation results require competing hypothesis branches")
@@ -902,3 +932,12 @@ class InvestigationResult(SemanticRecord):
         if _refs(self.lineage, "investigation result lineage") != expected_lineage:
             raise ValueError("investigation result lineage is incomplete")
         super().__post_init__()
+
+    def identity_data(self) -> dict[str, Any]:
+        """Preserve completed v1 roots while binding exceptional settlement exactly."""
+
+        data = super().identity_data()
+        if self.terminal_status == "completed":
+            data.pop("terminal_status")
+            data.pop("terminal_failure")
+        return data

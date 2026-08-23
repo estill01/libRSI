@@ -5,19 +5,37 @@ from __future__ import annotations
 from ..identity import FrozenMap
 from .records import EVENT_PROJECTION_SCHEMA, OUTCOME_PROJECTION_SCHEMA
 
-_RECORD_SCHEMA = {
-    "type": "object",
-    "required": ["$schema", "record_type", "schema_version", "root", "data", "metadata"],
-    "properties": {
-        "$schema": {"const": "librsi.record/v1"},
-        "record_type": {"type": "string", "minLength": 1},
-        "schema_version": {"type": "integer", "const": 1},
-        "root": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-        "data": {"type": "object"},
-        "metadata": {"type": "object"},
-    },
-    "additionalProperties": False,
-}
+
+def _record_schema(*record_types: str) -> dict[str, object]:
+    """Describe the exact record-type domain accepted by one codec slot."""
+
+    return {
+        "type": "object",
+        "required": ["$schema", "record_type", "schema_version", "root", "data", "metadata"],
+        "properties": {
+            "$schema": {"const": "librsi.record/v1"},
+            "record_type": (
+                {"const": record_types[0]}
+                if len(record_types) == 1
+                else {"enum": list(record_types)}
+            ),
+            "schema_version": {"type": "integer", "const": 1},
+            "root": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+            "data": {"type": "object"},
+            "metadata": {"type": "object"},
+        },
+        "additionalProperties": False,
+    }
+
+
+_RESULT_RECORD_SCHEMA = _record_schema(
+    "validation_result",
+    "investigation_result",
+    "improvement_result",
+    "rsi_result",
+)
+_OUTCOME_RECORD_SCHEMA = _record_schema("outcome")
+_EVENT_RECORD_SCHEMA = _record_schema("event")
 
 OUTCOME_PROJECTION_JSON_SCHEMA = FrozenMap(
     {
@@ -42,8 +60,8 @@ OUTCOME_PROJECTION_JSON_SCHEMA = FrozenMap(
             "workflow": {"enum": ["validation", "investigation", "improvement", "rsi"]},
             "result_root": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
             "outcome_root": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-            "result": _RECORD_SCHEMA,
-            "outcome": _RECORD_SCHEMA,
+            "result": _RESULT_RECORD_SCHEMA,
+            "outcome": _OUTCOME_RECORD_SCHEMA,
             "metadata": {"type": "object"},
         },
         "additionalProperties": False,
@@ -86,7 +104,7 @@ EVENT_PROJECTION_JSON_SCHEMA = FrozenMap(
             "outcome_root": {"type": ["string", "null"]},
             "failure_root": {"type": ["string", "null"]},
             "emitted_action_roots": {"type": "array", "items": {"type": "string"}},
-            "event": _RECORD_SCHEMA,
+            "event": _EVENT_RECORD_SCHEMA,
             "metadata": {"type": "object"},
         },
         "additionalProperties": False,

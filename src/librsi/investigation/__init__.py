@@ -37,6 +37,7 @@ from .workflow import (
     InvestigationUpdate,
     InvestigationWorkflow,
     investigate,
+    investigation_outcome,
 )
 
 __all__ = [
@@ -64,6 +65,7 @@ __all__ = [
     "InvestigationWorkflow",
     "derive_investigation_action",
     "investigate",
+    "investigation_outcome",
     "investigation_batch_from_action_result",
     "investigation_design_reasoning_action",
     "investigation_experiment_request_from_action",

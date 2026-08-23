@@ -135,6 +135,7 @@ from .improvement import (
     SearchDirective,
     cycle_request_from_action,
     improve,
+    improvement_outcome,
     make_cycle_failure,
     make_cycle_result,
     proposal_from_action_result,
@@ -221,6 +222,7 @@ from .investigation import (
     investigation_design_reasoning_action,
     investigation_experiment_request_from_action,
     investigation_hypothesis_reasoning_action,
+    investigation_outcome,
     investigation_unresolved,
     make_investigation_experiment_action,
     make_investigation_experiment_failure,
@@ -382,6 +384,7 @@ from .rsi import (
     replay_governance_state,
     review_command_from_action,
     review_from_result,
+    rsi_outcome,
 )
 from .runtime import (
     ACTION_RESULT_DISPOSITIONS,
@@ -430,6 +433,7 @@ from .validation import (
     validate,
     validation_batch_from_action_result,
     validation_evidence_request_from_action,
+    validation_outcome,
 )
 
 __all__ = [
@@ -743,6 +747,7 @@ __all__ = [
     "serialize_record",
     "initial_belief",
     "improve",
+    "improvement_outcome",
     "evaluation_command_from_action",
     "evaluation_from_result",
     "emit_transitions",
@@ -750,6 +755,7 @@ __all__ = [
     "governance_outcome",
     "governance_projection_fields",
     "investigate",
+    "investigation_outcome",
     "investigation_batch_from_action_result",
     "investigation_design_reasoning_action",
     "investigation_experiment_request_from_action",
@@ -804,6 +810,7 @@ __all__ = [
     "projection_to_dict",
     "next_governance_action",
     "recurse",
+    "rsi_outcome",
     "replay_governance_state",
     "rollback_input_from_action",
     "rollback_receipt_from_result",
@@ -816,6 +823,7 @@ __all__ = [
     "reconstruct_result",
     "serialize_projection",
     "validate",
+    "validation_outcome",
     "validate_reasoning_content",
     "validation_batch_from_action_result",
     "validation_evidence_request_from_action",

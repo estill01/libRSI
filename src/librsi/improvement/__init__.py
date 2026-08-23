@@ -23,7 +23,13 @@ from .records import (
     ImprovementResult,
     SearchDirective,
 )
-from .workflow import ImprovementProgress, ImprovementUpdate, ImprovementWorkflow, improve
+from .workflow import (
+    ImprovementProgress,
+    ImprovementUpdate,
+    ImprovementWorkflow,
+    improve,
+    improvement_outcome,
+)
 
 __all__ = [
     "IMPROVEMENT_ACTION_KIND",
@@ -45,6 +51,7 @@ __all__ = [
     "SearchDirective",
     "cycle_request_from_action",
     "improve",
+    "improvement_outcome",
     "make_cycle_failure",
     "make_cycle_result",
     "proposal_from_action_result",

@@ -22,6 +22,32 @@ from .replay import (
 )
 
 
+def improvement_outcome(result: ImprovementResult) -> Outcome:
+    """Derive the canonical terminal Outcome owned by improvement semantics."""
+
+    if not isinstance(result, ImprovementResult):
+        raise TypeError("improvement outcome requires an ImprovementResult")
+    evidence = {
+        item.root: EvidenceRef.from_evidence(item)
+        for iteration in result.iterations
+        for item in iteration.proposal.investigation.evidence
+    }
+    return Outcome(
+        intent=result.request.ref,
+        status=result.disposition,
+        target_snapshot=result.request.baseline,
+        conclusions=(result.stop_reason,),
+        evidence_refs=tuple(evidence[key] for key in sorted(evidence)),
+        unresolved=() if result.disposition == "improved" else ("no candidate accepted",),
+        next_actions=(
+            ("submit the explicit application handoff to an authorized Applier",)
+            if result.handoff is not None
+            else ("revise the goal, evidence, or search budget before another run",)
+        ),
+        lineage=(result.ref, *result.lineage),
+    )
+
+
 @dataclass(frozen=True)
 class ImprovementProgress:
     request: ImprovementRequest
@@ -107,25 +133,7 @@ class ImprovementWorkflow:
 
     @staticmethod
     def _outcome(result: ImprovementResult) -> Outcome:
-        evidence = {
-            item.root: EvidenceRef.from_evidence(item)
-            for iteration in result.iterations
-            for item in iteration.proposal.investigation.evidence
-        }
-        return Outcome(
-            intent=result.request.ref,
-            status=result.disposition,
-            target_snapshot=result.request.baseline,
-            conclusions=(result.stop_reason,),
-            evidence_refs=tuple(evidence[key] for key in sorted(evidence)),
-            unresolved=() if result.disposition == "improved" else ("no candidate accepted",),
-            next_actions=(
-                ("submit the explicit application handoff to an authorized Applier",)
-                if result.handoff is not None
-                else ("revise the goal, evidence, or search budget before another run",)
-            ),
-            lineage=(result.ref, *result.lineage),
-        )
+        return improvement_outcome(result)
 
     @staticmethod
     def _require_current(request: ImprovementRequest, current_snapshot: TargetSnapshot) -> None:

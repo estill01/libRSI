@@ -19,7 +19,7 @@ from ..records import (
     TargetSnapshot,
     register_record_type,
 )
-from ..runtime import Run, RunBudget
+from ..runtime import ActionResult, Run, RunBudget, RuntimeFailure
 
 VALIDATION_DISPOSITIONS = frozenset({"supported", "contradicted", "bounded", "inconclusive"})
 VALIDATION_BATCH_DISPOSITIONS = frozenset({"collected", "unavailable"})
@@ -364,6 +364,9 @@ class ValidationResult(SemanticRecord):
     reused_evidence_refs: tuple[EvidenceRef, ...] = ()
     gathered_evidence_refs: tuple[EvidenceRef, ...] = ()
     unresolved: tuple[str, ...] = ()
+    terminal_status: str = "completed"
+    terminal_result: ActionResult | None = None
+    terminal_failure: RuntimeFailure | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.validation, ValidationRequest):
@@ -432,17 +435,59 @@ class ValidationResult(SemanticRecord):
         if disposition in {"supported", "contradicted"} and unresolved:
             raise ValueError("decisive validation cannot retain unresolved items")
         object.__setattr__(self, "unresolved", unresolved)
+
+        terminal_status = _require_text(self.terminal_status, "validation terminal status")
+        if terminal_status not in {"completed", "failed", "cancelled"}:
+            raise ValueError("validation terminal status must be completed, failed, or cancelled")
+        terminal_result = self.terminal_result
+        terminal_failure = self.terminal_failure
+        if terminal_status == "completed":
+            if terminal_result is not None or terminal_failure is not None:
+                raise ValueError("completed validation cannot retain runtime failure settlement")
+        else:
+            if not isinstance(terminal_result, ActionResult):
+                raise TypeError("failed validation requires its exact terminal ActionResult")
+            if terminal_result.action.run != self.run:
+                raise ValueError("validation terminal result belongs to another Run")
+            if not isinstance(terminal_failure, RuntimeFailure):
+                raise TypeError("failed validation requires its exact RuntimeFailure")
+            if (
+                terminal_result.failure != terminal_failure
+                and terminal_failure.classification != "budget-exhausted"
+            ):
+                raise ValueError("validation terminal result and failure have drifted")
+            if terminal_status == "failed" and terminal_result.disposition != "failed":
+                raise ValueError("failed validation requires a failed terminal result")
+            if terminal_status == "cancelled" and terminal_result.disposition != "cancelled":
+                raise ValueError("cancelled validation requires a cancelled terminal result")
+            if unresolved != (terminal_failure.message,):
+                raise ValueError("validation failure must retain the exact runtime message")
+        object.__setattr__(self, "terminal_status", terminal_status)
+        object.__setattr__(self, "terminal_result", terminal_result)
+        object.__setattr__(self, "terminal_failure", terminal_failure)
         expected_lineage = (
             self.validation.ref,
             self.run,
             self.belief.ref,
             *(item.ref for item in evidence),
+            *((terminal_result.ref,) if terminal_result is not None else ()),
+            *((terminal_failure.ref,) if terminal_failure is not None else ()),
         )
         if _refs(self.lineage, "validation result lineage") != expected_lineage:
             raise ValueError(
                 "validation result lineage must retain request, run, belief, and evidence"
             )
         super().__post_init__()
+
+    def identity_data(self) -> dict[str, Any]:
+        """Preserve completed v1 roots while binding exceptional settlement exactly."""
+
+        data = super().identity_data()
+        if self.terminal_status == "completed":
+            data.pop("terminal_status")
+            data.pop("terminal_result")
+            data.pop("terminal_failure")
+        return data
 
     @property
     def subject_ref(self) -> RecordRef:

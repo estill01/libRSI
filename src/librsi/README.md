@@ -341,7 +341,11 @@ complete public `Outcome` from them. Its v1 JSON contains both root-checked cano
 records plus stable workflow/result/outcome fields. Reconstruction delegates to the
 registered semantic record decoder, so an external projection cannot relax lineage,
 currentness, policy-derived disposition, application authority, or self-change
-governance. Runtime event projections similarly retain the exact canonical `Event` and
+governance. Validation and investigation failures retain their exact terminal status,
+`ActionResult`, and `RuntimeFailure`; projection delegates to the same workflow-owned
+outcome derivation used to reconcile runtime state, so operational failure cannot be
+relabeled as ordinary epistemic inconclusiveness. Runtime event projections similarly
+retain the exact canonical `Event` and
 derive every summary field from it. Transport metadata is serialized for correlation
 but excluded from `projection_root`; persistence deliberately strips it. CLI, HTTP, MCP,
 notifications, and dashboards remain later interface projections over this same

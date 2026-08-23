@@ -93,6 +93,18 @@ def test_published_schemas_are_explicit_and_closed() -> None:
     assert EVENT_PROJECTION_JSON_SCHEMA["additionalProperties"] is False
     assert "result" in OUTCOME_PROJECTION_JSON_SCHEMA["properties"]
     assert "event" in EVENT_PROJECTION_JSON_SCHEMA["properties"]
+    outcome_properties = OUTCOME_PROJECTION_JSON_SCHEMA["properties"]
+    event_properties = EVENT_PROJECTION_JSON_SCHEMA["properties"]
+    assert outcome_properties["result"]["properties"]["record_type"] == {
+        "enum": (
+            "validation_result",
+            "investigation_result",
+            "improvement_result",
+            "rsi_result",
+        )
+    }
+    assert outcome_properties["outcome"]["properties"]["record_type"] == {"const": "outcome"}
+    assert event_properties["event"]["properties"]["record_type"] == {"const": "event"}
     with pytest.raises(ValueError, match="unsupported projection schema"):
         projection_schema("librsi.unknown/v1")
 

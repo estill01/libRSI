@@ -7,28 +7,28 @@
   "schema_version": 1,
   "workflows": {
     "improvement": {
-      "outcome_root": "ff8ab6de0f897e467f255394afaa5fdcb7b50e262aa985db934f4c32817d2fde",
-      "projection_root": "00b1d607412cfcab67aa2435609a918ea84946138df1d1a164712443c09e8923",
-      "result_root": "ea98d30f27f351ef6a1644b83fafdf895bb31b1cdb1e1e3da1688f109edd88fd",
-      "serialized_sha256": "f0e2982403130ced441d2e612edb164cf5a8e6218731c937fd68f3b14b390a41"
+      "outcome_root": "4bf9ac2d270e0fec4fc888278e30647af6e44db66e972b4aa88af6a177926304",
+      "projection_root": "eb434f680ac37fe1c613a7d98cbf0b16fae6527704e2e399c4adf6306a95f490",
+      "result_root": "0e0aa414c82358996feeba2f2103c4b12b416069bc5fa9b70c9a7f9e7e3a070a",
+      "serialized_sha256": "7b2782cd4eddd0ea48a41b8f50433b9237dcbe5230c5b25e4da7b655c1bac44c"
     },
     "investigation": {
       "outcome_root": "24b4056555adea153536b190572b9455a8b0d845d438cffdeb3c2e4f74acc0f3",
       "projection_root": "322617ef135403bca692d9cca961b39fa3bb8e5c5198e56809b52d941762bf8e",
       "result_root": "848449dcf881bb10a4a931dd7a4dad9e9038718835a6b87abd97d6b59d40e22d",
-      "serialized_sha256": "8ae28c0ac95b2c1d85158f245ca0ff407c8f35e4cf17bcd898e20bbaf3773e73"
+      "serialized_sha256": "a18f7add534e159d3c66884c395d76dac502f616d471adc86291d00aa95d6781"
     },
     "rsi": {
-      "outcome_root": "4a4c77e06802a50f505877e19f65aa7e86ae1df4afcba8f5f9d093c4f1ef321a",
-      "projection_root": "3fcafef196fe99e8ae9b31097266eb8081c1af66e1cdbf202107cfea6be87027",
-      "result_root": "9f5a203b3f134280d0fbc43f716855acfa2a6df2e34c51a73ae7e9e6c272407c",
-      "serialized_sha256": "e946d3e36642f2387b8e69bc83597276395dc1c3c9c11df7f535218cfa9818f8"
+      "outcome_root": "fae58aa5b03b4e3028a549e0cd79a9bc9d9e460005fd213a8d2921330e5c448c",
+      "projection_root": "861a1fd7c13db043405a726099a0ffc55ba3ba4424f8283b5e51c1ae4b4c3d7a",
+      "result_root": "d59714a5e3c5dd9fde926ff7e766d38054a2e242c571bff142ba4b70c803c390",
+      "serialized_sha256": "5b8d2829ef41825c995b15c5f3af388418a35acc1d3ee1d5f0efa57585a0a496"
     },
     "validation": {
       "outcome_root": "4a754309f4a1a6717298c970b88cdacd4e85f4defc909b931549fa9a6591bd92",
       "projection_root": "bbf4bcdf4b6db5539db3dabd9bb97b121eb41ae7e2c8b1c85f58f822be7d301d",
       "result_root": "536a7a03f5ebb4daa95ec0a39e3a08e0068fe554549fc87e074d9da47f91612a",
-      "serialized_sha256": "ac608ca7a45b467a08d228f478f688c96880e3f0f27f30cffc2e51579f737cb3"
+      "serialized_sha256": "5423b4f8c1e291be1b5e35fc64c3d0fc8d148a8fe15324596b7f48ab0de7f963"
     }
   }
 }

@@ -54,7 +54,9 @@ artifact directory, and structured standard-library logging. The facade owns no 
 lifecycle: `LibRSIRun.next()` and `submit()` expose the exact canonical actions and
 results used by managed execution.
 The `librsi.projections` package adds stable v1 external envelopes for every public
-workflow result and canonical runtime event. It derives a complete `Outcome`, retains
+workflow result and canonical runtime event. It reuses each workflow's canonical
+`Outcome` derivation, retains operational failure/cancellation settlement separately
+from epistemic inconclusiveness, and preserves
 the exact canonical result bytes/root, reconstructs through the registered record
 decoder, and keeps transport metadata outside semantic identity. A minimal replaceable
 `ProjectionStore` persists metadata-free canonical documents without becoming another
