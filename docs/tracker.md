@@ -5,7 +5,7 @@
 - Repository: `https://github.com/estill01/libRSI`
 - Governing objective: evolve libRSI into a domain-neutral, evidence-driven validation, investigation, improvement, and governed recursive-self-improvement library.
 - Canonical status owner: this file.
-- First eligible Block: 18.
+- First eligible Block: 21.
 
 ## 1. Purpose and intended outcome
 
@@ -68,8 +68,11 @@ Completion means:
   zero-dependency low-level APIs, `0.2.x` compatibility until explicit migration,
   and consumer-to-libRSI dependency direction.
 - Architecture strategy: own semantic contracts and deterministic transitions;
-  expose replaceable protocols; ship thin local defaults and optional transport or
-  provider adapters without rebuilding generic infrastructure platforms.
+  expose replaceable protocols; ship thin local defaults and separately installable
+  transport or provider adapters without rebuilding generic infrastructure platforms.
+  When an accepted `estill01/utils` package owns required domain-neutral mechanics,
+  the corresponding libRSI adapter must consume that package rather than retain or
+  create a local implementation.
 - Requested capability: complete reusable validation, investigation, improvement,
   application, and RSI workflows with durable outcomes and multiple control planes.
 - Proportionality: the plan builds the semantic owners and minimum reference
@@ -78,8 +81,8 @@ Completion means:
 - Tradeoffs: batteries-included operation adds persistence and optional dependencies;
   strict identity/currentness increases schema discipline; staged compatibility
   delays interface stabilization but prevents premature public commitments.
-- Uncertainty: the final open-source license and any hosted provider chosen for the
-  optional adapter remain external decisions. The license blocks only the
+- Uncertainty: the final open-source license and any hosted provider chosen for a
+  separately activated adapter remain external decisions. The license blocks only the
   license-dependent subset of Block 26; provider-independent work continues.
 
 ## 2. Target architecture and authority boundaries
@@ -132,9 +135,18 @@ that consumes those packages.
 - Every consumption record binds the producer commit, distribution name/version,
   artifact and compatibility roots, accepted handoff evidence, and libRSI adapter
   root. A changed producer root selectively stales only mapped libRSI evidence.
-- An unavailable utility blocks only its mapped adoption lane. Unrelated libRSI
-  semantic/runtime work continues, and package source is never copied locally as a
-  temporary substitute.
+- Every mapped utility is a hard acceptance dependency of its consuming libRSI
+  Block once the tracker requires that capability. An unavailable or unaccepted
+  utility blocks acceptance of that Block and its descendant closure; unrelated
+  libRSI semantic/runtime work and dependency-independent preparation may continue,
+  but the lane cannot be waived, replaced locally, or omitted from terminal program
+  completion.
+- “Optional” for a provider or transport means separately installed and explicitly
+  activated at runtime. It never means that libRSI may choose a different owner for
+  mechanics assigned here to an accepted utils package. In particular, Codex support
+  must use `codex-app-server-client`, embedded/service conformance must use
+  `embedded-service-contract`, and runtime compatibility projection must use
+  `runtime-manifest` at their mapped Blocks.
 - Utils Block 16 intentionally closes with no license selected and no publication.
   Same-owner internal exact-revision evaluation may proceed, but libRSI must not
   advertise a publicly installable utility-backed extra, redistribute its artifacts,
@@ -152,9 +164,9 @@ that consumes those packages.
 | Search lanes and review gates | `src/librsi/portfolios.py`, `reviews.py`, `selections.py` | Extend; do not create parallel governance ledgers. |
 | Self-change seed policies | `src/librsi/selector_policies.py` | Generalize in Block 17 through ordinary intervention/evidence records. |
 | Composition | `src/librsi/kernel.py` | Retain as the low-level deterministic API, not the public workflow facade. |
-| Codex app-server protocol mechanics | utils `codex-app-server-client` accepted package handoff | Consume only through a libRSI-owned optional capability adapter after the Block 9 distribution freeze; do not fork transport/session mechanics. |
-| Embedded/service structural conformance | utils `embedded-service-contract` accepted package handoff | Consume structural lifecycle assertions after Block 10; libRSI continues to own semantic runs, outcomes, persistence, and authority. |
-| Runtime component/currentness description | utils `runtime-manifest` accepted package handoff | Consume descriptive exact-version/root metadata after Block 11; never treat a manifest as availability, authorization, acceptance, or evidence. |
+| Codex app-server protocol mechanics | utils `codex-app-server-client` accepted package handoff | Block 22 must consume it through a separately installable libRSI-owned capability adapter after the Block 9 distribution freeze; do not fork transport/session mechanics or accept Block 22 without the integration. |
+| Embedded/service structural conformance | utils `embedded-service-contract` accepted package handoff | Block 24 must consume its structural lifecycle assertions after utils Block 10; libRSI continues to own semantic runs, outcomes, persistence, and authority. |
+| Runtime component/currentness description | utils `runtime-manifest` accepted package handoff | Block 24 must consume its descriptive exact-version/root metadata after utils Block 11; never treat a manifest as availability, authorization, acceptance, or evidence. |
 | Repository quality gates | `.github/workflows/ci.yml`, `pyproject.toml` | Reuse for all focused and mapped validation. |
 | Historical implementation proof | `docs/implementation/implementation-status.md` | Preserve as evidence; canonical live status is in this tracker. |
 
@@ -195,7 +207,7 @@ the recorded source snapshot.
 - Canonical semantic records, epistemics, experiments, targets/currentness,
   knowledge, durable runtime transitions, capabilities, workflows, outcomes,
   application/rollback, self-change governance, and required public projections.
-- Thin SQLite/local defaults, optional reasoner/server/MCP adapters, a generic
+- Thin SQLite/local defaults, separately installable reasoner/server/MCP adapters, a generic
   consumer integration contract with libRSI-owned conformance fixtures, and
   deterministic non-software dogfoods.
 - Embedded, externally driven, and managed standalone modes over the same
@@ -222,8 +234,8 @@ hardening without a reproduced in-scope failure is omitted.
 ## 6. Block execution contract
 
 1. The requested range is the complete current tracker, Blocks 0–26 and the
-   observable completion outcome. Blocks 0–2 are accepted history; implementation
-   resumes at Block 18.
+   observable completion outcome. Blocks 0–20 are accepted or completed history;
+   implementation resumes at Block 21.
 2. Execute one eligible Block at a time in dependency order. A Block Stop is an
    internal checkpoint and never contracts this full-tracker request.
 3. Before implementation-producing work, change the table row and Block status from
@@ -244,6 +256,10 @@ hardening without a reproduced in-scope failure is omitted.
     implementation, then the current qualified package set for terminal proof. It
     never replays utils proof or treats a mutable branch, source checkout, package
     count, or manifest alone as consumer acceptance.
+11. A mapped utility may delay only its dependent acceptance closure, not unrelated
+    work, but it cannot be waived to finish a Block or the full tracker. The consuming
+    Block records the exact producer and adapter roots and proves that no copied,
+    vendored, reconstructed, or competing local owner remains.
 
 ### Continuation-first license gate
 
@@ -323,9 +339,9 @@ content with libRSI merely to save threads.
 | 17 | Generalized RSI and self-change governance | 7, 16 | `completed` |
 | 18 | Embedded/managed local runtime and high-level Python facade | 6, 8, 15–17 | `completed` |
 | 19 | Outcome serialization and external projections | 10, 11, 15–18 | `completed` |
-| 20 | CLI, target admission, and external-agent protocol | 7, 19 | `not-started` |
+| 20 | CLI, target admission, and external-agent protocol | 7, 19 | `completed` |
 | 21 | Managed service, HTTP, and MCP projections | 7, 8, 19, 20 | `not-started` |
-| 22 | Optional provider/Codex app-server integrations | 9, 18–20 | `not-started` |
+| 22 | Required Codex app-server integration and optional provider/backend adapters | 9, 18–20 | `not-started` |
 | 23 | Consumer integration contract and conformance kit | 5, 8, 12, 15–20 | `not-started` |
 | 24 | End-to-end embedded/external/managed dogfoods | 10, 11, 15–23 | `not-started` |
 | 25 | Comprehensive cross-domain proof | 24 | `not-started` |
@@ -2660,7 +2676,7 @@ Stop before CLI, HTTP, or MCP transport stabilization.
 
 ## Block 20 — CLI, target admission, and external-agent protocol
 
-Status: `not-started`
+Status: `completed`
 
 ### Objective
 
@@ -2699,6 +2715,18 @@ commands and JSON without inferring state from prose.
 ### Deliverables and recorded state
 
 - CLI module/entrypoint, JSON schemas/examples, subprocess dogfoods, and packaging metadata.
+- The accepted implementation exposes `librsi` and `python -m librsi` command
+  entrypoints over one structured external-agent controller. Immutable target
+  admission binds the target snapshot, objective, evaluation contract,
+  capability roster, evidence/currentness baseline, application-authority
+  requirement, and resource limits before a run exists. A separate immutable
+  run-admission binding prevents later lookup keys, authority associations, or
+  CLI state from redefining that relationship.
+- Closed per-action schemas project the canonical validation, investigation,
+  improvement, and governed-RSI action/result records. The controller and SQLite
+  store persist canonical bytes and runtime transitions, reconstruct from durable
+  truth after interruption, and derive RSI restart currentness from application
+  history before repairing any external-agent pointer.
 
 ### Resource and economy contract
 
@@ -2722,7 +2750,129 @@ Review schema/runtime equivalence, restartability, error determinism, stale reje
 
 ### Completion evidence
 
-Pending.
+- Repository implementation commit:
+  `ccdd5f73b07c59ccaf03bf923ab6b4a58346403a`.
+- External/domain revision or root: not applicable. Block 20 used local temporary
+  SQLite stores, subprocess CLI invocations, and isolated wheel-install
+  environments. It performed no hosted-provider call, HTTP/MCP effect, target
+  mutation, notification, or external-system write.
+- Inputs: completed Blocks 7 and 19; canonical workflow actions, results,
+  projections, runtime transitions, and application history; architecture-contract
+  section 12; and tracker capability-frame SHA-256
+  `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+- Outputs: immutable `TargetAdmission` and `RunAdmissionBinding` records; strict
+  admission and per-action result schemas; deterministic protocol codecs; a
+  durable SQLite agent store; restart-safe `ExternalAgentController`; structured
+  `target submit`, `validate`, `investigate`, `improve`, `rsi`, `status`, `next`,
+  `submit`, `resume`, and `outcome` commands; console/module entrypoints; public
+  exports; and the external-agent protocol document.
+- Admission and authority proof: admission and run rows bind canonical target,
+  objective, evaluation, capability, evidence/currentness, authority-requirement,
+  and resource-limit bytes atomically. Application-authority associations are
+  immutable in a separate table. Wrong row-key aliases, raw-SQL association
+  replacement, missing evaluation or authority requirements, changed snapshots,
+  and mixed admission/run identities reject rather than silently selecting a run.
+- Schema/runtime proof: every exposed action kind has a closed schema with its
+  exact context constants, payload key, canonical record type, field roster, and
+  ordered output-record types. A maintained complete external drive validates
+  each result against the schema returned by `next` immediately before submission,
+  including competing-hypothesis generation, discriminating experiment design and
+  execution, improvement, RSI history, shadow evaluation, independent review,
+  authorized apply, rejected verification, and rollback. Generic empty success,
+  smuggled fields, wrong records, reordered outputs, stale actions, and invalid
+  lifecycle advancement reject.
+- Restart and currentness proof: controller reconstruction loses no admission,
+  runtime, or outcome state. Crash-window repair is idempotent and validates
+  canonical runtime truth before advancing an external pointer. Governed-RSI
+  recovery derives the observed target snapshot from persisted application
+  history, so a post-apply restart cannot repair against a stale pre-apply target.
+- Canonical-serialization hardening: the stack-safe canonical JSON encoder preserves
+  the previous deterministic byte contract over a `1000`-value seeded comparison
+  corpus, supports a depth-`1500` semantic transition, and rejects cycles. Integer
+  subclasses overriding `__str__`, `__int__`, or `__index__` still serialize as the
+  canonical numeric value and round-trip through a semantic `Evidence` record.
+- Focused validation: the final Block 20 matrix passed `53` tests at `91.72%`
+  branch-aware coverage over the protocol, CLI, and identity surfaces. The final
+  canonical/record remediation matrix passed `49` tests. Ruff formatting and lint
+  passed, mypy passed all `114` source files, and diff integrity passed.
+- Mapped validation: the full CI-equivalent suite exercised `700` tests. Its single
+  uninterrupted run passed `699` product tests at `90.66%` branch coverage and
+  encountered one external DNS-resolution failure while the isolated build tool
+  attempted to fetch `setuptools`; one bounded rerun of that exact wheel-installed
+  CLI dogfood passed in `24.69s`. No code changed between the run and rerun, yielding
+  terminal combined evidence of all `700` tests passing. The `24` warnings remain the
+  existing deprecated v0.2 compatibility-wrapper warnings.
+- Candidate freeze: exact content root
+  `d3fb36552e0c41500d395c99419008b8231b91d4aed7f2d0c8bd9dd50732d43f`
+  over `20` paths relative to base
+  `f7ccd7bbc98e335c09df1f5f3779ee4261f5b352` remained unchanged through final
+  review and commit. The concurrent authorized tracker amendment was excluded from
+  the implementation candidate and preserved byte-for-byte until this evidence
+  update. Unrelated untracked `uv.lock` was excluded and remained unchanged at size
+  `134695`, mtime `1787379167`, and SHA-256
+  `ea9a2eb3afc46401f2356ef098e005ec87ac33e27475e43bcd86eb4131ea960e`.
+- Remediation closure: independent review first found a mutable authority
+  association and schemas looser than runtime acceptance; remediation introduced
+  immutable authority bindings and exact action-specific schemas. A second review
+  found generic action-result schemas and admission lookup-key aliasing; remediation
+  closed both surfaces. A third review found overridable integer string rendering in
+  the new stack-safe serializer; the final remediation routed integers through the
+  non-overridable JSON numeric encoder and added semantic-record round-trip proof.
+  Every reproduced finding has a regression and no finding remains open.
+- Independent semantic review: Hubble returned `ACCEPT` against the frozen content
+  root above after independently verifying the final integer-subclass remediation,
+  canonical/semantic round trips, fail-closed unsupported inputs and cycles, and
+  byte-equivalence with the prior encoder. The same review lineage closed admission
+  binding, authority immutability, schema/runtime equivalence, RSI recovery, and the
+  Block 21 Stop.
+- Product-capability review:
+  - Trigger: consequential posture.
+  - Frame identity: `docs/tracker.md`, Block 20,
+    `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+  - Capability added or preserved: a host can admit a target and drive complete
+    validation, investigation, improvement, and governed-RSI runs using only typed
+    JSON while canonical workflows/runtime remain the sole semantic and lifecycle
+    authorities.
+  - Paths compared: command-specific local orchestration with implicit state; the
+    selected thin structured controller over canonical records/runtime; and an early
+    HTTP/MCP service. The structured controller was selected because it proves an
+    external-agent boundary and durable restart without duplicating policy or crossing
+    into transport ownership.
+  - Selected level and owner: immutable protocol records in `protocol/records.py`;
+    closed external schemas in `protocol/schemas.py`; deterministic bytes in
+    `protocol/codec.py`; durable bindings in `protocol/sqlite.py`; runtime projection
+    and repair in `protocol/controller.py`; and presentation-only parsing/rendering in
+    `cli/main.py`.
+  - Protected-capability result: no prose, CLI cache, lookup alias, result envelope,
+    or transport metadata can redefine target, action, result, authority, runtime, or
+    outcome identity. Application remains an explicitly authorized canonical RSI
+    action, and external driving cannot promote hypotheses, experiments, or proposals
+    directly to truth.
+  - Rejected alternatives: implicit command state could not prove restart or stale
+    rejection; a transport service here would prematurely stabilize HTTP/MCP and mix
+    Block 21 ownership into the local protocol.
+  - Tradeoffs and uncertainty: action-specific schemas deliberately duplicate a
+    projection of canonical field rosters, so additions require an explicit versioned
+    protocol update. That cost is accepted because agents receive an exact contract
+    and malformed or stale success cannot pass a generic envelope.
+  - Frozen-candidate proof: implementation commit and content root above, combined
+    `700`-test acceptance evidence, installed-wheel proof, and accepted independent
+    exact-root review.
+- Resource posture: one SQLite database owns admission and external-run state; CLI
+  calls are bounded subprocesses; canonical schemas and records are generated in
+  process; test builds use temporary directories. No daemon, network service,
+  natural-language controller, hosted provider, shell inference, or application
+  authority was introduced.
+- Retained open work: none within Block 20. Managed execution, HTTP/MCP projections,
+  required Codex integration, optional provider adapters, consumer conformance,
+  cross-mode dogfoods, comprehensive proof, and release work remain in Blocks 21–26.
+- Decision/continuation posture: not applicable; Block 21 is dependency-safe.
+- Post-block audit: accepted. No HTTP/MCP server, hosted-provider adapter,
+  natural-language orchestration, shell inference, notification, or alternate
+  application authority crossed the Block 20 Stop.
+- Git durability: the implementation commit above is queued for a non-force push on
+  `origin/codex/block-20-cli-protocol`; the evidence successor records Block 20
+  completion and the separately authorized tracker-only dependency amendment.
 
 ### Stop
 
@@ -2812,15 +2962,15 @@ Pending.
 
 Stop before production deployment, general platform features, or provider-specific adapters.
 
-## Block 22 — Optional reasoner, Codex app-server, optimizer, and backend integrations
+## Block 22 — Required Codex app-server integration and optional provider/backend adapters
 
 Status: `not-started`
 
 ### Objective
 
 Prove stable capability contracts with one maintained hosted-model reasoner
-adapter, a Codex app-server adapter, and only justified optional backend
-integrations.
+adapter, a required Codex app-server adapter using the accepted shared client,
+and only justified optional backend integrations.
 
 ### Target-product capability delta
 
@@ -2830,7 +2980,10 @@ integrations.
   selected optimizer/backend contracts.
 - Potential capability loss or regression: provider types, credentials, optimizer scores, or workflow engines could leak authority into core semantics.
 - Protected-capability effect: base install remains provider-free; external-agent mode remains first-class; proposals never become truth/selection/application automatically.
-- Architecture and operating-model effect: optional extras implement existing protocols without modifying canonical records.
+- Architecture and operating-model effect: provider integrations may be separately
+  installed and activated, but required Codex mechanics come only from the accepted
+  utils owner and all adapters implement existing protocols without modifying
+  canonical records.
 - Tradeoff and source evidence: architecture contract sections 5–6 and scope revision Block 21; add only adapters required by a real dogfood.
 
 ### Inputs and dependencies
@@ -2838,16 +2991,20 @@ integrations.
 - Blocks 9 and 18–20; current provider SDK/spec selected at implementation time.
 - Exact accepted utils Block 9 `codex-app-server-client` handoff, including its
   pushed producer revision, distribution version, artifact root, supported
-  protocol/schema root, compatibility posture, and currentness evidence. Absence
-  blocks only the Codex app-server adapter; other provider adapters remain eligible.
+  protocol/schema root, compatibility posture, and currentness evidence. This is a
+  hard Block 22 acceptance dependency: other provider work may proceed while it is
+  unavailable, but Block 22 cannot be accepted and its Codex lane cannot be waived or
+  locally reimplemented.
 
 ### Required work
 
 - Implement `ExternalAgentReasoner` and one maintained hosted-model reasoner extra through typed reasoning tasks.
-- Implement an optional Codex app-server reasoner/executor extra through the
-  domain-neutral typed client from `estill01/utils`; pin exact protocol/client
-  compatibility and keep app-server behind libRSI capability interfaces.
-- Record the exact utility handoff and libRSI adapter roots in the optional-extra
+- Implement the separately installable Codex app-server reasoner/executor through
+  the domain-neutral typed client from `estill01/utils`; its use is required for
+  Block acceptance even though installation and runtime activation remain explicit.
+  Pin exact protocol/client compatibility and keep app-server behind libRSI
+  capability interfaces.
+- Record the exact utility handoff and libRSI adapter roots in the provider-integration
   compatibility manifest; do not copy, vendor, fork, or reconstruct the client.
 - Make provider process ownership explicit: standalone libRSI may own its local
   process; an embedding host may inject a provider; Software Factory-managed
@@ -2857,13 +3014,16 @@ integrations.
 
 ### Scope and non-goals
 
-- In scope: optional adapters proving capability/backend substitution,
-  including `librsi[codex]` or its package-equivalent extra.
+- In scope: the required utils-backed Codex adapter plus optional adapters proving
+  capability/backend substitution, including `librsi[codex]` or its
+  package-equivalent separately installable extra.
 - Not in scope: a model gateway, optimizer implementation, agent framework, workflow platform, credential manager, or mandatory network dependency.
 
 ### Deliverables and recorded state
 
-- Optional extras/adapters, provider contract tests, configuration/secret docs, and at most the dogfood-justified backend adapters.
+- Required Codex adapter, separately installable provider extras/adapters, provider
+  contract tests, configuration/secret docs, and at most the dogfood-justified
+  backend adapters.
 
 ### Resource and economy contract
 
@@ -2875,11 +3035,12 @@ Review dependency isolation, provider-neutral schemas, credential hygiene, propo
 
 ### Acceptance
 
-- Base install needs no SDK; an optional extra enables maintained Codex
-  reasoning/execution; provider swaps do not alter epistemic schema;
-  external-agent execution remains equivalent. Internal utility-backed proof binds
-  the exact accepted client handoff and makes no public-installability claim while
-  the upstream package remains unlicensed and unpublished.
+- Base install needs no SDK; the separately installed Codex extra enables maintained
+  reasoning/execution through the accepted utils client; provider swaps do not alter
+  epistemic schema; external-agent execution remains equivalent. Block acceptance
+  requires internal proof bound to the exact accepted client handoff and libRSI
+  adapter root, while making no public-installability claim as long as the upstream
+  package remains unlicensed and unpublished.
 
 ### Negative tests
 
@@ -2887,8 +3048,9 @@ Review dependency isolation, provider-neutral schemas, credential hygiene, propo
   serialization/logging, model output truth promotion, provider-completion as
   evidence/acceptance, two app-server process owners, optimizer self-selection,
   base-import failure without extras, a mutable/unaccepted utility source, copied
-  client mechanics, mixed producer/adapter roots, or public reuse claims unsupported
-  by the upstream license/publication posture.
+  client mechanics, a competing local app-server client, accepting or completing the
+  Codex lane without the exact utils handoff, mixed producer/adapter roots, or public
+  reuse claims unsupported by the upstream license/publication posture.
 
 ### Completion evidence
 
@@ -3013,8 +3175,10 @@ Prove the complete architecture through maintained deterministic workflows, inte
 - Blocks 10, 11, and 15–23.
 - For shared structural/runtime utility consumption: exact accepted utils Blocks
   10–11 package handoffs and the current frozen package-set qualification accepted
-  through utils Blocks 12–15. If unavailable, only these mapped conformance and
-  manifest scenarios wait; other deterministic dogfoods remain eligible.
+  through utils Blocks 12–15. These are hard Block 24 acceptance dependencies.
+  If unavailable, dependency-independent dogfood preparation may continue, but
+  Block 24 cannot be accepted and neither required utility may be waived, copied,
+  reconstructed, or replaced with a local substitute.
 
 ### Required work
 
@@ -3057,6 +3221,9 @@ Review scenario completeness, reuse, semantic equivalence, exact outcomes, failu
 - Every shared-utility scenario binds one exact qualified utils package set and the
   current libRSI adapter roots; embedded/service equivalence is structural only and
   runtime manifests remain descriptive rather than authoritative.
+- Block 24 and the full program cannot be accepted without successful consumption of
+  both accepted shared packages; unrelated earlier evidence does not substitute for
+  the exact current consumer proof.
 
 ### Negative tests
 
@@ -3064,8 +3231,9 @@ Review scenario completeness, reuse, semantic equivalence, exact outcomes, failu
   theater, nondiscriminating experiments, inconclusive evidence promoted as
   support, nonresumable interruption, implicit application, failed rollback,
   losing-lane promotion, two process owners, self-change gate bypass, a stale or
-  mixed utility package set, structural conformance treated as semantic acceptance,
-  and runtime-manifest fields used as authorization or outcome evidence.
+  mixed utility package set, accepting with a missing or waived mapped utility,
+  copied/reconstructed utility behavior, structural conformance treated as semantic
+  acceptance, and runtime-manifest fields used as authorization or outcome evidence.
 
 ### Completion evidence
 
@@ -3154,7 +3322,7 @@ Make the redesigned architecture the accurate, typed, installable, migration-rea
 ### Inputs and dependencies
 
 - Blocks 21–25, accepted compatibility contract, and a complete release candidate.
-- Current exact utils Block 16 terminal posture for every utility-backed optional
+- Current exact utils Block 16 terminal posture for every utility-backed integrated
   surface, plus separate license/publication evidence if public installation,
   redistribution, or third-party reuse is to be claimed.
 - Non-delegable legal input: the exact selection defined by the continuation-first
@@ -3164,7 +3332,7 @@ Make the redesigned architecture the accurate, typed, installable, migration-rea
 ### Required work
 
 - Finalize package organization/exports, facade-first README/API examples, type docs, versioning, metadata, extras, CLI/server entrypoints, changelog, and `0.2.x` migration guide.
-- Keep any utility-backed extra internal/unpublished or interface-only while utils
+- Keep any utility-backed separately installable integration internal/unpublished or interface-only while utils
   remains `no-license-selected/unpublished`; expose it as publicly installable only
   after exact current license/publication evidence authorizes that downstream use.
 - Execute examples from the built wheel and reconcile documentation against current capabilities.
@@ -3244,7 +3412,7 @@ Stop before PyPI publication, GitHub Release creation, production deployment, or
 | 19 | Historical Block 19 plus incremental workflow-result amendment. |
 | 20 | Historical Block 20 and external-agent projection contract. |
 | 21 | Historical Block 20A extension plus deferred-transport amendment. |
-| 22 | Historical Block 21 plus optional backend amendment. |
+| 22 | Historical Block 21 plus the required utils-backed Codex cutover and optional backend amendment. |
 | 23 | Historical Block 22 narrowed by the 2026-08-23 ownership amendment to libRSI-owned consumer contracts, fixtures, and handoff documentation. |
 | 24 | Historical Block 23 plus incremental-dogfood amendment. |
 | 25 | Historical Block 24 plus continuous-sentinel amendment. |
@@ -3276,9 +3444,9 @@ Stop before PyPI publication, GitHub Release creation, production deployment, or
 | 19 | Outcome round-trip/version/cross-mode equivalence tests. |
 | 20 | Installed CLI JSON/restart/stale-submission dogfoods. |
 | 21 | Service/HTTP/MCP/restart/authority/transport-neutrality tests. |
-| 22 | Offline provider contract/dependency/secret-isolation tests. |
+| 22 | Exact utils client handoff, Codex adapter, and offline provider contract/dependency/secret-isolation tests. |
 | 23 | Consumer-contract, no-reverse-import, multi-repository, and governed-reference conformance tests within libRSI. |
-| 24 | Complete deterministic end-to-end scenario matrix in CI. |
+| 24 | Complete deterministic end-to-end scenario matrix using the exact qualified utils structural-contract/runtime-manifest set in CI. |
 | 25 | Real-engine non-software validation/investigation/improvement audit. |
 | 26 | Full quality gates, artifact inspection, installed examples, docs/API/license review. |
 
@@ -3289,6 +3457,8 @@ revisions; every verification-matrix row is current; the built package and publi
 examples are rehydrated independently; the libRSI-owned consumer-conformance fixture
 and the non-software target produce current observable outcomes through the same
 semantic engine; no transport, provider, optimizer, or host became a duplicate
-authority; retained open work is genuinely reserved or excluded; and no publication,
+authority; every mapped utils package is consumed at its required Block with exact
+producer/adapter roots and no competing local owner; retained open work is genuinely
+reserved or excluded; and no publication,
 deployment, license, consumer-repository mutation, or authoritative external
 application crossed its declared boundary.

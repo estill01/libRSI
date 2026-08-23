@@ -79,14 +79,68 @@ def thaw(value: FrozenValue) -> Any:
 
 
 def canonical_json(value: Any) -> str:
-    normalized = thaw(freeze(value))
-    return json.dumps(
-        normalized,
-        sort_keys=True,
-        separators=(",", ":"),
-        ensure_ascii=False,
-        allow_nan=False,
-    )
+    """Encode canonical JSON without relying on Python call-stack depth."""
+
+    output: list[str] = []
+    active: set[int] = set()
+    stack: list[tuple[str, Any]] = [("value", value)]
+    while stack:
+        operation, item = stack.pop()
+        if operation == "token":
+            output.append(item)
+            continue
+        if operation == "leave":
+            container_id, token = item
+            active.remove(container_id)
+            output.append(token)
+            continue
+        if item is None:
+            output.append("null")
+        elif isinstance(item, bool):
+            output.append("true" if item else "false")
+        elif isinstance(item, int):
+            output.append(json.dumps(item, allow_nan=False))
+        elif isinstance(item, float):
+            if not math.isfinite(item):
+                raise ValueError("canonical values require finite floats")
+            output.append(json.dumps(item, allow_nan=False))
+        elif isinstance(item, str):
+            output.append(json.dumps(item, ensure_ascii=False))
+        elif isinstance(item, Mapping):
+            keys = tuple(item)
+            if any(not isinstance(key, str) for key in keys):
+                raise TypeError("canonical mappings require string keys")
+            container_id = id(item)
+            if container_id in active:
+                raise ValueError("canonical values cannot contain cycles")
+            active.add(container_id)
+            output.append("{")
+            stack.append(("leave", (container_id, "}")))
+            ordered = tuple(sorted(keys))
+            actions: list[tuple[str, Any]] = []
+            for index, key in enumerate(ordered):
+                if index > 0:
+                    actions.append(("token", ","))
+                actions.append(("token", json.dumps(key, ensure_ascii=False)))
+                actions.append(("token", ":"))
+                actions.append(("value", item[key]))
+            stack.extend(reversed(actions))
+        elif isinstance(item, (list, tuple)):
+            container_id = id(item)
+            if container_id in active:
+                raise ValueError("canonical values cannot contain cycles")
+            active.add(container_id)
+            output.append("[")
+            stack.append(("leave", (container_id, "]")))
+            actions = []
+            for index, value_item in enumerate(item):
+                if index > 0:
+                    actions.append(("token", ","))
+                actions.append(("value", value_item))
+            stack.extend(reversed(actions))
+        else:
+            raise TypeError(f"unsupported canonical value type: {type(item).__name__}")
+    return "".join(output)
 
 
 def digest(value: Any) -> str:
