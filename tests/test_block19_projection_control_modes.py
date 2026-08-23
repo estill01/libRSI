@@ -17,10 +17,12 @@ from librsi import (
     Question,
     RuntimeFailure,
     ValidationEvidenceBatch,
+    ValidationPolicy,
     ValidationRequest,
     ValidationWorkflow,
     deserialize_projection,
     make_reasoning_failure,
+    make_validation_evidence_action,
     make_validation_evidence_failure,
     make_validation_evidence_result,
     outcome_for_result,
@@ -143,6 +145,7 @@ def test_failed_validation_projection_retains_runtime_settlement() -> None:
     assert unavailable_result is not None and failed_result is not None
     assert unavailable_result.disposition == failed_result.disposition == "inconclusive"
     assert failed_result.terminal_status == "failed"
+    assert failed_result.terminal_state == failed.progress.state
     assert failed_result.terminal_result == failed.progress.state.results[-1]
     assert failed_result.terminal_failure == failed.progress.state.failures[-1]
     assert failed_result.root != unavailable_result.root
@@ -192,6 +195,87 @@ def test_failed_validation_projection_retains_runtime_settlement() -> None:
             lineage=(
                 *failed_result.lineage[:-1],
                 arbitrary_budget_failure.ref,
+            ),
+        )
+
+
+def test_failed_validation_projection_requires_a_reachable_complete_action_roster() -> None:
+    request = ValidationRequest.for_claim(
+        validation_id="block19-failure-frontier",
+        claim=Claim(statement="Two samples are required before settlement"),
+        max_evidence_actions=2,
+    )
+    workflow = ValidationWorkflow()
+    started = workflow.start(request)
+    first_action = started.progress.state.pending_actions[0]
+    first_request = validation_evidence_request_from_action(first_action)
+    first_evidence = Evidence(
+        evidence_type="support",
+        data={"sample": 1},
+        subject_refs=(request.claim.ref,),
+        source_refs=(first_request.ref,),
+        weight=1.0,
+    )
+    advanced = workflow.submit(
+        started.progress,
+        make_validation_evidence_result(
+            action=first_action,
+            batch=ValidationEvidenceBatch.collected(
+                request=first_request,
+                evidence=(first_evidence,),
+            ),
+        ),
+    )
+    second_action = advanced.progress.state.pending_actions[0]
+    failed = workflow.submit(
+        advanced.progress,
+        make_validation_evidence_failure(
+            action=second_action,
+            failure=RuntimeFailure(
+                classification="execution",
+                message="second collection failed",
+            ),
+        ),
+    )
+    result = failed.progress.result
+    assert result is not None
+    assert result.terminal_state == failed.progress.state
+    assert len(result.terminal_state.actions) == 2
+    assert deserialize_projection(serialize_projection(project_result(result))).result == result
+
+    initial_belief = ValidationPolicy().belief(request, ())
+    unreachable_request = type(first_request).for_gaps(
+        validation=request,
+        sequence=2,
+        known_evidence_refs=(),
+        gaps=ValidationPolicy().gaps(initial_belief, ()),
+    )
+    unreachable_action = make_validation_evidence_action(
+        run=request.canonical_run(),
+        request=unreachable_request,
+    )
+    unreachable_failure = replace(result.terminal_result, action=unreachable_action)
+    unreachable_state = replace(
+        result.terminal_state,
+        actions=(unreachable_action,),
+        results=(unreachable_failure,),
+        action_count=1,
+    )
+    with pytest.raises(ValueError, match="reachable from its prior frontier"):
+        replace(
+            result,
+            belief=initial_belief,
+            evidence=(),
+            gathered_evidence_refs=(),
+            terminal_state=unreachable_state,
+            terminal_result=unreachable_failure,
+            lineage=(
+                request.ref,
+                request.canonical_run().ref,
+                initial_belief.ref,
+                unreachable_state.ref,
+                unreachable_failure.ref,
+                result.terminal_failure.ref,
             ),
         )
 

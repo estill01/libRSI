@@ -19,7 +19,7 @@ from ..records import (
     TargetSnapshot,
     register_record_type,
 )
-from ..runtime import ActionResult, Run, RunBudget, RuntimeFailure
+from ..runtime import ActionResult, Run, RunBudget, RunState, RuntimeFailure
 
 VALIDATION_DISPOSITIONS = frozenset({"supported", "contradicted", "bounded", "inconclusive"})
 VALIDATION_BATCH_DISPOSITIONS = frozenset({"collected", "unavailable"})
@@ -365,6 +365,7 @@ class ValidationResult(SemanticRecord):
     gathered_evidence_refs: tuple[EvidenceRef, ...] = ()
     unresolved: tuple[str, ...] = ()
     terminal_status: str = "completed"
+    terminal_state: RunState | None = None
     terminal_result: ActionResult | None = None
     terminal_failure: RuntimeFailure | None = None
 
@@ -439,12 +440,19 @@ class ValidationResult(SemanticRecord):
         terminal_status = _require_text(self.terminal_status, "validation terminal status")
         if terminal_status not in {"completed", "failed", "cancelled"}:
             raise ValueError("validation terminal status must be completed, failed, or cancelled")
+        terminal_state = self.terminal_state
         terminal_result = self.terminal_result
         terminal_failure = self.terminal_failure
         if terminal_status == "completed":
-            if terminal_result is not None or terminal_failure is not None:
+            if (
+                terminal_state is not None
+                or terminal_result is not None
+                or terminal_failure is not None
+            ):
                 raise ValueError("completed validation cannot retain runtime failure settlement")
         else:
+            if not isinstance(terminal_state, RunState):
+                raise TypeError("failed validation requires its exact terminal RunState")
             if not isinstance(terminal_result, ActionResult):
                 raise TypeError("failed validation requires its exact terminal ActionResult")
             if not isinstance(terminal_failure, RuntimeFailure):
@@ -491,7 +499,11 @@ class ValidationResult(SemanticRecord):
                 raise ValueError("cancelled validation requires a cancelled terminal result")
             if unresolved != (terminal_failure.message,):
                 raise ValueError("validation failure must retain the exact runtime message")
+            from .workflow import validate_validation_terminal_state
+
+            validate_validation_terminal_state(self, terminal_state)
         object.__setattr__(self, "terminal_status", terminal_status)
+        object.__setattr__(self, "terminal_state", terminal_state)
         object.__setattr__(self, "terminal_result", terminal_result)
         object.__setattr__(self, "terminal_failure", terminal_failure)
         expected_lineage = (
@@ -499,6 +511,7 @@ class ValidationResult(SemanticRecord):
             self.run,
             self.belief.ref,
             *(item.ref for item in evidence),
+            *((terminal_state.ref,) if terminal_state is not None else ()),
             *((terminal_result.ref,) if terminal_result is not None else ()),
             *((terminal_failure.ref,) if terminal_failure is not None else ()),
         )
@@ -514,6 +527,7 @@ class ValidationResult(SemanticRecord):
         data = super().identity_data()
         if self.terminal_status == "completed":
             data.pop("terminal_status")
+            data.pop("terminal_state")
             data.pop("terminal_result")
             data.pop("terminal_failure")
         return data
