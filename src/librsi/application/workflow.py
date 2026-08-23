@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from ..capabilities import CapabilityRegistry, DispatchPlan
 from ..errors import RSICapabilityError
+from ..governance import ApplicationGovernanceAuthority
 from ..improvement import ImprovementResult
 from ..records import TargetSnapshot
 from ..runtime import ActionResult, RunState, RuntimeEngine, Transition
@@ -323,6 +324,7 @@ def apply_improvement(
     apply: bool = False,
     registry: CapabilityRegistry | None = None,
     application_id: str = "application",
+    governance_authority: ApplicationGovernanceAuthority | None = None,
 ) -> ApplicationResult | ApplicationUpdate:
     """Apply when explicitly enabled, otherwise return the consumable disabled result."""
 
@@ -331,6 +333,7 @@ def apply_improvement(
         improvement=improvement,
         current_snapshot=current_snapshot,
         apply=apply,
+        governance_authority=governance_authority,
     )
     workflow = ApplicationWorkflow(registry)
     update = workflow.run_managed(

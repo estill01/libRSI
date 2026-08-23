@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from typing import ClassVar, TypeVar
 
 from ..comparison import CandidateTrialBatch, RiskPolicy, SelectionDecision
+from ..governance import ApplicationGovernanceRequirement
 from ..identity import FrozenMap
 from ..intent import EvaluationContract, OperationalizationResult
 from ..investigation import InvestigationResult
@@ -105,6 +106,7 @@ class ImprovementRequest(SemanticRecord):
     question: Question
     initial_hypotheses: tuple[Hypothesis, ...]
     risk_policy: RiskPolicy
+    governance_requirement: ApplicationGovernanceRequirement | None = None
     budget: ImprovementBudget = field(default_factory=ImprovementBudget)
     apply: bool = False
 
@@ -134,6 +136,13 @@ class ImprovementRequest(SemanticRecord):
         object.__setattr__(self, "initial_hypotheses", hypotheses)
         if type(self.risk_policy) is not RiskPolicy:
             raise TypeError("improvement requires a RiskPolicy")
+        if self.governance_requirement is not None:
+            if type(self.governance_requirement) is not ApplicationGovernanceRequirement:
+                raise TypeError(
+                    "improvement governance must be an ApplicationGovernanceRequirement"
+                )
+            if self.governance_requirement.target_snapshot != self.baseline:
+                raise ValueError("improvement governance belongs to another target baseline")
         if type(self.budget) is not ImprovementBudget:
             raise TypeError("improvement requires an ImprovementBudget")
         if type(self.apply) is not bool:
@@ -146,11 +155,22 @@ class ImprovementRequest(SemanticRecord):
             self.question.ref,
             *(item.ref for item in hypotheses),
             self.risk_policy.ref,
+            *(
+                (self.governance_requirement.ref,)
+                if self.governance_requirement is not None
+                else ()
+            ),
             self.budget.ref,
         )
         if tuple(self.lineage) != expected:
             raise ValueError("improvement request lineage is incomplete")
         super().__post_init__()
+
+    def identity_data(self) -> dict[str, object]:
+        data = super().identity_data()
+        if self.governance_requirement is None:
+            data.pop("governance_requirement")
+        return data
 
     @property
     def contract(self) -> EvaluationContract:
@@ -185,6 +205,7 @@ class ImprovementRequest(SemanticRecord):
         question: Question,
         initial_hypotheses: Sequence[Hypothesis],
         risk_policy: RiskPolicy,
+        governance_requirement: ApplicationGovernanceRequirement | None = None,
         budget: ImprovementBudget | None = None,
     ) -> ImprovementRequest:
         budget = ImprovementBudget() if budget is None else budget
@@ -198,6 +219,7 @@ class ImprovementRequest(SemanticRecord):
             question=question,
             initial_hypotheses=hypotheses,
             risk_policy=risk_policy,
+            governance_requirement=governance_requirement,
             budget=budget,
             lineage=(
                 operationalization.ref,
@@ -205,6 +227,7 @@ class ImprovementRequest(SemanticRecord):
                 question.ref,
                 *(item.ref for item in hypotheses),
                 risk_policy.ref,
+                *((governance_requirement.ref,) if governance_requirement is not None else ()),
                 budget.ref,
             ),
         )
@@ -430,6 +453,7 @@ class ApplicationHandoff(SemanticRecord):
     request: ImprovementRequest
     selection: SelectionDecision
     current_snapshot: TargetSnapshot
+    governance_requirement: ApplicationGovernanceRequirement | None = None
     apply: bool = False
     authority: str = IMPROVEMENT_AUTHORITY
 
@@ -442,16 +466,29 @@ class ApplicationHandoff(SemanticRecord):
             raise ValueError("application handoff selection uses another contract")
         if self.current_snapshot != self.request.baseline:
             raise ValueError("application handoff currentness differs from the exact baseline")
+        if self.governance_requirement != self.request.governance_requirement:
+            raise ValueError("application handoff lost its governance requirement")
         if self.apply is not False or self.authority != IMPROVEMENT_AUTHORITY:
             raise ValueError("improvement handoff cannot grant application authority")
         if tuple(self.lineage) != (
             self.request.ref,
             self.selection.ref,
             self.current_snapshot.ref,
+            *(
+                (self.governance_requirement.ref,)
+                if self.governance_requirement is not None
+                else ()
+            ),
             *self.selection.selected,
         ):
             raise ValueError("application handoff lineage is incomplete")
         super().__post_init__()
+
+    def identity_data(self) -> dict[str, object]:
+        data = super().identity_data()
+        if self.governance_requirement is None:
+            data.pop("governance_requirement")
+        return data
 
 
 @register_record_type
@@ -504,10 +541,16 @@ class ImprovementResult(SemanticRecord):
                 request=self.request,
                 selection=iterations[-1].selection,
                 current_snapshot=self.request.baseline,
+                governance_requirement=self.request.governance_requirement,
                 lineage=(
                     self.request.ref,
                     iterations[-1].selection.ref,
                     self.request.baseline.ref,
+                    *(
+                        (self.request.governance_requirement.ref,)
+                        if self.request.governance_requirement is not None
+                        else ()
+                    ),
                     *iterations[-1].selection.selected,
                 ),
             )

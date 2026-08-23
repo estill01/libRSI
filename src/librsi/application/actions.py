@@ -37,6 +37,7 @@ def make_apply_action(request: ApplicationRequest) -> Action:
             command.risk_policy.ref,
             command.candidate.ref,
             request.current_snapshot.ref,
+            *((command.governance_authority,) if command.governance_authority is not None else ()),
         ),
         payload={"command": command.to_dict()},
         lineage=(
@@ -45,6 +46,7 @@ def make_apply_action(request: ApplicationRequest) -> Action:
             command.contract.ref,
             command.risk_policy.ref,
             command.candidate.ref,
+            *((command.governance_authority,) if command.governance_authority is not None else ()),
         ),
     )
 
@@ -74,6 +76,7 @@ def application_command_from_action(action: Action) -> ApplicationCommand:
             command.risk_policy.ref,
             command.candidate.ref,
             command.prior_snapshot.ref,
+            *((command.governance_authority,) if command.governance_authority is not None else ()),
         ),
         payload={"command": command.to_dict()},
         lineage=(
@@ -82,6 +85,7 @@ def application_command_from_action(action: Action) -> ApplicationCommand:
             command.contract.ref,
             command.risk_policy.ref,
             command.candidate.ref,
+            *((command.governance_authority,) if command.governance_authority is not None else ()),
         ),
     )
     if action != expected:

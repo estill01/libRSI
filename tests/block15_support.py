@@ -78,6 +78,7 @@ def hypotheses(question: Question, suffix: str = "initial") -> tuple[Hypothesis,
 def improvement_request(
     context: ComparisonContext | None = None,
     *,
+    governance_requirement=None,
     patience: int = 2,
     max_iterations: int = 3,
     max_experiments: int = 9,
@@ -108,6 +109,7 @@ def improvement_request(
         question=question,
         initial_hypotheses=seeds,
         risk_policy=RiskPolicy(policy_id="loop-risk", confidence_multiplier=1.0),
+        governance_requirement=governance_requirement,
         budget=ImprovementBudget(
             max_iterations=max_iterations,
             max_experiments=max_experiments,

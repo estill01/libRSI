@@ -249,7 +249,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 14 | Comparative evaluation and selection | 4, 12, 13 | `completed` |
 | 15 | Complete improvement workflow and result | 10–14 | `completed` |
 | 16 | Application, verification, and rollback | 15 | `completed` |
-| 17 | Generalized RSI and self-change governance | 7, 16 | `not-started` |
+| 17 | Generalized RSI and self-change governance | 7, 16 | `in-progress` |
 | 18 | Local runtime and high-level Python facade | 6, 8, 15–17 | `not-started` |
 | 19 | Outcome serialization and external projections | 10, 11, 15–18 | `not-started` |
 | 20 | CLI and external-agent protocol | 7, 19 | `not-started` |
@@ -2095,7 +2095,7 @@ Stop before meta-targeting or self-change governance.
 
 ## Block 17 — Generalized RSI, meta-targeting, and self-change governance
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 
@@ -2128,6 +2128,23 @@ Use the ordinary improvement machinery against explicitly declared improvement-s
 ### Deliverables and recorded state
 
 - Meta-target/governance records and policies, workflow integration, result contract, compatibility mapping, and CI dogfoods.
+- Capability framing selected a structured composition under `librsi.rsi`: explicit
+  meta-target declarations and configured class/risk rules; typed historical,
+  forward-shadow, and independent-review commands and derived gates; canonical replay
+  and restartable workflow state; an identity-bound activation approval; and an
+  `RSIResult` that wraps the ordinary application result. A selector-only helper would
+  leave other self-affecting targets and runtime provenance uncovered. A second
+  experiment, selection, application, or orchestration engine would duplicate existing
+  semantic owners and violate the architecture contract.
+- Historical and forward-shadow hosts supply exact `CandidateTrialBatch` records, and
+  independent reviewers supply exact `CandidateReview` records. libRSI derives every
+  gate from the original evaluation contract, configured risk policy, exact candidate,
+  actor separation, and current baseline; host booleans and narration have no
+  activation authority.
+- Actual target mutation, produced-state verification, and rollback remain exclusively
+  owned by the Block 16 application lifecycle. Block 17 adds only the stronger approval
+  lineage required before that ordinary lifecycle may activate an explicitly declared
+  self-change.
 
 ### Resource and economy contract
 

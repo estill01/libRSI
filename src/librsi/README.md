@@ -57,7 +57,10 @@ The current implementation owns portable primitives including:
   intervention, candidate, trial, selection, budget, and application-handoff history; and
 - an application lifecycle with explicit currentness and capability authority, actual
   produced-state capture, exact-state verification, and rollback without converting
-  operational failures into epistemic evidence.
+  operational failures into epistemic evidence; and
+- a structured RSI governance layer with explicit meta-target classes, configured risk,
+  distinct historical and forward-shadow evidence, independent-actor review,
+  approval-bound activation, and ordinary application/verification/rollback reuse.
 
 ## Package structure
 
@@ -121,6 +124,13 @@ The current implementation owns portable primitives including:
   `application/replay.py`, and `application/workflow.py` — portable application commands,
   Applier/Verifier codecs, apply-default-off policy, actual-state verification, exact
   rollback, and restartable managed/external execution;
+- `governance/records.py` — target-bound application requirements and the authority
+  contract that makes classified handoffs fail closed before provider effects;
+- `rsi/records.py`, `rsi/actions.py`, `rsi/policy.py`, `rsi/replay.py`, and
+  `rsi/workflow.py` — explicit meta-target declarations, configured self-change classes
+  and risk tiers, typed historical/shadow/review gates, canonical replay, an
+  identity-bound activation approval, and `RSIResult` composition over the ordinary
+  application lifecycle;
 - `hypotheses.py` — canonical hypothesis creation/evidence updates plus legacy wrappers;
 - `experiments.py` — immutable command specs, host execution inputs, and evidence interpretation;
 - `ports.py` — typed host interfaces such as `ExperimentRunner`;
