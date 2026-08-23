@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Protocol, runtime_checkable
 
 from .models import CommandExperimentInput, CommandObservation
 
 
+@runtime_checkable
 class ExperimentRunner(Protocol):
     """Host effect port for executing an exact experiment input.
 

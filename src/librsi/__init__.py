@@ -103,6 +103,15 @@ from .evaluation import (
     TrialRole,
 )
 from .experiments import ExperimentPolicy
+from .facade import (
+    FacadeProgress,
+    FacadeResult,
+    FacadeUpdate,
+    HypothesisTestResult,
+    LibRSI,
+    LibRSIRun,
+    WorkflowRequest,
+)
 from .governance import ApplicationGovernanceAuthority, ApplicationGovernanceRequirement
 from .hypotheses import HypothesisPolicy, ReflectionPolicy
 from .identity import FrozenMap
@@ -228,6 +237,17 @@ from .knowledge import (
     StoredKnowledge,
     bound_target_snapshots,
     label_currentness,
+)
+from .local import (
+    ArtifactStore,
+    LocalArtifactStore,
+    LocalCommandRunner,
+    LocalFilesystemInspector,
+    LocalLayout,
+    LoggingTransitionSink,
+    TransitionSink,
+    WorkspaceInspector,
+    emit_transitions,
 )
 from .models import (
     CheckpointDecision,
@@ -410,6 +430,7 @@ __all__ = [
     "ApplicationVerification",
     "ApplicationWorkflow",
     "ArtifactRef",
+    "ArtifactStore",
     "Baseline",
     "BELIEF_STATUSES",
     "BeliefState",
@@ -458,6 +479,9 @@ __all__ = [
     "ExperimentPolicy",
     "ExperimentRunner",
     "ExperimentSpec",
+    "FacadeProgress",
+    "FacadeResult",
+    "FacadeUpdate",
     "FrozenMap",
     "Goal",
     "Guardrail",
@@ -466,6 +490,7 @@ __all__ = [
     "HypothesisPolicy",
     "HypothesisProposal",
     "HypothesisUpdate",
+    "HypothesisTestResult",
     "IMPROVEMENT_ACTION_KIND",
     "IMPROVEMENT_AUTHORITY",
     "IMPROVEMENT_DISPOSITIONS",
@@ -528,6 +553,13 @@ __all__ = [
     "KnowledgeStore",
     "KnowledgeWrite",
     "LinearEvidenceAggregator",
+    "LibRSI",
+    "LibRSIRun",
+    "LocalArtifactStore",
+    "LocalCommandRunner",
+    "LocalFilesystemInspector",
+    "LocalLayout",
+    "LoggingTransitionSink",
     "Measurement",
     "Metric",
     "Observation",
@@ -631,6 +663,7 @@ __all__ = [
     "TargetPolicy",
     "TERMINAL_RUN_STATUSES",
     "Transition",
+    "TransitionSink",
     "Trial",
     "TrialDisposition",
     "TrialResult",
@@ -638,6 +671,8 @@ __all__ = [
     "UNCERTAINTY_METHODS",
     "UncertaintyInterval",
     "Verifier",
+    "WorkflowRequest",
+    "WorkspaceInspector",
     "VERIFY_APPLICATION_ACTION_KIND",
     "VALIDATION_BATCH_DISPOSITIONS",
     "VALIDATION_DISPOSITIONS",
@@ -672,6 +707,7 @@ __all__ = [
     "improve",
     "evaluation_command_from_action",
     "evaluation_from_result",
+    "emit_transitions",
     "governance_disposition",
     "governance_outcome",
     "governance_projection_fields",

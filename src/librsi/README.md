@@ -80,6 +80,17 @@ The current implementation owns portable primitives including:
 - `runtime/records.py` — canonical runs, budgets, events, actions, results, states, and
   optional identity-bound same-target transition authority;
 - `runtime/engine.py` — pure transitions, step projection, replay, and terminal policy;
+- `facade/client.py` — high-level `LibRSI` composition and workflow methods;
+- `facade/run.py` — stepped/managed handle over canonical workflow frontiers;
+- `facade/records.py` — exact local hypothesis-test convenience result;
+- `local/protocols.py` — independently replaceable artifact, transition, and workspace
+  contracts;
+- `local/commands.py` — argv-only command experiments within configured roots;
+- `local/filesystem.py` — read-only deterministic directory snapshots;
+- `local/artifacts.py` — immutable content-checked artifact directory;
+- `local/logging.py` — structured Python logging of canonical transitions;
+- `local/layout.py` — explicit per-instance workspace/data paths;
+- `expert/__init__.py` — retained low-level kernel, engine, workflow, and policy surface;
 - `runtime/store.py` — backend-neutral append/resume persistence contract;
 - `runtime/sqlite_schema.py` and `runtime/sqlite.py` — isolated exact-schema SQLite
   runtime durability with append-only events and replay-checked materialized state;
