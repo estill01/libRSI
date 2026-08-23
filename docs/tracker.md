@@ -249,7 +249,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 14 | Comparative evaluation and selection | 4, 12, 13 | `completed` |
 | 15 | Complete improvement workflow and result | 10–14 | `completed` |
 | 16 | Application, verification, and rollback | 15 | `completed` |
-| 17 | Generalized RSI and self-change governance | 7, 16 | `not-started` |
+| 17 | Generalized RSI and self-change governance | 7, 16 | `completed` |
 | 18 | Local runtime and high-level Python facade | 6, 8, 15–17 | `not-started` |
 | 19 | Outcome serialization and external projections | 10, 11, 15–18 | `not-started` |
 | 20 | CLI and external-agent protocol | 7, 19 | `not-started` |
@@ -2095,7 +2095,7 @@ Stop before meta-targeting or self-change governance.
 
 ## Block 17 — Generalized RSI, meta-targeting, and self-change governance
 
-Status: `not-started`
+Status: `completed`
 
 ### Objective
 
@@ -2128,6 +2128,23 @@ Use the ordinary improvement machinery against explicitly declared improvement-s
 ### Deliverables and recorded state
 
 - Meta-target/governance records and policies, workflow integration, result contract, compatibility mapping, and CI dogfoods.
+- Capability framing selected a structured composition under `librsi.rsi`: explicit
+  meta-target declarations and configured class/risk rules; typed historical,
+  forward-shadow, and independent-review commands and derived gates; canonical replay
+  and restartable workflow state; an identity-bound activation approval; and an
+  `RSIResult` that wraps the ordinary application result. A selector-only helper would
+  leave other self-affecting targets and runtime provenance uncovered. A second
+  experiment, selection, application, or orchestration engine would duplicate existing
+  semantic owners and violate the architecture contract.
+- Historical and forward-shadow hosts supply exact `CandidateTrialBatch` records, and
+  independent reviewers supply exact `CandidateReview` records. libRSI derives every
+  gate from the original evaluation contract, configured risk policy, exact candidate,
+  actor separation, and current baseline; host booleans and narration have no
+  activation authority.
+- Actual target mutation, produced-state verification, and rollback remain exclusively
+  owned by the Block 16 application lifecycle. Block 17 adds only the stronger approval
+  lineage required before that ordinary lifecycle may activate an explicitly declared
+  self-change.
 
 ### Resource and economy contract
 
@@ -2147,7 +2164,67 @@ Independent review is required for activation semantics, self-review separation,
 
 ### Completion evidence
 
-Pending.
+- Repository implementation commit:
+  `859b51160a391d684e647b905e27ec1f2e348620`.
+- External/domain revision or root: not applicable. Block 17 uses deterministic
+  in-memory candidate, governance, and target fixtures; no live model, provider,
+  repository mutation, deployment, or self-modification authority was exercised.
+- Inputs: accepted Blocks 7–16, the existing hypothesis/experiment/comparison and
+  ordinary improvement/application engines, `selector_policies.py` compatibility
+  guarantees, architecture-contract sections 2 and 10, and tracker capability-frame
+  SHA-256
+  `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+- Outputs: structured `librsi.rsi` records, action codecs, policy, replay, and restartable
+  workflow; cross-cutting `librsi.governance` requirement/authority records; explicit
+  meta-target classes and configured risk tiers; distinct historical replay and
+  forward-shadow assessments; independent-actor review; canonical activation approval;
+  `RSIResult`; and ordinary application, actual-state verification, and rollback reuse.
+  Classified requirements are identity-bound through `ImprovementRequest` and
+  `ApplicationHandoff`. Enabled application resolves the requirement's registered
+  authority class and requires the exact concrete `SelfChangeApproval`, candidate,
+  requirement, and current snapshot before any provider effect. Unclassified ordinary
+  records omit the optional fields and preserve their prior identity.
+- Focused validation: `36 passed` with `92.41%` branch coverage across `librsi.rsi`.
+  Cases cover explicit targeting and configured class/risk derivation; distinct
+  historical and forward-shadow evidence; candidate-author/reviewer separation;
+  accepted, rejected, inconclusive, and operational-failure governance; activation
+  disabled; approval/currentness/replay/result substitution; managed/external
+  equivalence; verified activation; application failure; successful and failed rollback;
+  direct `apply_improvement` missing-authority rejection; and unregistered subclass and
+  equality-spoof authority rejection before provider effects and on canonical decode.
+- Mapped validation: Ruff formatting and lint passed across `src` and `tests`; mypy
+  passed all `85` source files; the protected Block 16 application and v0.2 compatibility
+  set passed `36` tests; and the full suite passed `577` tests at `90.31%` branch
+  coverage. The full suite includes the ordinary hypothesis/evidence/experiment,
+  comparison, improvement, application, persistence, and compatibility layers. Its `24`
+  warnings are the pre-existing deprecated compatibility-wrapper warnings.
+- Artifact validation: sdist and wheel builds succeeded; the wheel contains
+  `librsi.governance`, the structured `librsi.rsi` package, `librsi.records`, and
+  `py.typed`. Isolated installed-wheel runs passed all `36` Block 17 tests on Python
+  3.11, 3.12, and 3.13.
+- Candidate freeze: content root
+  `c4259d7b8da9ec60cc5ca37c64a83b63c885306fb895c797e25bb6ba31121ef6`
+  remained unchanged through final independent review. Exactly `23` candidate paths
+  were committed; unrelated untracked `uv.lock` was excluded and remained unchanged at
+  size `134695`, mtime `1787379167`, and SHA-256
+  `ea9a2eb3afc46401f2356ef098e005ec87ac33e27475e43bcd86eb4131ea960e`.
+- Independent semantic review: ACCEPT on the exact root above after two adversarial
+  remediation cycles. Review reproduced zero-effect rejection of a forged
+  `self_change_approval` subclass, confirmed canonical deserialization rejected it,
+  preserved legitimate managed/external equivalence, found no additional material
+  defect, and accepted the Block 18 Stop.
+- Product capability review: capability gain is explicit, restartable, auditable
+  self-change governance over the existing hypothesis-to-application machinery.
+  Regression risk from self-approval or ordinary-path bypass is controlled by distinct
+  actors, evidence-derived gates, exact currentness/rollback, identity-bound handoffs,
+  and canonical registered authority classes. The additional governance cost applies
+  only to explicitly classified self-affecting targets.
+- Retained open work: none within Block 17. Batteries-included local defaults and the
+  high-level facade remain exclusively in Block 18.
+- Decision/continuation posture: not applicable; Block 18 is dependency-safe.
+- Post-block audit: accepted; no batteries-included defaults, public facade
+  consolidation, hosted execution, provider integration, deployment platform, or
+  repository automation crossed the Block 17 Stop.
 
 ### Stop
 

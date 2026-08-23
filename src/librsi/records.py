@@ -351,6 +351,16 @@ def register_record_type(record_cls: type[RecordT]) -> type[RecordT]:
     return _register(record_cls)
 
 
+def registered_record_class(record_type: str) -> type[SemanticRecord]:
+    """Return the one canonical concrete class registered for a record type."""
+
+    normalized = _require_text(record_type, "record type")
+    record_cls = _RECORD_TYPES.get(normalized)
+    if record_cls is None or not issubclass(record_cls, SemanticRecord):
+        raise ValueError(f"unknown semantic record type: {normalized}")
+    return record_cls
+
+
 @_register
 @dataclass(frozen=True, kw_only=True)
 class TargetRef(SemanticRecord):

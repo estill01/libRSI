@@ -176,6 +176,7 @@ def trial_batch(
     invalid: tuple[tuple[str, int], ...] = (),
     baseline_snapshot: TargetSnapshot | None = None,
     sparse_metrics: bool = False,
+    experiment_suffix: str = "",
 ) -> CandidateTrialBatch:
     evaluator = ExperimentEvaluator()
     metrics = (
@@ -221,7 +222,7 @@ def trial_batch(
         lineage=(candidate.ref, context.contract.ref),
     )
     experiment = evaluator.design(
-        experiment_id=f"compare-{candidate.request.candidate_id}",
+        experiment_id=f"compare-{candidate.request.candidate_id}{experiment_suffix}",
         subject=hypothesis,
         kind="controlled-process-trial",
         metrics=metrics,

@@ -7,10 +7,17 @@ from dataclasses import dataclass
 from typing import ClassVar
 
 from ..comparison import CandidateAssessment, RiskPolicy
+from ..governance import ApplicationGovernanceAuthority
 from ..improvement import ApplicationHandoff, ImprovementResult
 from ..intent import EvaluationContract
 from ..interventions import CandidateSnapshot
-from ..records import RecordRef, SemanticRecord, TargetSnapshot, register_record_type
+from ..records import (
+    RecordRef,
+    SemanticRecord,
+    TargetSnapshot,
+    register_record_type,
+    registered_record_class,
+)
 from ..runtime import Action, Run, RunBudget, RunState, RuntimeFailure
 
 APPLY_CANDIDATE_ACTION_KIND = "apply-selected-candidate"
@@ -62,6 +69,7 @@ class ApplicationRequest(SemanticRecord):
     improvement: ImprovementResult
     current_snapshot: TargetSnapshot
     apply: bool = False
+    governance_authority: ApplicationGovernanceAuthority | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(
@@ -81,15 +89,49 @@ class ApplicationRequest(SemanticRecord):
             raise TypeError("apply must be a boolean")
         if self.apply and len(self.improvement.handoff.selection.selected) != 1:
             raise ValueError("authoritative application requires exactly one selected candidate")
+        requirement = self.handoff.governance_requirement
+        if not self.apply and self.governance_authority is not None:
+            raise ValueError("disabled application cannot carry governance authority")
+        if requirement is None and self.governance_authority is not None:
+            raise ValueError("ordinary application cannot claim unconfigured governance")
+        if self.apply and requirement is not None:
+            authority = self.governance_authority
+            if not isinstance(authority, ApplicationGovernanceAuthority):
+                raise ValueError(
+                    "governed application requires an exact matching governance authority"
+                )
+            try:
+                authority_class = registered_record_class(requirement.authority_record_type)
+            except ValueError as error:
+                raise ValueError(
+                    "application governance authority is not a canonical record"
+                ) from error
+            if type(authority) is not authority_class:
+                raise ValueError("application governance authority is not a canonical record")
+            if (
+                authority.requirement != requirement
+                or authority.candidate != self.candidate
+                or authority.current_snapshot != self.current_snapshot
+            ):
+                raise ValueError(
+                    "application governance authority does not match the exact handoff"
+                )
         expected = (
             self.improvement.ref,
             self.improvement.handoff.ref,
             self.current_snapshot.ref,
+            *((self.governance_authority.ref,) if self.governance_authority is not None else ()),
             *self.improvement.handoff.selection.selected,
         )
         if tuple(self.lineage) != expected:
             raise ValueError("application request lineage is incomplete")
         super().__post_init__()
+
+    def identity_data(self) -> dict[str, object]:
+        data = super().identity_data()
+        if self.governance_authority is None:
+            data.pop("governance_authority")
+        return data
 
     @property
     def handoff(self) -> ApplicationHandoff:
@@ -118,7 +160,16 @@ class ApplicationRequest(SemanticRecord):
             target_snapshot=self.current_snapshot,
             target_transition_authority=self.ref,
             budget=RunBudget(max_actions=3, max_failures=3, max_retries=0),
-            lineage=(self.ref, self.improvement.ref, self.handoff.ref),
+            lineage=(
+                self.ref,
+                self.improvement.ref,
+                self.handoff.ref,
+                *(
+                    (self.governance_authority.ref,)
+                    if self.governance_authority is not None
+                    else ()
+                ),
+            ),
         )
 
     @classmethod
@@ -129,6 +180,7 @@ class ApplicationRequest(SemanticRecord):
         improvement: ImprovementResult,
         current_snapshot: TargetSnapshot,
         apply: bool = False,
+        governance_authority: ApplicationGovernanceAuthority | None = None,
     ) -> ApplicationRequest:
         if type(improvement) is not ImprovementResult or improvement.handoff is None:
             raise ValueError("application requires an improved result with an explicit handoff")
@@ -137,10 +189,12 @@ class ApplicationRequest(SemanticRecord):
             improvement=improvement,
             current_snapshot=current_snapshot,
             apply=apply,
+            governance_authority=governance_authority,
             lineage=(
                 improvement.ref,
                 improvement.handoff.ref,
                 current_snapshot.ref,
+                *((governance_authority.ref,) if governance_authority is not None else ()),
                 *improvement.handoff.selection.selected,
             ),
         )
@@ -161,6 +215,7 @@ class ApplicationCommand(SemanticRecord):
     risk_policy: RiskPolicy
     candidate: CandidateSnapshot
     prior_snapshot: TargetSnapshot
+    governance_authority: RecordRef | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(
@@ -186,6 +241,10 @@ class ApplicationCommand(SemanticRecord):
             raise TypeError("application commands require the exact RiskPolicy")
         if type(self.prior_snapshot) is not TargetSnapshot:
             raise TypeError("application commands require an exact prior TargetSnapshot")
+        if self.governance_authority is not None and not isinstance(
+            self.governance_authority, RecordRef
+        ):
+            raise TypeError("application command governance authority must be a RecordRef")
         expected = (
             self.request,
             self.improvement,
@@ -194,10 +253,17 @@ class ApplicationCommand(SemanticRecord):
             self.risk_policy.ref,
             self.candidate.ref,
             self.prior_snapshot.ref,
+            *((self.governance_authority,) if self.governance_authority is not None else ()),
         )
         if tuple(self.lineage) != expected:
             raise ValueError("application command lineage is incomplete")
         super().__post_init__()
+
+    def identity_data(self) -> dict[str, object]:
+        data = super().identity_data()
+        if self.governance_authority is None:
+            data.pop("governance_authority")
+        return data
 
     @classmethod
     def from_request(cls, request: ApplicationRequest) -> ApplicationCommand:
@@ -215,6 +281,11 @@ class ApplicationCommand(SemanticRecord):
             risk_policy=request.improvement.request.risk_policy,
             candidate=candidate,
             prior_snapshot=request.current_snapshot,
+            governance_authority=(
+                request.governance_authority.ref
+                if request.governance_authority is not None
+                else None
+            ),
             lineage=(
                 request.ref,
                 request.improvement.ref,
@@ -223,6 +294,11 @@ class ApplicationCommand(SemanticRecord):
                 request.improvement.request.risk_policy.ref,
                 candidate.ref,
                 request.current_snapshot.ref,
+                *(
+                    (request.governance_authority.ref,)
+                    if request.governance_authority is not None
+                    else ()
+                ),
             ),
         )
 

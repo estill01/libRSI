@@ -71,10 +71,16 @@ class ImprovementWorkflow:
                 request=request,
                 selection=terminal.selection,
                 current_snapshot=request.baseline,
+                governance_requirement=request.governance_requirement,
                 lineage=(
                     request.ref,
                     terminal.selection.ref,
                     request.baseline.ref,
+                    *(
+                        (request.governance_requirement.ref,)
+                        if request.governance_requirement is not None
+                        else ()
+                    ),
                     *terminal.selection.selected,
                 ),
             )

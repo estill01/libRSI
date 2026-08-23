@@ -37,6 +37,16 @@ The `librsi.improvement` package composes those layers into a bounded, restartab
 hypothesis-to-selection loop. The separate `librsi.application` package consumes only an
 accepted handoff and, when explicitly enabled, routes apply, verify, and rollback actions
 through configured host capabilities while recording the actual state each host reports.
+The structured `librsi.rsi` package then governs explicitly declared self-change targets
+without introducing another improvement engine. Historical replay and forward-shadow
+hosts return exact comparative trial batches, an independent actor reviews the exact
+shadow evaluation, and libRSI derives an identity-bound approval before reusing the
+ordinary application, actual-state verification, and rollback lifecycle. Operational
+failure never counts as counterevidence, and `activate=False` remains consumable and
+effect-free. A classified improvement carries its governance requirement through the
+ordinary handoff identity, so calling `apply_improvement` or `ApplicationWorkflow`
+directly cannot bypass self-change review: application rejects the request before host
+dispatch unless the exact matching `SelfChangeApproval` is present.
 
 ## Install
 
