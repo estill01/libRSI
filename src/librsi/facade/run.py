@@ -23,7 +23,7 @@ from ..investigation import (
 from ..knowledge import KnowledgeStore
 from ..records import TargetSnapshot
 from ..rsi import RSIProgress, RSIResult, RSIUpdate, RSIWorkflow
-from ..runtime import Action, ActionResult, RunState, Transition
+from ..runtime import TERMINAL_RUN_STATUSES, Action, ActionResult, RunState, Transition
 from ..validation import (
     ValidationProgress,
     ValidationResult,
@@ -101,7 +101,7 @@ class LibRSIRun:
 
     @property
     def terminal(self) -> bool:
-        return self.result is not None
+        return self.state.status in TERMINAL_RUN_STATUSES
 
     @property
     def actions(self) -> tuple[Action, ...]:
@@ -191,6 +191,8 @@ class LibRSIRun:
     def run(self) -> LibRSIRun:
         """Execute configured automatic work and stop at an explicit handoff."""
 
+        if self.terminal:
+            return self
         if isinstance(self._progress, ImprovementProgress):
             if self._improvement_provider is None:
                 raise RSICapabilityError("managed improvement requires an ImprovementCycleProvider")

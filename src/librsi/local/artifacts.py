@@ -17,8 +17,13 @@ def _artifact_path(root: Path, artifact_id: str) -> Path:
     if not normalized:
         raise ValueError("artifact id is required")
     relative = PurePosixPath(normalized)
-    if relative.is_absolute() or any(part in {"", ".", ".."} for part in relative.parts):
-        raise ValueError("artifact id must be a safe relative path")
+    if (
+        normalized != artifact_id
+        or relative.as_posix() != normalized
+        or relative.is_absolute()
+        or any(part in {"", ".", ".."} for part in relative.parts)
+    ):
+        raise ValueError("artifact id must be a canonical safe relative path")
     candidate = root.joinpath(*relative.parts).resolve()
     if not candidate.is_relative_to(root):
         raise ValueError("artifact path escapes its configured directory")

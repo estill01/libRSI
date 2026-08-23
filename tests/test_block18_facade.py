@@ -11,7 +11,9 @@ from librsi import (
     CapabilityRoute,
     Claim,
     Evidence,
+    ExperimentPolicy,
     Hypothesis,
+    HypothesisPolicy,
     HypothesisTestResult,
     ImprovementWorkflow,
     InvestigationRequest,
@@ -30,6 +32,7 @@ from librsi import (
     ValidationRequest,
     ValidationResult,
     ValidationWorkflow,
+    make_cycle_failure,
     make_validation_evidence_result,
     serialize_record,
     validation_evidence_request_from_action,
@@ -160,6 +163,7 @@ def test_facade_step_is_exactly_the_low_level_workflow(tmp_path: Path) -> None:
     )
     assert store.resume("stepped") == run.state
     assert run.next() is None
+    assert run.run() is run
     store.close()
 
 
@@ -383,24 +387,45 @@ def test_hypothesis_facade_accepts_typed_inputs_and_validates_result_lineage(
     )
     result = lib.test_hypothesis(
         hypothesis,
-        command=(sys.executable, "-c", "pass"),
-        success_criteria={"accepted_exit_codes": [0]},
+        command=(sys.executable, "-c", "print('READY')"),
+        success_criteria={"accepted_exit_codes": [0], "stdout_contains": ["READY"]},
         target_snapshot=snapshot,
         cwd=tmp_path,
     )
 
     assert result.hypothesis is hypothesis
-    for field in ("hypothesis", "experiment", "observation", "evidence", "updated_hypothesis"):
+    with pytest.raises(TypeError, match="from_execution"):
+        HypothesisTestResult()
+    with pytest.raises(TypeError, match="from_execution"):
+        replace(result, observation=replace(result.observation, stdout="WRONG"))
+    factory_inputs = {
+        "hypothesis": result.hypothesis,
+        "experiment": result.experiment,
+        "observation": result.observation,
+        "experiment_policy": ExperimentPolicy(),
+        "hypothesis_policy": HypothesisPolicy(),
+    }
+    for field in factory_inputs:
         with pytest.raises(TypeError):
-            replace(result, **{field: object()})
+            HypothesisTestResult.from_execution(**(factory_inputs | {field: object()}))
+    recomputed = HypothesisTestResult.from_execution(
+        hypothesis=result.hypothesis,
+        experiment=result.experiment,
+        observation=replace(result.observation, stdout="WRONG"),
+        experiment_policy=ExperimentPolicy(),
+        hypothesis_policy=HypothesisPolicy(),
+    )
+    assert recomputed.evidence.evidence_type == "counterexample"
+    assert recomputed.evidence != result.evidence
+    assert recomputed.updated_hypothesis != result.updated_hypothesis
     with pytest.raises(ValueError, match="another hypothesis"):
-        replace(result, experiment=replace(result.experiment, lineage=()))
-    with pytest.raises(ValueError, match="another experiment"):
-        replace(result, observation=replace(result.observation, exact_input_root="other"))
-    with pytest.raises(ValueError, match="exact experiment lineage"):
-        replace(result, evidence=replace(result.evidence, subject_refs=()))
-    with pytest.raises(ValueError, match="exact evidence lineage"):
-        replace(result, updated_hypothesis=replace(result.updated_hypothesis, lineage=()))
+        HypothesisTestResult.from_execution(
+            hypothesis=result.hypothesis,
+            experiment=replace(result.experiment, lineage=()),
+            observation=result.observation,
+            experiment_policy=ExperimentPolicy(),
+            hypothesis_policy=HypothesisPolicy(),
+        )
 
     with pytest.raises(TypeError, match="TargetSnapshot"):
         lib.test_hypothesis(
@@ -416,6 +441,29 @@ def test_hypothesis_facade_accepts_typed_inputs_and_validates_result_lineage(
             success_criteria={},
             target_snapshot=snapshot,
         )
+
+
+def test_local_hypothesis_testing_rejects_stale_state_before_process_effects(
+    tmp_path: Path,
+) -> None:
+    state = tmp_path / "state.txt"
+    marker = tmp_path / "process-ran.txt"
+    state.write_text("OLD")
+    with LibRSI.local(tmp_path) as lib:
+        stale = lib.snapshot()
+        state.write_text("NEW")
+        with pytest.raises(ValueError, match="snapshot is stale"):
+            lib.test_hypothesis(
+                "The process sees current state",
+                command=(
+                    sys.executable,
+                    "-c",
+                    f"from pathlib import Path; Path({str(marker)!r}).write_text('ran')",
+                ),
+                success_criteria={"accepted_exit_codes": [0]},
+                target_snapshot=stale,
+            )
+    assert not marker.exists()
 
 
 def test_facade_close_ignores_noncloseable_owned_resources() -> None:
@@ -472,6 +520,26 @@ def test_facade_run_rejects_invalid_composition_and_missing_managed_dependencies
     )
     with pytest.raises(ValueError, match="current snapshot"):
         without_snapshot.run()
+
+    failed_update = ImprovementWorkflow().submit(
+        improvement_update.progress,
+        make_cycle_failure(
+            action=improvement_update.progress.state.pending_actions[0],
+            message="deterministic failure",
+            retryable=False,
+        ),
+        current_snapshot=context.baseline_snapshot,
+    )
+    failed_run = LibRSIRun(
+        workflow=ImprovementWorkflow(),
+        progress=failed_update.progress,
+        registry=CapabilityRegistry(),
+        record_transitions=lambda transitions: None,
+    )
+    assert failed_run.result is None
+    assert failed_run.terminal is True
+    assert failed_run.next() is None
+    assert failed_run.run() is failed_run
 
     rsi_request = self_change_request(
         comparison_context(target_kind="improvement-policy-bundle"),

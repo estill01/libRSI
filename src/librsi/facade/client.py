@@ -9,7 +9,6 @@ from typing import Any
 from ..capabilities import CapabilityRegistry, CapabilityRoute
 from ..errors import RSICapabilityError
 from ..experiments import ExperimentPolicy
-from ..hypotheses import HypothesisPolicy
 from ..improvement import (
     ImprovementCycleProvider,
     ImprovementRequest,
@@ -193,6 +192,14 @@ class LibRSI:
         if self.workspace_inspector is None or self.target is None:
             raise ValueError("this LibRSI instance has no configured local target inspector")
         return self.workspace_inspector.snapshot(self.target)
+
+    def _require_local_snapshot_current(self, snapshot: TargetSnapshot) -> None:
+        if self.workspace_inspector is None:
+            return
+        if self.target is None or snapshot.target != self.target:
+            raise ValueError("hypothesis test snapshot does not match the configured local target")
+        if self.workspace_inspector.snapshot(self.target) != snapshot:
+            raise ValueError("hypothesis test target snapshot is stale")
 
     def claim(self, statement: str, *, kind: str = "claim") -> Claim:
         return Claim(statement=statement, kind=kind, target=self.target)
@@ -421,7 +428,7 @@ class LibRSI:
         if not isinstance(snapshot, TargetSnapshot):
             raise TypeError("hypothesis testing requires a TargetSnapshot")
         if isinstance(hypothesis, str):
-            canonical_hypothesis = HypothesisPolicy().create(
+            canonical_hypothesis = self.kernel.hypotheses.create(
                 target=snapshot.target,
                 statement=hypothesis,
                 causal_model={} if causal_model is None else causal_model,
@@ -448,14 +455,17 @@ class LibRSI:
             command=command,
             cwd=str(working_directory.expanduser().resolve()),
         )
+        self._require_local_snapshot_current(snapshot)
         observation = self.command_runner.run(
             policy.prepare_command(experiment),
             timeout_seconds=timeout_seconds,
         )
-        evidence = policy.evaluate_command(spec=experiment, observation=observation)
-        updated = self.kernel.hypotheses.apply(
+        result = HypothesisTestResult.from_execution(
             hypothesis=canonical_hypothesis,
-            evidence=evidence,
+            experiment=experiment,
+            observation=observation,
+            experiment_policy=policy,
+            hypothesis_policy=self.kernel.hypotheses,
         )
         if self.knowledge_store is not None:
             self.knowledge_store.put_many(
@@ -466,18 +476,12 @@ class LibRSI:
                         snapshot,
                         canonical_hypothesis,
                         experiment,
-                        evidence,
-                        updated,
+                        result.evidence,
+                        result.updated_hypothesis,
                     )
                 )
             )
-        return HypothesisTestResult(
-            hypothesis=canonical_hypothesis,
-            experiment=experiment,
-            observation=observation,
-            evidence=evidence,
-            updated_hypothesis=updated,
-        )
+        return result
 
     def close(self) -> None:
         if self._closed:

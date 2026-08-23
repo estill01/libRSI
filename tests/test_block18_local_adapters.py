@@ -273,6 +273,9 @@ def test_local_artifact_and_logging_boundaries_are_explicit(tmp_path: Path) -> N
         store.put(1, b"content")  # type: ignore[arg-type]
     with pytest.raises(ValueError, match="required"):
         store.put(" ", b"content")
+    for alias in (" value.txt", "value.txt ", "./value.txt", "nested//value.txt"):
+        with pytest.raises(ValueError, match="canonical safe relative"):
+            store.put(alias, b"content")
     with pytest.raises(TypeError, match="content must be bytes"):
         store.put("value.txt", "content")  # type: ignore[arg-type]
     temporary = store.directory / ".value.txt.tmp"
