@@ -113,6 +113,34 @@ embedded consumer may supply capabilities directly. Exactly one composition
 owner starts each provider process; a Software Factory-managed composition
 therefore does not let libRSI launch a competing Codex app-server.
 
+### Shared utility producer boundary
+
+`https://github.com/estill01/utils` is a separate upstream producer of narrow,
+domain-neutral enabling packages; it is not a libRSI implementation workspace or
+semantic owner. libRSI owns every adapter, capability mapping, runtime policy,
+credential boundary, target/evidence/application decision, and acceptance result
+that consumes those packages.
+
+- The `codex-app-server-client` adoption lane becomes eligible only from the exact
+  pushed distribution-conformance handoff accepted by utils Block 9.
+- The `embedded-service-contract` and `runtime-manifest` adoption lanes become
+  eligible only from their exact pushed package handoffs accepted by utils Blocks
+  10 and 11 respectively.
+- Final system qualification may claim a current shared package set only after the
+  exact set passes utils isolated-distribution, neutral-composition, technical, and
+  authority-boundary acceptance through Blocks 12–15.
+- Every consumption record binds the producer commit, distribution name/version,
+  artifact and compatibility roots, accepted handoff evidence, and libRSI adapter
+  root. A changed producer root selectively stales only mapped libRSI evidence.
+- An unavailable utility blocks only its mapped adoption lane. Unrelated libRSI
+  semantic/runtime work continues, and package source is never copied locally as a
+  temporary substitute.
+- Utils Block 16 intentionally closes with no license selected and no publication.
+  Same-owner internal exact-revision evaluation may proceed, but libRSI must not
+  advertise a publicly installable utility-backed extra, redistribute its artifacts,
+  or claim third-party reuse rights until separate license/publication authority
+  makes that posture true.
+
 ## 3. Existing owners to reuse
 
 | Concern | Existing owner | Treatment |
@@ -124,6 +152,9 @@ therefore does not let libRSI launch a competing Codex app-server.
 | Search lanes and review gates | `src/librsi/portfolios.py`, `reviews.py`, `selections.py` | Extend; do not create parallel governance ledgers. |
 | Self-change seed policies | `src/librsi/selector_policies.py` | Generalize in Block 17 through ordinary intervention/evidence records. |
 | Composition | `src/librsi/kernel.py` | Retain as the low-level deterministic API, not the public workflow facade. |
+| Codex app-server protocol mechanics | utils `codex-app-server-client` accepted package handoff | Consume only through a libRSI-owned optional capability adapter after the Block 9 distribution freeze; do not fork transport/session mechanics. |
+| Embedded/service structural conformance | utils `embedded-service-contract` accepted package handoff | Consume structural lifecycle assertions after Block 10; libRSI continues to own semantic runs, outcomes, persistence, and authority. |
+| Runtime component/currentness description | utils `runtime-manifest` accepted package handoff | Consume descriptive exact-version/root metadata after Block 11; never treat a manifest as availability, authorization, acceptance, or evidence. |
 | Repository quality gates | `.github/workflows/ci.yml`, `pyproject.toml` | Reuse for all focused and mapped validation. |
 | Historical implementation proof | `docs/implementation/implementation-status.md` | Preserve as evidence; canonical live status is in this tracker. |
 
@@ -209,6 +240,10 @@ hardening without a reproduced in-scope failure is omitted.
    packet when the release candidate exists. Do not infer an open-source grant.
 9. No Block may publish to PyPI, deploy a server, spend hosted-model budget, or apply
    to an authoritative external target without separate current authority.
+10. Shared utility adoption uses the first package-specific accepted handoff for
+    implementation, then the current qualified package set for terminal proof. It
+    never replays utils proof or treats a mutable branch, source checkout, package
+    count, or manifest alone as consumer acceptance.
 
 ### Continuation-first license gate
 
@@ -2684,6 +2719,10 @@ integrations.
 ### Inputs and dependencies
 
 - Blocks 9 and 18–20; current provider SDK/spec selected at implementation time.
+- Exact accepted utils Block 9 `codex-app-server-client` handoff, including its
+  pushed producer revision, distribution version, artifact root, supported
+  protocol/schema root, compatibility posture, and currentness evidence. Absence
+  blocks only the Codex app-server adapter; other provider adapters remain eligible.
 
 ### Required work
 
@@ -2691,6 +2730,8 @@ integrations.
 - Implement an optional Codex app-server reasoner/executor extra through the
   domain-neutral typed client from `estill01/utils`; pin exact protocol/client
   compatibility and keep app-server behind libRSI capability interfaces.
+- Record the exact utility handoff and libRSI adapter roots in the optional-extra
+  compatibility manifest; do not copy, vendor, fork, or reconstruct the client.
 - Make provider process ownership explicit: standalone libRSI may own its local
   process; an embedding host may inject a provider; Software Factory-managed
   libRSI must never start a competing process.
@@ -2719,14 +2760,18 @@ Review dependency isolation, provider-neutral schemas, credential hygiene, propo
 
 - Base install needs no SDK; an optional extra enables maintained Codex
   reasoning/execution; provider swaps do not alter epistemic schema;
-  external-agent execution remains equivalent.
+  external-agent execution remains equivalent. Internal utility-backed proof binds
+  the exact accepted client handoff and makes no public-installability claim while
+  the upstream package remains unlicensed and unpublished.
 
 ### Negative tests
 
 - Reject provider objects in canonical records, credential
   serialization/logging, model output truth promotion, provider-completion as
   evidence/acceptance, two app-server process owners, optimizer self-selection,
-  and base-import failure without extras.
+  base-import failure without extras, a mutable/unaccepted utility source, copied
+  client mechanics, mixed producer/adapter roots, or public reuse claims unsupported
+  by the upstream license/publication posture.
 
 ### Completion evidence
 
@@ -2849,6 +2894,10 @@ Prove the complete architecture through maintained deterministic workflows, inte
 ### Inputs and dependencies
 
 - Blocks 10, 11, and 15–23.
+- For shared structural/runtime utility consumption: exact accepted utils Blocks
+  10–11 package handoffs and the current frozen package-set qualification accepted
+  through utils Blocks 12–15. If unavailable, only these mapped conformance and
+  manifest scenarios wait; other deterministic dogfoods remain eligible.
 
 ### Required work
 
@@ -2861,6 +2910,11 @@ Prove the complete architecture through maintained deterministic workflows, inte
 - Run the same scenario externally driven and through the managed service and
   compare canonical roots/outcomes, including a Codex-provider fake and an
   injected-provider composition with no competing process owner.
+- Make the embedded and service hosts pass the accepted utils structural lifecycle
+  conformance contract while retaining libRSI's canonical semantic owners. Project
+  exact component/protocol/schema/dependency roots through the accepted utils
+  runtime-manifest package, and prove that the projection changes no run authority,
+  capability availability, application permission, evidence, or outcome.
 - Reuse earlier vertical fixtures and assert canonical roots/outcomes across control planes.
 
 ### Scope and non-goals
@@ -2883,13 +2937,18 @@ Review scenario completeness, reuse, semantic equivalence, exact outcomes, failu
 ### Acceptance
 
 - Every required scenario is a maintained CI test/dogfood and passes against the same canonical engine and current package artifacts.
+- Every shared-utility scenario binds one exact qualified utils package set and the
+  current libRSI adapter roots; embedded/service equivalence is structural only and
+  runtime manifests remain descriptive rather than authoritative.
 
 ### Negative tests
 
 - Reject one-time/manual proof, managed/external root drift, single-hypothesis
   theater, nondiscriminating experiments, inconclusive evidence promoted as
   support, nonresumable interruption, implicit application, failed rollback,
-  losing-lane promotion, two process owners, and self-change gate bypass.
+  losing-lane promotion, two process owners, self-change gate bypass, a stale or
+  mixed utility package set, structural conformance treated as semantic acceptance,
+  and runtime-manifest fields used as authorization or outcome evidence.
 
 ### Completion evidence
 
@@ -2978,6 +3037,9 @@ Make the redesigned architecture the accurate, typed, installable, migration-rea
 ### Inputs and dependencies
 
 - Blocks 21–25, accepted compatibility contract, and a complete release candidate.
+- Current exact utils Block 16 terminal posture for every utility-backed optional
+  surface, plus separate license/publication evidence if public installation,
+  redistribution, or third-party reuse is to be claimed.
 - Non-delegable legal input: the exact selection defined by the continuation-first
   license gate; it blocks only the license-dependent acceptance subset after all
   license-independent Block 26 work is complete.
@@ -2985,6 +3047,9 @@ Make the redesigned architecture the accurate, typed, installable, migration-rea
 ### Required work
 
 - Finalize package organization/exports, facade-first README/API examples, type docs, versioning, metadata, extras, CLI/server entrypoints, changelog, and `0.2.x` migration guide.
+- Keep any utility-backed extra internal/unpublished or interface-only while utils
+  remains `no-license-selected/unpublished`; expose it as publicly installable only
+  after exact current license/publication evidence authorizes that downstream use.
 - Execute examples from the built wheel and reconcile documentation against current capabilities.
 - Prepare the license decision packet with MIT and Apache-2.0 implications and add only the selected license.
 - Build and validate release artifacts; publication remains excluded without separate authority.
@@ -3013,6 +3078,9 @@ Independent review covers API/docs truthfulness, migration/compatibility, option
 - Wheel/sdist, Ruff, mypy, tests, branch coverage, and installed examples pass; docs
   claim only current capability; migration is explicit; public product positioning
   matches validated workflows.
+- Release artifacts, dependency metadata, and examples neither embed nor require an
+  unlicensed/unpublished utility artifact; any public utility-backed extra binds a
+  separately authorized current upstream license and published distribution.
 - License-dependent subset: a direct user selection is recorded, the selected
   license text/classifier/reuse claims are exact, or an explicit no-license choice is
   reflected without claiming open-source reuse. This subset alone may remain open
@@ -3020,7 +3088,10 @@ Independent review covers API/docs truthfulness, migration/compatibility, option
 
 ### Negative tests
 
-- Reject stale examples, missing/extra exports, base install pulling optional stacks, planned-only claims, unselected license grant, source-tree-only imports, and artifact/version mismatch.
+- Reject stale examples, missing/extra exports, base install pulling optional stacks,
+  planned-only claims, unselected license grant, source-tree-only imports,
+  artifact/version mismatch, unpublished Git/path dependencies presented as public
+  installation, or redistribution/reuse claims that exceed the utility posture.
 
 ### Completion evidence
 
