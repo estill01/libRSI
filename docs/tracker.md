@@ -286,7 +286,7 @@ content with libRSI merely to save threads.
 | 15 | Complete improvement workflow and result | 10–14 | `completed` |
 | 16 | Application, verification, and rollback | 15 | `completed` |
 | 17 | Generalized RSI and self-change governance | 7, 16 | `completed` |
-| 18 | Embedded/managed local runtime and high-level Python facade | 6, 8, 15–17 | `in-progress` |
+| 18 | Embedded/managed local runtime and high-level Python facade | 6, 8, 15–17 | `completed` |
 | 19 | Outcome serialization and external projections | 10, 11, 15–18 | `not-started` |
 | 20 | CLI, target admission, and external-agent protocol | 7, 19 | `not-started` |
 | 21 | Managed service, HTTP, and MCP projections | 7, 8, 19, 20 | `not-started` |
@@ -2268,7 +2268,7 @@ Stop before batteries-included local defaults and public facade consolidation.
 
 ## Block 18 — Embedded/managed local runtime and high-level Python facade
 
-Status: `in-progress`
+Status: `completed`
 
 ### Objective
 
@@ -2348,7 +2348,100 @@ Review facade/runtime equivalence, dependency minimality, component replacement,
 
 ### Completion evidence
 
-Pending.
+- Repository implementation commits:
+  `d7515ed0eb2d4233ecd366867759b2fc6214117e` and
+  `80977beafaf01dcbabac89b5b4e96dceed5dfaec`.
+- External/domain revision or root: not applicable. Block 18 used temporary local
+  repositories, databases, artifact directories, and bounded subprocesses; it did not
+  use a provider, network service, live deployment, or external mutation authority.
+- Inputs: accepted Blocks 6, 8, and 15–17; the canonical runtime, knowledge,
+  validation, investigation, improvement, application, and RSI workflows; architecture
+  contract sections 6–7; the tracker ownership amendment
+  `5d2262b6a48e74dfe6df7ba22d6911c8bddd6f0a`; the managed/standalone plan integration
+  `f5ed28371785ceb4458418c456aed8662fc891ec`; and tracker capability-frame SHA-256
+  `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+- Outputs: structured `librsi.facade`, `librsi.local`, and `librsi.expert` packages;
+  `LibRSI.local(...)` and `LibRSI.for_repo(...)`; `validate`, `investigate`, `improve`,
+  `recurse`, `test_hypothesis`, and stepped `start` workflows; one composition
+  contract for embedded and later managed-local hosts; the existing SQLite runtime and
+  knowledge stores; authority-scoped argv command execution; deterministic filesystem
+  inspection; immutable content-checked artifacts; structured transition logging; and
+  executable validation and hypothesis examples. Public and low-level exports and
+  module documentation were updated without introducing a second lifecycle engine.
+- Focused validation: `38 passed` with `97.02%` branch coverage across
+  `librsi.facade` and `librsi.local`. Cases cover minimal local validation,
+  investigation, improvement, recursion, and hypothesis testing; stepped and managed
+  execution; explicit external capability substitution; embedded/managed composition
+  equivalence; two-process-owner rejection; generic-target and low-level API
+  reachability; command authority and stale-snapshot rejection before effects;
+  deterministic filesystem exclusion; canonical artifact identifiers and immutable
+  content; terminal failed/cancelled runs; and result-lineage substitution resistance.
+- Mapped validation: Ruff formatting and lint passed across `src`, `tests`, and
+  `examples`; mypy passed all `97` source files; both examples produced their expected
+  `supported` and `support` results; and the full suite passed `615` tests at `90.69%`
+  branch coverage. The `24` warnings are the pre-existing deprecated compatibility
+  wrapper warnings.
+- Artifact validation: a fresh sdist and wheel built successfully. A clean Python 3.12
+  environment installed the wheel with no source-tree import path, imported version
+  `0.2.0` and the facade modules, and ran both examples successfully. Wheel inspection
+  confirmed the structured `librsi.facade`, `librsi.local`, and `librsi.expert`
+  packages.
+- Candidate freeze: content root
+  `eaab9fbb1427765330c42786713f06795f668f90bce2eeac5229e5eb0b0b88f4`
+  remained unchanged through final independent review and distribution proof. Exactly
+  `22` candidate paths were included; unrelated untracked `uv.lock` was excluded and
+  remained unchanged at size `134695`, mtime `1787379167`, and SHA-256
+  `ea9a2eb3afc46401f2356ef098e005ec87ac33e27475e43bcd86eb4131ea960e`.
+- Independent semantic review: Hubble, read-only, against the exact frozen candidate
+  root; final disposition `accepted`. The first review found that a stale local target
+  could reach a process effect and that `HypothesisTestResult` allowed forged
+  observation/update lineage. The corrected candidate rechecks currentness before
+  local effects or persistence and derives the result exclusively from the exact
+  executed experiment and supplied canonical policies. Independent probes also
+  confirmed canonical artifact spelling, terminal-run handling, and that the
+  managed/standalone tracker integration did not expand the Block 18 implementation
+  boundary.
+- Product-capability review:
+  - Trigger: consequential posture.
+  - Frame identity: `docs/tracker.md`, Block 18,
+    `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+  - Capability added or preserved: a user can run local validation, investigation,
+    improvement, governed recursion, or a discriminating hypothesis test through a
+    small facade while retaining exact identity, currentness, evidence, authority,
+    replay, and low-level composition semantics.
+  - Paths compared: a facade-owned replacement engine; repository-specific automation;
+    one thin facade over canonical workflows with replaceable standard-library local
+    adapters; and immediate managed-service/provider implementation. The thin facade
+    was selected because it supplies the missing batteries-included path without
+    changing semantic ownership or crossing the later service/provider Blocks.
+  - Selected level and owner: public composition and workflow ergonomics in
+    `facade/client.py` and `facade/run.py`; typed public convenience results in
+    `facade/records.py`; bounded effects in independently replaceable `local` adapters;
+    and all lifecycle, epistemic, comparison, application, and governance authority in
+    their pre-existing canonical owners.
+  - Protected-capability result: generic targets remain first-class; repository fields
+    are optional conveniences; each default can be replaced; low-level kernel and
+    workflow APIs remain exported; embedded and later managed compositions share one
+    contract; and exactly one host may own any provider process.
+  - Rejected alternatives: a second engine would fork lifecycle semantics;
+    repository automation would make one target kind fundamental; mandatory
+    dependencies or global state would weaken embedding; and early service/provider
+    work would cross the Block 18 Stop.
+  - Tradeoffs and uncertainty: local convenience introduces filesystem, subprocess,
+    artifact, and SQLite effects, so every effect is explicit, authority-scoped, and
+    replaceable. Stable external projections, CLI schemas, managed transport, and
+    optional Codex provider composition remain staged in Blocks 19–25.
+  - Frozen-candidate proof: implementation commits and exact content root above,
+    `615 passed`, installed-wheel/example proof, and accepted independent exact-root
+    review.
+- Retained open work: none within Block 18. Stable external projections and events
+  remain exclusively in Block 19; no later service, CLI, provider, or consumer
+  integration work was pulled forward.
+- Decision/continuation posture: not applicable; Block 19 is dependency-safe.
+- Post-block audit: accepted. The facade remains a composition layer over canonical
+  owners; no external outcome schema, CLI transport, managed service, provider process,
+  generic repository automation, or consumer-repository mutation crossed the Block 18
+  Stop.
 
 ### Stop
 
