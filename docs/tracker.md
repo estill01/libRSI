@@ -247,7 +247,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 12 | Intervention and candidate lifecycle | 5, 11 | `accepted` |
 | 13 | Goals, constraints, and evaluation contracts | 5, 12 | `completed` |
 | 14 | Comparative evaluation and selection | 4, 12, 13 | `completed` |
-| 15 | Complete improvement workflow and result | 10–14 | `not-started` |
+| 15 | Complete improvement workflow and result | 10–14 | `completed` |
 | 16 | Application, verification, and rollback | 15 | `not-started` |
 | 17 | Generalized RSI and self-change governance | 7, 16 | `not-started` |
 | 18 | Local runtime and high-level Python facade | 6, 8, 15–17 | `not-started` |
@@ -1883,7 +1883,7 @@ Stop before the complete iterative improvement workflow or authoritative applica
 
 ## Block 15 — Complete improvement workflow and `ImprovementResult`
 
-Status: `in-progress`
+Status: `completed`
 
 ### Objective
 
@@ -1936,7 +1936,13 @@ Review whole-loop state transitions, guardrail/selection authority, failure reco
 
 ### Completion evidence
 
-Pending.
+- Accepted exact candidate root: `4f0efff254b18f8cbe25c7010fb2c10814c732cc5dedbe75fe412b06eb7cfa13`.
+- Implementation commit: `89b77fbf6b7815222a45997ebe04126c40f43c5f` (`feat: add bounded improvement workflow`).
+- Independent semantic review: accepted after repeated adversarial reproduction and correction of action/replay authority splits, retry and aggregate budget bypasses, noncanonical directives, discontinuous predecessor chains, direct-constructor policy bypass, and reintroduction of a historically falsified hypothesis after an intervening cycle. The accepted review replayed the complete lifecycle and found no remaining material Block 15 defect.
+- Local validation: Ruff lint and format checks clean; mypy clean across 71 source files; full suite `510 passed` at `90.04%` branch coverage.
+- Built-wheel matrix: sdist/wheel build included `py.typed` and all seven structured improvement modules; the focused 42-test Block 15 suite passed from the installed wheel on Python 3.11, 3.12, and 3.13.
+- Public surface: typed improvement request/budget/iteration/result records, canonical policy and replay authority, action codecs, declarative `improve`, and restartable stepped workflow are exported without provider, application, self-change, or domain-specific authority.
+- Workspace hygiene: the unrelated untracked `uv.lock` remained excluded and byte/mtime-identical (`134695`, `1787379167`).
 
 ### Stop
 
