@@ -135,6 +135,7 @@ class Run(SemanticRecord):
     run_id: str
     intent: RecordRef
     target_snapshot: TargetSnapshot | None = None
+    target_transition_authority: RecordRef | None = None
     budget: RunBudget = field(default_factory=RunBudget)
 
     def __post_init__(self) -> None:
@@ -145,9 +146,27 @@ class Run(SemanticRecord):
             self.target_snapshot, TargetSnapshot
         ):
             raise TypeError("run target snapshot must be a TargetSnapshot")
+        if self.target_transition_authority is not None and not isinstance(
+            self.target_transition_authority,
+            RecordRef,
+        ):
+            raise TypeError("run target transition authority must be a RecordRef")
+        if self.target_transition_authority is not None and self.target_snapshot is None:
+            raise ValueError("target transition authority requires an initial target snapshot")
+        if (
+            self.target_transition_authority is not None
+            and self.target_transition_authority not in tuple(self.lineage)
+        ):
+            raise ValueError("target transition authority must be retained in run lineage")
         if not isinstance(self.budget, RunBudget):
             raise TypeError("run budget must be a RunBudget")
         super().__post_init__()
+
+    def identity_data(self) -> dict[str, Any]:
+        data = super().identity_data()
+        if self.target_transition_authority is None:
+            data.pop("target_transition_authority")
+        return data
 
 
 @register_record_type

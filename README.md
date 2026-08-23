@@ -15,7 +15,10 @@ the included transactional SQLite backend needs no service and labels retrieved
 target-bound records as current, stale, unbound, or incomparable.
 An independent `librsi.runtime` package provides canonical Run/Event/State/Action
 records, a pure deterministic transition engine, and an opt-in `RuntimeStore` with a
-replay-checked SQLite implementation. The separate `librsi.capabilities` package maps
+replay-checked SQLite implementation. Runs are target-snapshot fixed by default; a
+same-target state transition is possible only when the Run carries an identity-bound
+transition-authority reference that the terminal Outcome also retains in lineage. The
+separate `librsi.capabilities` package maps
 exact action kinds to eight granular host protocols and explicit automatic, external,
 human-reserved, or unavailable postures without creating another state machine.
 The `librsi.reasoning` package adds strict provider-neutral reflection, hypothesis,
@@ -30,6 +33,10 @@ The `librsi.intent` package turns declarative goals into typed `EvaluationContra
 records with exact baselines, objectives, constraints, guardrails, and stopping rules.
 Operationalization proposals remain proposals; missing measurement facts are returned
 explicitly instead of being invented.
+The `librsi.improvement` package composes those layers into a bounded, restartable
+hypothesis-to-selection loop. The separate `librsi.application` package consumes only an
+accepted handoff and, when explicitly enabled, routes apply, verify, and rollback actions
+through configured host capabilities while recording the actual state each host reports.
 
 ## Install
 
@@ -126,6 +133,10 @@ assert continuation is not None
 load validates the append-only chain, materialized state, and deterministic replay.
 The runtime and knowledge stores remain distinct authorities and may optionally share
 one SQLite file without sharing schema versioning or record types.
+Normal Runs require terminal outcomes to retain their exact initial target snapshot.
+Application Runs explicitly bind `target_transition_authority` to their
+`ApplicationRequest`; the engine then permits only a new snapshot of the same target and
+requires that authority reference in Outcome lineage.
 
 `CapabilityDispatcher` is optional control-plane convenience around that same engine.
 It invokes only explicitly supplied, automatically authorized capability objects; an
@@ -277,6 +288,38 @@ External numerical or model-driven search systems may implement `CandidatePropos
 return `SearchProposal`. That record has fixed `proposal-only` authority: candidate
 generation remains replaceable, while evidence interpretation and acceptance remain in
 libRSI.
+
+Accepted improvements are still not target mutations. `apply_improvement()` defaults to
+`apply=False` and returns a complete `application-disabled` result without calling an
+Applier. To enable application, a host must configure exact Applier and Verifier routes:
+
+```python
+from librsi import ApplicationWorkflow, ApplicationRequest
+
+request = ApplicationRequest.create(
+    application_id="deploy-accepted-candidate",
+    improvement=improvement_result,
+    current_snapshot=current_snapshot,
+    apply=True,
+)
+update = ApplicationWorkflow(capability_registry).start(
+    request,
+    current_snapshot=current_snapshot,
+)
+```
+
+`ApplicationWorkflow.run_managed()` executes only routes configured as `automatic`;
+external and human-reserved routes remain pending as a `DispatchPlan`. The Applier returns
+an `ApplicationReceipt` containing the exact state actually produced, not an assumed copy
+of the candidate. The Verifier returns an exact `CandidateTrialBatch` over that produced
+snapshot; libRSI recomputes its `CandidateAssessment` against the original improvement's
+`EvaluationContract`, guardrails, and `RiskPolicy`, so a host boolean or success narration
+cannot declare the application verified. Rejected, inconclusive, or unavailable
+verification requests exact rollback to the prior snapshot, while application, verifier,
+and rollback failures remain `RuntimeFailure` records rather than evidence or
+counterevidence. Failed rollback reports no authoritative snapshot. Every step can instead
+be submitted externally with its exact pre-effect and post-effect snapshots, and replay
+rejects stale, reordered, substituted, or duplicated effects.
 
 The base distribution ships no target, provider, subprocess, filesystem, worker, or
 transport implementation. Any effects occur only inside a capability object explicitly

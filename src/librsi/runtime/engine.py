@@ -170,7 +170,15 @@ class RuntimeEngine:
     def _require_matching_outcome(run: Run, outcome: Outcome, *, label: str) -> None:
         if not isinstance(outcome, Outcome):
             raise TypeError(f"runtime {label} requires an Outcome")
-        if outcome.intent != run.intent or outcome.target_snapshot != run.target_snapshot:
+        target_matches = outcome.target_snapshot == run.target_snapshot
+        authorized_transition = (
+            run.target_transition_authority is not None
+            and run.target_snapshot is not None
+            and outcome.target_snapshot is not None
+            and outcome.target_snapshot.target == run.target_snapshot.target
+            and run.target_transition_authority in outcome.lineage
+        )
+        if outcome.intent != run.intent or not (target_matches or authorized_transition):
             raise RSITransitionError(
                 f"{label} outcome does not match the run intent and target snapshot"
             )

@@ -52,7 +52,12 @@ The current implementation owns portable primitives including:
 - a structured intent layer that separates declarative Goals from Claims/Evidence,
   operationalizes natural-language or typed intent into exact objectives, baselines,
   constraints, guardrails, and stopping rules, and returns named information gaps
-  instead of fabricating evaluation criteria.
+  instead of fabricating evaluation criteria;
+- a bounded restartable improvement workflow that carries exact hypothesis, experiment,
+  intervention, candidate, trial, selection, budget, and application-handoff history; and
+- an application lifecycle with explicit currentness and capability authority, actual
+  produced-state capture, exact-state verification, and rollback without converting
+  operational failures into epistemic evidence.
 
 ## Package structure
 
@@ -69,7 +74,8 @@ The current implementation owns portable primitives including:
 - `knowledge.py` — backend-neutral reusable-knowledge, query, and currentness contracts;
 - `sqlite_schema.py` — exact local schema and rollback-safe migration contract;
 - `sqlite_knowledge.py` — minimal transactional SQLite reference persistence;
-- `runtime/records.py` — canonical runs, budgets, events, actions, results, and states;
+- `runtime/records.py` — canonical runs, budgets, events, actions, results, states, and
+  optional identity-bound same-target transition authority;
 - `runtime/engine.py` — pure transitions, step projection, replay, and terminal policy;
 - `runtime/store.py` — backend-neutral append/resume persistence contract;
 - `runtime/sqlite_schema.py` and `runtime/sqlite.py` — isolated exact-schema SQLite
@@ -107,6 +113,14 @@ The current implementation owns portable primitives including:
 - `intent/records.py`, `intent/policy.py`, `intent/actions.py`, and `intent/workflow.py`
   — measurable evaluation contracts, consistency checks, proposal-only Reasoner
   handoffs, and typed/natural-language operationalization;
+- `improvement/records.py`, `improvement/actions.py`, `improvement/policy.py`,
+  `improvement/replay.py`, and `improvement/workflow.py` — bounded iteration, exact budget
+  accounting, failure-driven search direction, accepted-candidate handoff, canonical
+  replay, and declarative or stepped improvement;
+- `application/records.py`, `application/actions.py`, `application/policy.py`,
+  `application/replay.py`, and `application/workflow.py` — portable application commands,
+  Applier/Verifier codecs, apply-default-off policy, actual-state verification, exact
+  rollback, and restartable managed/external execution;
 - `hypotheses.py` — canonical hypothesis creation/evidence updates plus legacy wrappers;
 - `experiments.py` — immutable command specs, host execution inputs, and evidence interpretation;
 - `ports.py` — typed host interfaces such as `ExperimentRunner`;
@@ -152,6 +166,11 @@ may place both in one file. Runtime records never enter the knowledge store, and
 knowledge projections never determine runtime lifecycle state. Every runtime resume
 reconstructs the complete event prefix and verifies the materialized transitions
 against the pure engine before returning state.
+Runtime outcomes are fixed to a Run's initial target snapshot unless the Run explicitly
+names a target-transition authority in identity and lineage. Even then, the terminal
+snapshot must describe the same target and the Outcome must retain the authority reference.
+Application Runs use their exact `ApplicationRequest`; ordinary validation,
+investigation, and improvement Runs remain snapshot-fixed.
 
 The runtime emits exact pending `Action` records. The optional capability dispatcher
 may invoke a host-supplied object only when the exact action kind is configured for
@@ -254,6 +273,29 @@ Replaceable optimizers connect only through `CandidateProposer`, `SearchRequest`
 its fixed `proposal-only` authority cannot accept, rank, apply, or mutate anything.
 Selection always recomputes from exact trial evidence under the library-owned contract
 and risk policy.
+
+`librsi.improvement` owns the bounded loop from an operationalized goal through competing
+hypotheses, evidence, an intervention candidate, repeated comparative trials, and exact
+selection. It emits an `ApplicationHandoff` only for one accepted candidate and sets its
+authority to `proposal-only`; provider completion, successful implementation, or
+favorable narration cannot select or apply a candidate. Iteration, experiment, retry,
+resource, and diminishing-return budgets are replay-derived from the canonical action
+history.
+
+`librsi.application` consumes that handoff without reopening the epistemic decision. Its
+default-disabled result is complete and portable without a host effect. An enabled
+request emits a bounded `ApplicationCommand` rather than recursively nesting the complete
+hypothesis history inside every host envelope. Configured Applier and Verifier routes may
+run automatically, or the same exact actions/results may be submitted by an external or
+human-reserved owner. Application captures the host-reported produced snapshot. The
+Verifier supplies a `CandidateTrialBatch` whose candidate is that exact state; the library
+recomputes its `CandidateAssessment` under the original improvement contract, guardrails,
+and risk policy. No host boolean or free-form reason can create a verified disposition. A
+rejected/inconclusive assessment or typed verifier infrastructure failure leads to rollback
+of the exact prior snapshot. Application and rollback failures remain operational failures,
+and a failed rollback deliberately has no authoritative-state claim. Replay and currentness
+checks prevent duplicate effects, substituted results, stale application, assumed output
+state, and verification of a different snapshot.
 
 The base distribution does not open a database from the composition root, mutate
 targets or files, run Git/subprocess operations, call a model/provider, schedule

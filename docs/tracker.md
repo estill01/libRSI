@@ -248,7 +248,7 @@ hardening without a reproduced in-scope failure is omitted.
 | 13 | Goals, constraints, and evaluation contracts | 5, 12 | `completed` |
 | 14 | Comparative evaluation and selection | 4, 12, 13 | `completed` |
 | 15 | Complete improvement workflow and result | 10–14 | `completed` |
-| 16 | Application, verification, and rollback | 15 | `not-started` |
+| 16 | Application, verification, and rollback | 15 | `completed` |
 | 17 | Generalized RSI and self-change governance | 7, 16 | `not-started` |
 | 18 | Local runtime and high-level Python facade | 6, 8, 15–17 | `not-started` |
 | 19 | Outcome serialization and external projections | 10, 11, 15–18 | `not-started` |
@@ -1950,7 +1950,7 @@ Stop before authoritative target application.
 
 ## Block 16 — Application, post-application verification, and rollback
 
-Status: `not-started`
+Status: `completed`
 
 ### Objective
 
@@ -1982,6 +1982,9 @@ Apply an accepted candidate only through explicit authority/currentness gates, v
 ### Deliverables and recorded state
 
 - Application records/state transitions, handoff schemas, deterministic fake target/applier/verifier/rollback fixtures, and public result fields.
+- Capability framing selected the structured middle layer: application-specific typed records, policy, action codecs, canonical replay, and a restartable workflow compose the existing runtime plus `CapabilityRegistry` Applier/Verifier routes. A direct provider call would bypass durable authority/currentness and replay; a deployment orchestrator or new capability registry would duplicate existing owners and exceed this Block.
+- Post-application verification reuses the existing comparative-selection authority: the Verifier supplies an exact actual-state `CandidateTrialBatch`, while libRSI derives the `CandidateAssessment` and verified/rejected disposition from the original `EvaluationContract`, guardrails, and `RiskPolicy`. Host booleans and narration have no verification authority.
+- The shared runtime remains target-snapshot fixed by default. Application Runs alone declare their exact `ApplicationRequest` as identity-bound same-target transition authority, and successful `Outcome` records retain that authority while naming the produced or restored authoritative snapshot.
 
 ### Resource and economy contract
 
@@ -2001,7 +2004,90 @@ Review authority, currentness, actual-produced-state verification, rollback, and
 
 ### Completion evidence
 
-Pending.
+- Repository implementation commit:
+  `743ecee51fc7f08c55bcd990f8d54dffd5ad014e`.
+- External/domain revision or root: not applicable; Block 16 uses deterministic
+  in-memory targets and fake capability implementations, with no live deployment,
+  provider, network, repository mutation, or external authority.
+- Inputs: accepted Block 15, the Block 8 Applier/Verifier capability boundary,
+  architecture-contract sections 2 and 10, and tracker capability-frame SHA-256
+  `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+- Outputs: structured `librsi.application` records, action codecs, replay validation,
+  comparative verification policy, and restartable workflow; exact application
+  requests and handoffs; explicit apply-disabled results; same-target transition
+  authority in the shared runtime; actual produced-state receipts; contract-derived
+  verification; exact rollback settlement; and public exports and documentation.
+- Focused validation: `31 passed` with `93.36%` branch coverage across the application
+  package. The protected runtime and v0.2 compatibility set passed `26` tests. Cases
+  cover disabled and enabled application, absent or reserved capabilities, stale and
+  duplicate requests, exact produced-state capture, wrong-state verification,
+  contract-derived acceptance/rejection, verifier infrastructure failure, successful
+  and failed rollback, replay, restart, result substitution, missing terminal result,
+  application failure classification, ordinary Run snapshot fixation, and explicit
+  same-target transition authority.
+- Mapped validation: Ruff formatting and lint passed across `src` and `tests`; mypy
+  passed all 77 source files; the full suite passed `541` tests at `90.30%` branch
+  coverage; sdist/wheel build succeeded and included the complete structured
+  application package plus `py.typed`; isolated installed-wheel runs passed the 31
+  Block 16 tests on Python 3.11, 3.12, and 3.13.
+- Candidate freeze: content root
+  `0f568517c6106f545dcec9cbf4cd12d107e23de3ae8c1e4a6e0a96a1b33c13e6`
+  remained unchanged through final independent review. Exactly 14 candidate files
+  were included; unrelated untracked `uv.lock` was excluded and remained unchanged at
+  SHA-256 `ea9a2eb3afc46401f2356ef098e005ec87ac33e27475e43bcd86eb4131ea960e`.
+- Resource posture: deterministic in-memory fake target, Applier, Verifier, and
+  rollback capabilities; bounded trial batches; isolated build and installed-wheel
+  environments; no live target, provider, subprocess capability, deployment system,
+  worker, scheduler, transport, or hosted service.
+- Independent review: Hubble, read-only, against the exact frozen candidate root;
+  final disposition `accepted`. The first review found a host-authoritative boolean
+  verifier, stale baseline Outcome identity, and terminal progress-result
+  substitution. The corrected candidate removed the boolean authority, derives
+  assessment from the original evaluation and risk contracts over the actual produced
+  snapshot, binds Outcome to the produced or restored authoritative state, and rejects
+  substituted or missing terminal results. Independent probes reconfirmed all three
+  corrections plus ordinary-Run fixation, explicit transition authority, currentness,
+  replay, and domain neutrality.
+- Product-capability review:
+  - Trigger: consequential posture.
+  - Frame identity: `docs/tracker.md`, Block 16,
+    `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+  - Capability added or preserved: a host can consume an apply-disabled handoff or
+    perform an explicitly authorized application, while libRSI owns exact currentness,
+    actual-state identity, comparative verification semantics, rollback settlement,
+    replay, and the separation between operational failure and counterevidence.
+  - Paths compared: a direct capability call with a host boolean; the selected
+    structured lifecycle composing the existing runtime and capability registry; and a
+    deployment/orchestration subsystem. The structured lifecycle was selected because
+    it adds the missing durable semantics without duplicating either effect execution
+    or workflow ownership.
+  - Selected level and owner: immutable identity and lineage in `application/records.py`,
+    capability correlation in `application/actions.py`, assessment authority in
+    `application/policy.py`, replay in `application/replay.py`, lifecycle settlement in
+    `application/workflow.py`, and narrowly explicit same-target transition authority
+    in the canonical runtime.
+  - Protected-capability result: `apply=False` remains the default; ordinary Runs remain
+    snapshot fixed; an Applier cannot claim verification; actual produced snapshots
+    cannot be assumed; infrastructure failure is not evidence; and every accepted,
+    rejected, restored, or unsettled result names the exact authoritative state.
+  - Rejected alternatives: host booleans and narration cannot reproduce evaluation
+    contracts or provide epistemic authority; direct calls omit durable
+    authority/currentness and replay; a deployment platform exceeds the generic
+    library boundary and would duplicate existing host responsibilities.
+  - Tradeoffs and uncertainty: authoritative transitions require an additional
+    identity-bound Run field and typed lifecycle records. The field is omitted from
+    identity data when unset, preserving existing roots, and remains restricted to the
+    same target and exact authority lineage. Self-change risk policy remains deferred
+    to Block 17.
+  - Frozen-candidate proof: implementation commit above, exact candidate root above,
+    `541 passed`, isolated installed-wheel proof on three Python versions, and accepted
+    independent exact-root review.
+- Retained open work: none within Block 16. Meta-target classification and self-change
+  governance remain exclusively in Block 17.
+- Decision/continuation posture: not applicable; Block 17 is dependency-safe.
+- Post-block audit: accepted; no meta-targeting, self-change governance, deployment
+  platform, provider integration, hosted execution, or repository automation crossed
+  the Block 16 Stop.
 
 ### Stop
 
