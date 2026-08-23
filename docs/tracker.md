@@ -5,7 +5,7 @@
 - Repository: `https://github.com/estill01/libRSI`
 - Governing objective: evolve libRSI into a domain-neutral, evidence-driven validation, investigation, improvement, and governed recursive-self-improvement library.
 - Canonical status owner: this file.
-- First eligible Block: 3.
+- First eligible Block: 18.
 
 ## 1. Purpose and intended outcome
 
@@ -20,8 +20,8 @@ Completion means:
   application/verification/rollback, and governed self-change workflows;
 - externally driven, managed, and hybrid control produce semantically equivalent
   state and outcomes;
-- a Software Factory consumer and a deterministic non-software target both use
-  the engine without leaking their ontologies into the core; and
+- a libRSI-owned consumer-conformance fixture and a deterministic non-software
+  target both use the engine without leaking their ontologies into the core; and
 - the public Python, CLI, service, and MCP projections are versioned, tested,
   documented, installable, and backed by the same runtime authority.
 
@@ -31,9 +31,11 @@ Completion means:
   improvement lifecycle work across hosts and domains.
 - Observable completion: every Block is accepted at a current pushed revision,
   the terminal verification matrix passes, public examples execute from the
-  built wheel, and the two required cross-host dogfoods produce current outcomes.
+  built wheel, and the consumer-conformance and non-software dogfoods produce
+  current outcomes.
 - Ordinary effect classes needed: library code and schemas, reference SQLite and
-  local adapters, tests and dogfoods, consumer integration, documentation,
+  local adapters, tests and dogfoods, consumer integration contracts and
+  conformance fixtures, documentation,
   package builds, scoped Git commits, and pushes to the configured remote.
 - Hard direct authority or safety boundaries: no PyPI publication, hosted-model
   spend, production deployment, external credential use, or irreversible target
@@ -72,7 +74,8 @@ Completion means:
   strict identity/currentness increases schema discipline; staged compatibility
   delays interface stabilization but prevents premature public commitments.
 - Uncertainty: the final open-source license and any hosted provider chosen for the
-  optional adapter remain external decisions; neither blocks Blocks 3–25.
+  optional adapter remain external decisions. The license blocks only the
+  license-dependent subset of Block 26; provider-independent work continues.
 
 ## 2. Target architecture and authority boundaries
 
@@ -136,6 +139,10 @@ the recorded source snapshot.
 - Predecessor Block 20A becomes Block 21.
 - Predecessor Blocks 21, 22, 23, 24, and 25 become Blocks 22, 23, 24, 25, and 26.
 - No accepted Block is renumbered, reopened, split, merged, or credited with new work.
+- The 2026-08-23 ownership amendment maps current Blocks 0–26 one-to-one and
+  preserves every accepted Block. It narrows prospective Block 23 to libRSI-owned
+  consumer contracts and conformance proof; Software Factory implementation is a
+  downstream consumer-repository program and is not part of this tracker.
 
 ## 5. Scope, non-goals, and proportionality
 
@@ -144,8 +151,9 @@ the recorded source snapshot.
 - Canonical semantic records, epistemics, experiments, targets/currentness,
   knowledge, durable runtime transitions, capabilities, workflows, outcomes,
   application/rollback, self-change governance, and required public projections.
-- Thin SQLite/local defaults, optional reasoner/server/MCP adapters, incremental
-  Software Factory consumption, and deterministic non-software dogfoods.
+- Thin SQLite/local defaults, optional reasoner/server/MCP adapters, a generic
+  consumer integration contract with libRSI-owned conformance fixtures, and
+  deterministic non-software dogfoods.
 
 ### Out of scope
 
@@ -166,7 +174,7 @@ hardening without a reproduced in-scope failure is omitted.
 
 1. The requested range is the complete current tracker, Blocks 0–26 and the
    observable completion outcome. Blocks 0–2 are accepted history; implementation
-   resumes at Block 3.
+   resumes at Block 18.
 2. Execute one eligible Block at a time in dependency order. A Block Stop is an
    internal checkpoint and never contracts this full-tracker request.
 3. Before implementation-producing work, change the table row and Block status from
@@ -250,12 +258,12 @@ hardening without a reproduced in-scope failure is omitted.
 | 15 | Complete improvement workflow and result | 10–14 | `completed` |
 | 16 | Application, verification, and rollback | 15 | `completed` |
 | 17 | Generalized RSI and self-change governance | 7, 16 | `completed` |
-| 18 | Local runtime and high-level Python facade | 6, 8, 15–17 | `not-started` |
+| 18 | Local runtime and high-level Python facade | 6, 8, 15–17 | `in-progress` |
 | 19 | Outcome serialization and external projections | 10, 11, 15–18 | `not-started` |
 | 20 | CLI and external-agent protocol | 7, 19 | `not-started` |
 | 21 | Service, HTTP, and MCP projections | 7, 8, 19, 20 | `not-started` |
 | 22 | Optional provider/backend integrations | 9, 18–20 | `not-started` |
-| 23 | Software Factory consumer integration | 5, 8, 12, 15–20 | `not-started` |
+| 23 | Consumer integration contract and conformance kit | 5, 8, 12, 15–20 | `not-started` |
 | 24 | End-to-end architecture dogfoods | 10, 11, 15–23 | `not-started` |
 | 25 | Comprehensive cross-domain proof | 24 | `not-started` |
 | 26 | Public API, docs, packaging, migration, release gate | 21–25 | `not-started` |
@@ -2232,7 +2240,7 @@ Stop before batteries-included local defaults and public facade consolidation.
 
 ## Block 18 — Batteries-included local runtime and high-level Python facade
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 
@@ -2265,6 +2273,25 @@ Make local validation, investigation, improvement, and stepped execution useful 
 ### Deliverables and recorded state
 
 - Facade/default modules, optional dependency boundaries, executable local examples, substitution tests, and updated low-level documentation.
+- Capability framing selected two narrow structured layers. `librsi.facade` provides
+  `LibRSI` and a stepped run handle that delegate every transition, result, and
+  currentness decision to the already accepted canonical workflows. `librsi.local`
+  provides independently replaceable standard-library adapters for bounded command
+  execution, filesystem snapshots, artifact directories, and structured transition
+  logging, while composing the existing SQLite runtime and knowledge stores.
+- `LibRSI.local(...)` and `LibRSI.for_repo(...)` are composition constructors, not
+  alternate engines. Repository identity remains confined to the `for_repo` convenience
+  target and filesystem adapter; generic targets, explicit external stepping, and the
+  low-level `RSIKernel`/workflow APIs remain available without any repository field.
+- Local command execution is selected as an exact-input adapter for the existing
+  hypothesis/experiment integrity path. It echoes the canonical experiment-input root,
+  uses argv rather than a shell, and rejects working directories outside its configured
+  roots before a subprocess starts. A generic repository automation system, implicit
+  mutation authority, global singleton runtime, or facade-owned lifecycle would exceed
+  the Block and duplicate existing semantic owners.
+- Stable external outcome, event, and CLI projections remain deferred to Blocks 19–20.
+  Block 18 logging observes canonical transitions as structured Python values but does
+  not freeze a transport or serialization schema.
 
 ### Resource and economy contract
 
@@ -2530,57 +2557,89 @@ Pending.
 
 Stop before adding ecosystem adapters without a named contract or dogfood need.
 
-## Block 23 — Software Factory consumer integration
+## Block 23 — Consumer integration contract and conformance kit
 
 Status: `not-started`
 
 ### Objective
 
-Prove that Software Factory consumes libRSI capabilities and outcomes for ordinary and governed self-improvement targets without reverse dependency.
+Publish a stable consumer integration contract and prove it through libRSI-owned
+reference fixtures without making any external consumer repository part of this
+implementation program.
 
 ### Target-product capability delta
 
 - Posture: `consequential`.
-- Intended capability gain: sophisticated software targets, multi-repository snapshots, candidate/worktree handling, improvement, and application verification through libRSI contracts.
-- Potential capability loss or regression: Software Factory ontology, ledgers, or control state could leak into libRSI or be duplicated.
-- Protected-capability effect: dependency remains Software Factory → libRSI; implementation correctness and improvement validity remain separately represented.
-- Architecture and operating-model effect: incremental Q1–Q5 adapters reuse Software Factory's existing persistence/effect owners and libRSI's semantic owners.
-- Tradeoff and source evidence: architecture contract section 5 and scope revision Block 22; thin adapters expose bad abstractions early without coupling repositories.
+- Intended capability gain: a documented, executable contract for software-shaped
+  consumers, including multi-repository snapshots, candidate identity, evidence,
+  application handoffs, and verification outcomes.
+- Potential capability loss or regression: a reference fixture could become a
+  product-specific ontology or imply authority over a consumer's stores and effects.
+- Protected-capability effect: dependency remains consumer → libRSI; external
+  consumers own their adapters, persistence, execution, and application authority,
+  while implementation correctness and improvement validity remain distinct.
+- Architecture and operating-model effect: libRSI owns only generic protocols,
+  records, lightweight helpers, conformance fixtures, and mapping documentation.
+- Tradeoff and source evidence: architecture contract section 5 and scope revision
+  Block 22; an in-repository conformance kit tests usability without coupling this
+  program to another repository's implementation lifecycle.
 
 ### Inputs and dependencies
 
-- Blocks 5, 8, 12, and 15–20; authoritative Software Factory checkout and its existing stores/adapters.
+- Blocks 5, 8, 12, and 15–20.
 
 ### Required work
 
-- Map Software Factory target/revision state, capabilities, candidates/worktrees, experiments, application, and verification to libRSI records/actions/results.
-- Complete one ordinary target-repository improvement run and one governed Software Factory self-target run or safe application-disabled equivalent.
-- Preserve existing Factory telemetry, learning, evidence, and effect owners; return canonical libRSI evidence/outcomes.
+- Define and document the generic mappings from software-shaped target/revision
+  state, capabilities, candidates, experiments, application handoffs, and
+  verification to libRSI records, actions, results, and outcomes.
+- Add only generic lightweight helpers that a supported mapping cannot express
+  cleanly through existing public contracts.
+- Implement an in-repository reference consumer and deterministic conformance
+  dogfoods for an ordinary multi-repository target and an application-disabled
+  governed self-target-shaped workflow.
+- Produce a downstream handoff specification for consumer repositories, including
+  dependency direction, owner boundaries, compatibility expectations, and the
+  evidence they should return without making that adoption libRSI acceptance work.
 
 ### Scope and non-goals
 
-- In scope: consumer-side adapters and deterministic integration dogfoods in the appropriate repositories.
-- Not in scope: importing Software Factory from libRSI, copying Factory schemas into libRSI, replacing Factory execution infrastructure, or production application.
+- In scope: libRSI public contracts, generic helpers, reference fixtures,
+  deterministic conformance dogfoods, and consumer-facing mapping documentation.
+- Not in scope: editing, pinning, migrating, or testing Software Factory or any
+  other consumer repository; importing consumer packages; copying consumer
+  schemas; replacing consumer execution infrastructure; or production application.
 
 ### Deliverables and recorded state
 
-- libRSI software helpers only where generic/lightweight, Software Factory adapter commits, cross-repository version pin, and integration fixtures/evidence.
+- Generic/lightweight helpers only where required, reference consumer fixtures,
+  conformance tests, mapping documentation, and a downstream adoption handoff.
 
 ### Resource and economy contract
 
-Use disposable target repositories and current accepted fixtures; run focused contract tests before either mapped suite; no production target or provider spend.
+Use disposable target repositories and current accepted fixtures; run focused
+contract tests before the two local conformance scenarios; no external checkout,
+production target, or provider spend.
 
 ### QA and independent review
 
-Review both repositories at exact commits, dependency direction, owner reuse, target/candidate/evidence mapping, application boundary, and dogfood outcome.
+Review the exact libRSI candidate, dependency direction, absence of consumer
+imports, owner boundaries, target/candidate/evidence mappings, application
+handoffs, and both local conformance outcomes.
 
 ### Acceptance
 
-- Software Factory imports libRSI only; one ordinary repo run works; multi-repo identity works; candidate evidence returns for epistemic evaluation; correctness and improvement validity remain distinct.
+- A consumer can implement the published contract without private libRSI internals;
+  one ordinary multi-repository run and one application-disabled governed
+  self-target-shaped run pass inside libRSI; candidate evidence returns for
+  epistemic evaluation; correctness and improvement validity remain distinct.
 
 ### Negative tests
 
-- Reject reverse imports, duplicate ledgers/schemas, stale revision mapping, worktree-as-authoritative target, implementation success as improvement proof, and ungoverned self-application.
+- Reject consumer imports or product-specific fields in libRSI, duplicate
+  ledgers/schemas, stale revision mapping, candidate workspaces as authoritative
+  targets, implementation success as improvement proof, and ungoverned
+  self-application.
 
 ### Completion evidence
 
@@ -2588,7 +2647,8 @@ Pending.
 
 ### Stop
 
-Stop before claiming full architecture proof or modifying unrelated Software Factory programs.
+Stop before modifying, pinning, migrating, or running tests in any external
+consumer repository, or claiming the full architecture proof owned by Block 24.
 
 ## Block 24 — End-to-end architecture dogfoods
 
@@ -2807,7 +2867,7 @@ Stop before PyPI publication, GitHub Release creation, production deployment, or
 | 20 | Historical Block 20 and external-agent projection contract. |
 | 21 | Historical Block 20A extension plus deferred-transport amendment. |
 | 22 | Historical Block 21 plus optional backend amendment. |
-| 23 | Historical Block 22 plus incremental Q1–Q5 amendment. |
+| 23 | Historical Block 22 narrowed by the 2026-08-23 ownership amendment to libRSI-owned consumer contracts, fixtures, and handoff documentation. |
 | 24 | Historical Block 23 plus incremental-dogfood amendment. |
 | 25 | Historical Block 24 plus continuous-sentinel amendment. |
 | 26 | Historical Block 25 and public product-positioning amendment. |
@@ -2839,7 +2899,7 @@ Stop before PyPI publication, GitHub Release creation, production deployment, or
 | 20 | Installed CLI JSON/restart/stale-submission dogfoods. |
 | 21 | Service/HTTP/MCP/restart/authority/transport-neutrality tests. |
 | 22 | Offline provider contract/dependency/secret-isolation tests. |
-| 23 | Cross-repository adapter and Software Factory dogfoods at exact commits. |
+| 23 | Consumer-contract, no-reverse-import, multi-repository, and governed-reference conformance tests within libRSI. |
 | 24 | Complete deterministic end-to-end scenario matrix in CI. |
 | 25 | Real-engine non-software validation/investigation/improvement audit. |
 | 26 | Full quality gates, artifact inspection, installed examples, docs/API/license review. |
@@ -2848,8 +2908,9 @@ Stop before PyPI publication, GitHub Release creation, production deployment, or
 
 The program is complete only when Blocks 0–26 are accepted at exact current pushed
 revisions; every verification-matrix row is current; the built package and public
-examples are rehydrated independently; Software Factory and the non-software target
-produce current observable outcomes through the same semantic engine; no transport,
-provider, optimizer, or host became a duplicate authority; retained open work is
-genuinely reserved or excluded; and no publication, deployment, license, or
-authoritative external application crossed its declared boundary.
+examples are rehydrated independently; the libRSI-owned consumer-conformance fixture
+and the non-software target produce current observable outcomes through the same
+semantic engine; no transport, provider, optimizer, or host became a duplicate
+authority; retained open work is genuinely reserved or excluded; and no publication,
+deployment, license, consumer-repository mutation, or authoritative external
+application crossed its declared boundary.
