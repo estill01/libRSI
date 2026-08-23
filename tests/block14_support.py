@@ -39,8 +39,8 @@ class ComparisonContext:
     risk_policy: RiskPolicy
 
 
-def comparison_context() -> ComparisonContext:
-    target = TargetRef(target_id="fermenter-7", kind="physical-process")
+def comparison_context(*, target_kind: str = "physical-process") -> ComparisonContext:
+    target = TargetRef(target_id="fermenter-7", kind=target_kind)
     snapshot = TargetSnapshot(
         target=target,
         revision="batch-19",
