@@ -32,9 +32,13 @@ Homepage = "https://github.com/estill01/libRSI"
 Repository = "https://github.com/estill01/libRSI.git"
 Issues = "https://github.com/estill01/libRSI/issues"
 
+[project.scripts]
+librsi = "librsi.cli.main:entrypoint"
+
 [project.optional-dependencies]
 dev = [
   "build>=1.2",
+  "jsonschema>=4.23",
   "mypy>=1.11",
   "pytest>=8",
   "pytest-cov>=5",
