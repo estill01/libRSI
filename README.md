@@ -7,6 +7,9 @@ validation, investigation, improvement, and governed recursive self-improvement.
 Optional hosted-model and exact utils-backed Codex app-server integrations are
 documented in [docs/providers.md](docs/providers.md); both preserve the same
 proposal-only reasoning boundary.
+The [consumer integration contract](docs/consumer-integration.md) documents dependency
+direction, generic multi-component mapping, evidence return, effect ownership, and the
+libRSI-owned conformance scenarios for downstream adopters.
 The current package supplies deterministic policies and canonical records for
 reflection, hypothesis testing, experiment interpretation, program evolution,
 reviewed selection, and safe changes to the selector itself, plus typed ports for

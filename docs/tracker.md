@@ -342,7 +342,7 @@ content with libRSI merely to save threads.
 | 20 | CLI, target admission, and external-agent protocol | 7, 19 | `completed` |
 | 21 | Managed service, HTTP, and MCP projections | 7, 8, 19, 20 | `completed` |
 | 22 | Required Codex app-server integration and optional provider/backend adapters | 9, 18–20 | `completed` |
-| 23 | Consumer integration contract and conformance kit | 5, 8, 12, 15–20 | `not-started` |
+| 23 | Consumer integration contract and conformance kit | 5, 8, 12, 15–20 | `completed` |
 | 24 | End-to-end embedded/external/managed dogfoods | 10, 11, 15–23 | `not-started` |
 | 25 | Comprehensive cross-domain proof | 24 | `not-started` |
 | 26 | Public API, docs, packaging, migration, release gate | 21–25 | `not-started` |
@@ -3248,7 +3248,7 @@ Stop before adding ecosystem adapters without a named contract or dogfood need.
 
 ## Block 23 — Consumer integration contract and conformance kit
 
-Status: `not-started`
+Status: `completed`
 
 ### Objective
 
@@ -3332,7 +3332,53 @@ handoffs, and both local conformance outcomes.
 
 ### Completion evidence
 
-Pending.
+- Accepted implementation revision:
+  `a85098c7e6e474711b8612807f67925e67a1b71c`. The candidate adds the public
+  `librsi.conformance` package, deterministic component-state projection into the
+  existing canonical composite target/snapshot records, an in-repository reference
+  consumer, ordinary multi-component candidate comparison, an application-disabled
+  governed self-target-shaped scenario, consumer mapping/adoption documentation, and
+  no external-consumer code or product-specific schema.
+- Public/distribution boundary: an isolated `python -m build --wheel` included
+  `librsi/conformance`; a fresh Python 3.14 environment installed that wheel with
+  `--no-deps`, imported `ComponentState`, `CompositeSnapshot`, and
+  `map_composite_snapshot`, and created an exact canonical snapshot successfully.
+- Focused static and conformance proof:
+  `.venv/bin/ruff check src/librsi/conformance tests/block23_reference_consumer.py tests/test_block23_consumer_conformance.py`
+  passed; `.venv/bin/mypy` over the same four source/test paths passed; and
+  `.venv/bin/pytest -q tests/test_block23_consumer_conformance.py --cov=librsi.conformance --cov-report=term-missing --cov-fail-under=90`
+  passed `7` tests with `100.00%` branch coverage.
+- Dependency-mapped regression proof: the exact Blocks 5, 8, 12, 15–20, and 23
+  test set passed `332` tests in `957.24s`. The frozen-candidate full suite
+  `.venv/bin/pytest -q --cov=librsi --cov-report=term-missing --cov-fail-under=90`
+  passed `747` tests with `90.91%` branch coverage in `2015.49s`; its `24`
+  warnings are the expected v0.2 compatibility-wrapper deprecations.
+- Independent semantic review: Hubble first rejected candidate `d0fdb1e` because
+  `CompositeSnapshot` accepted subclass/equality substitution. Revision `a85098c`
+  requires exact `TargetRef`/`TargetSnapshot` classes, exact target ref and root,
+  and rejects top-level or nested equality-spoof subclasses. Hubble independently
+  reproduced the repaired attacks and accepted exact revision `a85098c` with no
+  remaining findings.
+- Boundary and negative proof: AST checks reject reverse imports of `tests` or
+  `software_factory`; the public reference fixture imports only `librsi` and
+  `librsi.conformance`; empty, partial, duplicate, subclass-spoofed, and ambiguous
+  mappings fail closed; component order is identity-neutral; a changed component
+  stales the atomic target while preserving per-component diagnostics; candidate
+  state remains non-authoritative; trial evidence binds the exact baseline,
+  candidate, experiment, and derived evaluation; and the governed self-target run
+  remains effect-free with application disabled. No Software Factory or other
+  consumer checkout was read, edited, pinned, migrated, or tested.
+- Post-block audit: accepted. `ComponentState` is a transient generic projection
+  input rather than a durable schema or ledger; persistence, execution, provider,
+  application, verification, rollback, credentials, and process lifecycle remain
+  host-owned. Candidate implementation success is not improvement proof, actual
+  effect verification remains distinct, and this Block makes no Block 24 full-
+  architecture or downstream-adoption acceptance claim. The unrelated untracked
+  `uv.lock` remained excluded and byte-identical at SHA-256
+  `ea9a2eb3afc46401f2356ef098e005ec87ac33e27475e43bcd86eb4131ea960e`.
+- Git durability: implementation and repair commits are pushed on
+  `codex/block-23-consumer-conformance`; this completion-evidence commit, PR, CI
+  gate, and merge are queued immediately after tracker verification.
 
 ### Stop
 
