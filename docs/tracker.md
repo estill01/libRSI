@@ -3470,13 +3470,16 @@ Review scenario completeness, reuse, semantic equivalence, exact outcomes, failu
 ### Completion evidence
 
 - Accepted implementation revision:
-  `1d81f6180b40435e10145756a2d99e6f334d31bc`, developed from Block start
+  `c5f89fbaf126d4cadbed6319ec8221c60d387d9e`, developed from Block start
   `1fd1258475f59799002486d4b89001923572e6bb`. The candidate adds the maintained
   external/managed system matrix, application-disabled and authorized
   apply/verify/rollback paths, interruption/resume, parallel search, governed
   self-change, a causally injected Codex-provider fake, structural lifecycle
   projections, and descriptive runtime-manifest projection without adding an
-  alternate engine or semantic owner.
+  alternate engine or semantic owner. Its final MCP boundary uses exact-type,
+  instance-origin client-fault provenance so only locally projected client input
+  faults retain detail; every service/provider failure, including transport-native
+  error classes and forged/subclassed client-fault objects, remains sanitized.
 - Exact producer binding: every mapped lane pins utils revision
   `a5659745a7cbcbb002b5f06051f6ed9826f721a7`, qualification-matrix SHA-256
   `0888bed363b63842c37baa8187c9883cdddff73d936596e497e4e013341cd849`,
@@ -3505,20 +3508,27 @@ Review scenario completeness, reuse, semantic equivalence, exact outcomes, failu
 - Focused and full validation: the Block 23/24 suite passed `17` tests with
   `93.68%` branch coverage; Ruff over all source/tests, Ruff format checking,
   Mypy over all source, exact-root verification, and diff-integrity checks passed.
-  The frozen full suite passed `757` tests with `90.97%` branch coverage in
+  The frozen full suite at revision `1d81f61` passed `757` tests with `90.97%`
+  branch coverage in
   `3804.46s`; its `24` warnings are the retained v0.2 compatibility-wrapper
-  deprecations.
-- Distribution proof: an isolated source archive of exact revision `1d81f61`
+  deprecations. The source-only MCP remediation at revision `c5f89fb` was then
+  bounded to its invalidated lane: all `7` MCP tests passed independently against
+  both `mcp==2.0.0` and `mcp==2.1.0`, while the complete Ruff, format, Mypy,
+  tracker-verifier, and diff-integrity gates passed. Replacement CI is the
+  remaining exact-candidate gate.
+- Distribution proof: an isolated source archive of exact revision `c5f89fb`
   built `librsi-0.2.0-py3-none-any.whl` with SHA-256
-  `6b06612150d2f3a11b23de14870738ea9cd6b704574c8cea2c8e811392454659`
+  `f0899fb2cc918a7975b1297d66b7c21bfd8d5b895140d6c86ffe5d3219b36541`
   and `librsi-0.2.0.tar.gz` with SHA-256
-  `e3ca4a817b80043ea59ba153e4d3ba105c86ad74183cb28816d66dd6d0f813c0`.
-  Both archives contain the owned behavior-root/source-loader/qualified-metadata
-  files. A fresh Python 3.14 environment installed the libRSI wheel with
+  `396e27a0bac079418f5e2a505a6d3be0d106bd31d661f5e11fa66094ac89453e`.
+  Both archives contain `py.typed`, the owned behavior-root/source-loader and
+  qualified-metadata resources, and the MCP server. A fresh Python 3.14
+  environment installed the libRSI wheel with
   `--no-deps` and imported the lightweight public package; after installing only
   the three exact accepted utility wheels, it loaded the private qualified source
   modules, validated the Codex client, and reproduced the adapter, schema, and
-  runtime-manifest roots above.
+  runtime-manifest roots above. A separate clean Python 3.14 environment installed
+  `mcp==2.1.0` plus that exact wheel and imported the MCP server successfully.
 - Independent semantic review: Hubble rejected earlier candidates until behavior
   roots covered the utility functions, classes, private helpers, and bindings used
   during owned source execution. Hubble independently mutated
@@ -3532,6 +3542,12 @@ Review scenario completeness, reuse, semantic equivalence, exact outcomes, failu
   fields. Hubble first rejected an equality-spoofable draft, independently
   reproduced that attack, then accepted the exact-dict repair after Python
   3.11/3.14 coverage checks and the function/class mutation attacks all passed.
+  Replacement GitHub Actions run `32778384086` proved all `10` Block 24 tests but
+  finished with `755` passes and `2` Block 21 MCP failures because `mcp==2.1.0`
+  newly wrapped anticipated client faults. Hubble rejected four successively
+  incomplete remediations that still exposed errors from another channel or
+  allowed forged provenance, then accepted revision `c5f89fb` after independently
+  confirming the exact-type, instance-token boundary and the focused spoof matrix.
 - Boundary and post-block audit: accepted. The Codex fake causally supplies the
   exact hypotheses later consumed unchanged; embedded plus service composition has
   exactly one process owner; manifests remain descriptive; and application,
@@ -3541,9 +3557,10 @@ Review scenario completeness, reuse, semantic equivalence, exact outcomes, failu
   used. The unrelated untracked `uv.lock` remained excluded and byte-identical at
   SHA-256
   `ea9a2eb3afc46401f2356ef098e005ec87ac33e27475e43bcd86eb4131ea960e`.
-- Git durability: all implementation and repair commits are pushed on
-  `codex/block-24-system-dogfoods`; this completion-evidence commit, PR, CI gate,
-  and merge are queued immediately after tracker verification.
+- Git durability: the implementation, both CI repairs, and this exact-candidate
+  evidence are committed on `codex/block-24-system-dogfoods`; the evidence commit,
+  replacement PR CI gate, and merge are queued immediately after tracker
+  verification.
 
 ### Stop
 
