@@ -1,0 +1,26 @@
+{
+  "codex_app_server_client": {
+    "compatibility_fixture_sha256": "82e97c4564c04790d03750397d65b6989df529fbb21aedc14ae67cf96d759651",
+    "content_root_sha256": "6ecc26e75197d06682fe9d8d0612edb1e56ead6d04c3a41cde1132e2618efd8f",
+    "distribution": "codex-app-server-client",
+    "producer_repository": "https://github.com/estill01/utils",
+    "producer_source_commit": "08c416da4202b7036110e33e43d34ea590054e2e",
+    "public_api_sha256": "7a032cfe32425aae9166217bae18e59202afe509a465e34c8c74794b6b1fdf93",
+    "qualification_commit": "7f1674aa31dd64a1621bf1a746ba78e8f4c51305",
+    "upstream": {
+      "codex_source_commit": "be6e8eac029b183056b7e4402879f15d2c85f61b",
+      "codex_version": "0.147.0",
+      "schema_root_sha256": "eb325d394d19f2f8d133203885b3d1c2f74dbc5a176f22078a4f99aae5926faa",
+      "selected_surface_root_sha256": "9a773e75f2e5aa827b4cc711345bd9ca1bc2a037f19d114284a04f306097a42f"
+    },
+    "version": "0.1.0",
+    "wheel_sha256": "1e9dc5b9c7f2edb9676b5a47eb2c9b96498f1b429acec474cd26702fe8e3fdb9"
+  },
+  "librsi_adapter": {
+    "package": "libRSI",
+    "provider_authority": "proposal-only",
+    "process_owners": ["standalone", "embedding-host", "software-factory"],
+    "version": "0.2.0"
+  },
+  "posture": "no-license-selected/unpublished"
+}

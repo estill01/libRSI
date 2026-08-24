@@ -38,6 +38,16 @@ librsi-http = "librsi.http.__main__:entrypoint"
 librsi-mcp = "librsi.mcp.__main__:entrypoint"
 
 [project.optional-dependencies]
+openai = [
+  "openai>=3,<4",
+]
+codex = [
+  "codex-app-server-client @ git+https://github.com/estill01/utils.git@08c416da4202b7036110e33e43d34ea590054e2e#subdirectory=packages/codex-app-server-client",
+]
+providers = [
+  "openai>=3,<4",
+  "codex-app-server-client @ git+https://github.com/estill01/utils.git@08c416da4202b7036110e33e43d34ea590054e2e#subdirectory=packages/codex-app-server-client",
+]
 server = [
   "fastapi>=0.141,<1",
   "uvicorn>=0.52,<1",
@@ -72,7 +82,7 @@ where = ["src"]
 include = ["librsi*"]
 
 [tool.setuptools.package-data]
-librsi = ["README.md", "py.typed"]
+librsi = ["README.md", "py.typed", "providers/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
