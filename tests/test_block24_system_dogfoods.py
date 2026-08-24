@@ -67,13 +67,13 @@ def test_exact_qualified_shared_package_set_and_descriptive_manifest_are_consume
     document = runtime_manifest_document()
     adapter_root, protocol_schema_root = _adapter_root()
     assert "shared-utilities.json" in ADAPTER_RUNTIME_FILES
-    assert adapter_root == "e3fc5b398ae562ece1c2ff7a7dbb9cba12d5f29f8995f21eb890afa4b175b3e8"
+    assert adapter_root == "21db50bea1ffdbf1448d7e3f4c0318d5adca591fb1b6d7c927f66baed3150617"
     assert (
         protocol_schema_root == "89edd647d75977f1b33dba9173118ae5490f1699a9e5725e28207961b8fd4e1a"
     )
     assert (
         hashlib.sha256(document.encode()).hexdigest()
-        == "8a38b964a39bd1d3563318c8e507bfecf6d5ec470e5e01b0ec1f6eddd4196ff7"
+        == "b777c6691c0e9ad4b5aa965dbcbb6321abae3a83528470a7cade59f09105edc4"
     )
     assert manifest_api.parse_manifest(document) == manifest
     assert manifest.component.name == "librsi"
@@ -380,6 +380,27 @@ def test_behavior_roots_reject_in_place_function_and_class_mutation(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     lifecycle, manifest_api = load_shared_utilities()
+
+    # Python 3.11 materializes this empty Protocol cache on first isinstance().
+    # It is semantically equivalent to the initially absent mapping.
+    if "__annotate_func__" not in vars(lifecycle.LifecycleHost):
+        monkeypatch.setattr(lifecycle.LifecycleHost, "__annotations__", {}, raising=False)
+        load_shared_utilities()
+        monkeypatch.undo()
+
+        class EqualitySpoof(dict[str, object]):
+            def __eq__(self, _other: object) -> bool:
+                return True
+
+        monkeypatch.setattr(
+            lifecycle.LifecycleHost,
+            "__annotations__",
+            EqualitySpoof({"authority": object()}),
+            raising=False,
+        )
+        with pytest.raises(RuntimeError, match="executed behavior root"):
+            load_shared_utilities()
+        monkeypatch.undo()
 
     def forged_compare(_expected: object, _observed: object) -> object:
         return object()

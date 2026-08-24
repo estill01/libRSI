@@ -131,6 +131,15 @@ def _empty(cell: CellType) -> bool:
 def _class(value: type[object], seen: set[int]) -> list[object]:
     attributes: list[tuple[str, object]] = []
     for name, item in vars(value).items():
+        # Python 3.11's runtime-checkable Protocol machinery materializes an
+        # empty __annotations__ mapping during the first instance check.  The
+        # absent and empty forms carry the same behavior and must not make an
+        # otherwise immutable root depend on whether that interpreter cache
+        # has been warmed.  Non-empty annotations remain rooted below.
+        if (name == "__annotations__" and type(item) is dict and not item) or (
+            name == "__annotate_func__" and item is None
+        ):
+            continue
         if isinstance(item, (classmethod, staticmethod)):
             frozen = _callable(item.__func__, seen)
         elif isinstance(item, property):
