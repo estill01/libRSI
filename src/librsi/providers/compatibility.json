@@ -10,6 +10,7 @@
     "qualification_commit": "7f1674aa31dd64a1621bf1a746ba78e8f4c51305",
     "qualification_matrix_sha256": "0888bed363b63842c37baa8187c9883cdddff73d936596e497e4e013341cd849",
     "technical_qualification_root_sha256": "9ab96149f63a45429a44ae07e309b68bb4204b4e2e6f4da6a7a93acbd5547068",
+    "runtime_content_root_sha256": "23e66af500090eb176206a50bfafa60e332f11cbd073849a43e5461a96cd602a",
     "upstream": {
       "codex_source_commit": "be6e8eac029b183056b7e4402879f15d2c85f61b",
       "codex_version": "0.147.0",
@@ -20,7 +21,7 @@
     "wheel_sha256": "1e9dc5b9c7f2edb9676b5a47eb2c9b96498f1b429acec474cd26702fe8e3fdb9"
   },
   "librsi_adapter": {
-    "content_root_sha256": "3cba1dff1453f8bfe5875decc9fc1a9308f6df197da400412b15a8fc17cb77c9",
+    "content_root_sha256": "253724c8ac64b50b5923b88dafbc424ea41ad28fd9598bd9e912d4111f43320b",
     "package": "libRSI",
     "provider_authority": "proposal-only",
     "process_owners": ["standalone", "embedding-host", "software-factory"],

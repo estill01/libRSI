@@ -165,6 +165,7 @@ def test_injected_codex_session_uses_typed_surface_without_process_ownership(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     module = _fake_codex_module()
+    module.AppServerSession = _FakeSession
     session = _FakeSession(module)
     monkeypatch.setattr(importlib, "import_module", lambda name: module)
     monkeypatch.setattr(codex_provider, "validate_codex_client", lambda value: None)
@@ -237,8 +238,11 @@ def test_exact_handoff_and_compatibility_manifest_are_frozen(tmp_path: Path) -> 
     (protocol / "compatibility.json").write_text("{}")
     (protocol / "public-api.json").write_text("{}")
     wrong_artifact.__file__ = str(origin)
-    with pytest.raises(RuntimeError, match="artifact hashes"):
+    with pytest.raises(RuntimeError, match="implementation root"):
         validate_codex_client(wrong_artifact)
+
+    client = importlib.import_module("codex_app_server_client")
+    validate_codex_client(client)
 
 
 def test_base_import_does_not_import_provider_sdks() -> None:
@@ -340,11 +344,28 @@ def test_openai_configuration_lazy_import_and_failure_boundaries(
             _request()
         )
 
+    class SpoofedStatus:
+        def __eq__(self, other: object) -> bool:
+            return other == "completed"
+
+    spoofed = SimpleNamespace(
+        responses=SimpleNamespace(
+            create=lambda **kwargs: SimpleNamespace(
+                status=SpoofedStatus(), error=None, incomplete_details=None, output_text=_RESULT
+            )
+        )
+    )
+    with pytest.raises(RuntimeError, match="did not complete"):
+        OpenAIResponsesBackend(OpenAIResponsesConfig("gpt-test"), client=spoofed).respond(
+            _request()
+        )
+
 
 def test_standalone_executor_uses_one_owned_client_and_closes(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     module = _fake_codex_module()
+    module.AppServerSession = _FakeSession
     session = _FakeSession(module)
     state: dict[str, object] = {}
 
@@ -386,6 +407,7 @@ def test_injected_session_shape_and_event_filtering_fail_closed(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     module = _fake_codex_module()
+    module.AppServerSession = _FakeSession
     monkeypatch.setattr(importlib, "import_module", lambda name: module)
     monkeypatch.setattr(codex_provider, "validate_codex_client", lambda value: None)
 
@@ -395,7 +417,7 @@ def test_injected_session_shape_and_event_filtering_fail_closed(
     invalid = CodexAppServerExecutor(
         CodexProcessPolicy(owner="embedding-host"), session_factory=invalid_factory
     )
-    with pytest.raises(TypeError, match="typed session surface"):
+    with pytest.raises(TypeError, match="accepted typed AppServerSession"):
         asyncio.run(invalid.complete_async(_request()))
 
     class FilteringSession(_FakeSession):

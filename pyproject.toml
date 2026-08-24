@@ -62,6 +62,7 @@ service = [
 ]
 dev = [
   "build>=1.2",
+  "codex-app-server-client @ git+https://github.com/estill01/utils.git@a5659745a7cbcbb002b5f06051f6ed9826f721a7#subdirectory=packages/codex-app-server-client",
   "fastapi>=0.141,<1",
   "httpx>=0.28,<1",
   "jsonschema>=4.23",

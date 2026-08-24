@@ -90,6 +90,8 @@ class CodexAppServerExecutor:
         start_thread = getattr(session, "start_thread", None)
         start_turn = getattr(session, "start_turn", None)
         events = getattr(session, "events", None)
+        if not isinstance(session, module.AppServerSession):
+            raise TypeError("injected Codex session must be the accepted typed AppServerSession")
         if not callable(start_thread) or not callable(start_turn) or not callable(events):
             raise TypeError("injected Codex session must expose the typed session surface")
         thread_response = await start_thread(
@@ -109,7 +111,6 @@ class CodexAppServerExecutor:
             module.TurnStartParams(
                 input=({"type": "text", "text": reasoning_prompt(request)},),
                 model=self._policy.model,
-                outputSchema={"type": "object"},
                 threadId=thread_id,
             ),
             timeout=self._policy.timeout_seconds,

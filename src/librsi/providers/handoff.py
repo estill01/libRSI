@@ -21,6 +21,7 @@ class CodexClientHandoff:
     technical_qualification_root_sha256: str
     wheel_sha256: str
     content_root_sha256: str
+    runtime_content_root_sha256: str
     public_api_sha256: str
     compatibility_fixture_sha256: str
     codex_version: str
@@ -45,6 +46,9 @@ CODEX_CLIENT_HANDOFF = CodexClientHandoff(
     ),
     wheel_sha256="1e9dc5b9c7f2edb9676b5a47eb2c9b96498f1b429acec474cd26702fe8e3fdb9",
     content_root_sha256="6ecc26e75197d06682fe9d8d0612edb1e56ead6d04c3a41cde1132e2618efd8f",
+    runtime_content_root_sha256=(
+        "23e66af500090eb176206a50bfafa60e332f11cbd073849a43e5461a96cd602a"
+    ),
     public_api_sha256="7a032cfe32425aae9166217bae18e59202afe509a465e34c8c74794b6b1fdf93",
     compatibility_fixture_sha256=(
         "82e97c4564c04790d03750397d65b6989df529fbb21aedc14ae67cf96d759651"
@@ -79,6 +83,42 @@ def _sha256(path: Path) -> str:
         raise RuntimeError("Codex client protocol artifact is unavailable") from exc
 
 
+def _runtime_content_root(module: ModuleType, protocol_root: Path) -> str:
+    origin = getattr(module, "__file__", None)
+    if not isinstance(origin, str):
+        raise RuntimeError("Codex client module has no stable filesystem origin")
+    package = Path(origin).resolve().parent
+    entries: list[dict[str, str | int]] = []
+    for path in sorted(package.glob("*.py")):
+        data = path.read_bytes()
+        entries.append(
+            {
+                "path": f"codex_app_server_client/{path.name}",
+                "sha256": hashlib.sha256(data).hexdigest(),
+                "size": len(data),
+            }
+        )
+    for path in sorted(item for item in protocol_root.rglob("*") if item.is_file()):
+        data = path.read_bytes()
+        relative = path.relative_to(protocol_root).as_posix()
+        entries.append(
+            {
+                "path": f"codex_app_server_client/_protocol/{relative}",
+                "sha256": hashlib.sha256(data).hexdigest(),
+                "size": len(data),
+            }
+        )
+    payload = (
+        json.dumps(
+            sorted(entries, key=lambda item: str(item["path"])),
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        + "\n"
+    ).encode()
+    return hashlib.sha256(payload).hexdigest()
+
+
 def validate_codex_client(module: ModuleType) -> None:
     """Fail closed unless the imported client matches the accepted protocol handoff."""
 
@@ -102,6 +142,8 @@ def validate_codex_client(module: ModuleType) -> None:
         CODEX_CLIENT_HANDOFF.selected_surface_root_sha256,
     )
     root = _protocol_root(module)
+    if _runtime_content_root(module, root) != CODEX_CLIENT_HANDOFF.runtime_content_root_sha256:
+        raise RuntimeError("Codex client implementation root does not match the accepted handoff")
     compatibility = root / "compatibility.json"
     public_api = root / "public-api.json"
     if (
