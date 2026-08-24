@@ -341,7 +341,7 @@ content with libRSI merely to save threads.
 | 19 | Outcome serialization and external projections | 10, 11, 15–18 | `completed` |
 | 20 | CLI, target admission, and external-agent protocol | 7, 19 | `completed` |
 | 21 | Managed service, HTTP, and MCP projections | 7, 8, 19, 20 | `completed` |
-| 22 | Required Codex app-server integration and optional provider/backend adapters | 9, 18–20 | `in-progress` |
+| 22 | Required Codex app-server integration and optional provider/backend adapters | 9, 18–20 | `completed` |
 | 23 | Consumer integration contract and conformance kit | 5, 8, 12, 15–20 | `not-started` |
 | 24 | End-to-end embedded/external/managed dogfoods | 10, 11, 15–23 | `not-started` |
 | 25 | Comprehensive cross-domain proof | 24 | `not-started` |
@@ -3077,7 +3077,7 @@ Stop before production deployment, general platform features, or provider-specif
 
 ## Block 22 — Required Codex app-server integration and optional provider/backend adapters
 
-Status: `in-progress`
+Status: `completed`
 
 ### Objective
 
@@ -3167,7 +3167,80 @@ Review dependency isolation, provider-neutral schemas, credential hygiene, propo
 
 ### Completion evidence
 
-Pending.
+- Repository commit: independently accepted implementation candidate
+  `49f5d2522405a4bd0f08afabb5405776c0e42548` on
+  `codex/block-22-codex-app-server`; the Block start is `df8a641` and the
+  evidence commit/push follow this record.
+- External/domain revision or root: terminal accepted `estill01/utils`
+  revision `a5659745a7cbcbb002b5f06051f6ed9826f721a7`, unchanged app-client
+  package source `08c416da4202b7036110e33e43d34ea590054e2e`, qualification revision
+  `7f1674aa31dd64a1621bf1a746ba78e8f4c51305`, qualification-matrix SHA-256
+  `0888bed363b63842c37baa8187c9883cdddff73d936596e497e4e013341cd849`,
+  and technical qualification root
+  `9ab96149f63a45429a44ae07e309b68bb4204b4e2e6f4da6a7a93acbd5547068`.
+- Inputs: exact internal `codex-app-server-client==0.1.0` wheel SHA-256
+  `1e9dc5b9c7f2edb9676b5a47eb2c9b96498f1b429acec474cd26702fe8e3fdb9`,
+  wheel content root `6ecc26e75197d06682fe9d8d0612edb1e56ead6d04c3a41cde1132e2618efd8f`,
+  runtime implementation root
+  `23e66af500090eb176206a50bfafa60e332f11cbd073849a43e5461a96cd602a`,
+  public-API root `7a032cfe32425aae9166217bae18e59202afe509a465e34c8c74794b6b1fdf93`,
+  compatibility root `82e97c4564c04790d03750397d65b6989df529fbb21aedc14ae67cf96d759651`,
+  Codex `0.147.0`, schema root
+  `eb325d394d19f2f8d133203885b3d1c2f74dbc5a176f22078a4f99aae5926faa`,
+  and selected-surface root
+  `9a773e75f2e5aa827b4cc711345bd9ca1bc2a037f19d114284a04f306097a42f`.
+- Outputs: structured `librsi.providers` package with separate exact-handoff,
+  prompt/result, OpenAI Responses, and Codex app-server modules; packaged
+  `compatibility.json`; `openai`, `codex`, and combined `providers` extras;
+  `docs/providers.md`; and deterministic Block 22 contract/adversarial tests.
+  The exact five-file adapter source root is
+  `673dd5bb2d5fd0dc473caa87ac8c6517a47fa8551f7d1f203e5d966d27a8b3fd`.
+- Focused validation: final provider suite passed `11` tests with `93.78%`
+  branch coverage; the provider-neutral reasoning/provider mapped suite passed
+  `31` tests; exact installed/local utils-client validation and real
+  `TurnStartParams` construction passed; Ruff and strict mypy passed for the
+  provider package and repository-wide source.
+- Mapped validation: the exact frozen full repository suite passed `740` tests
+  with `90.88%` branch coverage in `974.57s`; its `24` warnings are the retained
+  expected v0.2 legacy-wrapper deprecations. `uv build --wheel` succeeded, and
+  the rebuilt wheel passed isolated base-import/package-data validation without
+  loading either optional provider SDK. The full 27-Block tracker verifier and
+  `git diff --check` passed.
+- Candidate freeze: `49f5d2522405a4bd0f08afabb5405776c0e42548` with exact adapter root
+  `673dd5bb2d5fd0dc473caa87ac8c6517a47fa8551f7d1f203e5d966d27a8b3fd`;
+  the excluded unrelated `uv.lock` remained byte-for-byte unchanged at SHA-256
+  `ea9a2eb3afc46401f2356ef098e005ec87ac33e27475e43bcd86eb4131ea960e`.
+- Remediation closure: independent review rejected earlier candidates for weak
+  utility identity checks, uncorrelated/failed provider settlement, an
+  unsupported typed output schema, equality-spoofable completion, shadow-module
+  substitution, and session-subclass substitution. The accepted candidate
+  hashes the full utility runtime, binds active operational export identities,
+  requires the exact `AppServerSession` type, correlates exact turn completion,
+  and rejects every non-completed/error/incomplete provider response before
+  proposal projection; all corresponding adversarial regressions pass.
+- Resource posture: all normal proof was credential-free and offline; no live
+  hosted-model call, Codex spend, secret, optimizer, external orchestrator, or
+  unrequested backend was used. One accepted local source handoff and one full
+  repository pass were sufficient after the final freeze.
+- Independent review: distinct reviewer `/root/tracker_semantic_review` returned
+  `ACCEPT` for exact commit `49f5d2522405a4bd0f08afabb5405776c0e42548`
+  after reproducing shadow-module, mutable-`__module__`, exact-session-subclass,
+  turn-settlement, and provider-status attacks and recomputing both runtime and
+  adapter roots.
+- Retained open work: none in Block 22. No optimizer, experiment backend, or
+  orchestrator projection was added because no named dogfood justified one.
+- Decision/continuation posture: the separately installed adapters remain
+  proposal-only; external-agent reasoning stays equivalent; standalone may own
+  one process, embedding hosts inject one, and Software Factory must inject the
+  exact accepted session and can never start a competing process.
+- Post-block audit: accepted. No provider object, credential, model completion,
+  or utility package gained semantic/evidence/selection/application authority;
+  no client mechanics were copied or reconstructed; the upstream posture remains
+  `no-license-selected/unpublished` with no public installability, reuse-rights,
+  redistribution, or release claim. Block 23 is the next dependency-safe frontier.
+- Git durability: implementation commits are local on the scoped Block 22 branch;
+  the evidence commit, push, PR, CI gate, and merge are queued immediately after
+  this record.
 
 ### Stop
 
