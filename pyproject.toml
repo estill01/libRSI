@@ -34,15 +34,33 @@ Issues = "https://github.com/estill01/libRSI/issues"
 
 [project.scripts]
 librsi = "librsi.cli.main:entrypoint"
+librsi-http = "librsi.http.__main__:entrypoint"
+librsi-mcp = "librsi.mcp.__main__:entrypoint"
 
 [project.optional-dependencies]
+server = [
+  "fastapi>=0.141,<1",
+  "uvicorn>=0.52,<1",
+]
+mcp = [
+  "mcp>=2,<3",
+]
+service = [
+  "fastapi>=0.141,<1",
+  "mcp>=2,<3",
+  "uvicorn>=0.52,<1",
+]
 dev = [
   "build>=1.2",
+  "fastapi>=0.141,<1",
+  "httpx>=0.28,<1",
   "jsonschema>=4.23",
+  "mcp>=2,<3",
   "mypy>=1.11",
   "pytest>=8",
   "pytest-cov>=5",
   "ruff>=0.6",
+  "uvicorn>=0.52,<1",
 ]
 
 [tool.setuptools]

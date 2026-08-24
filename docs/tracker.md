@@ -340,7 +340,7 @@ content with libRSI merely to save threads.
 | 18 | Embedded/managed local runtime and high-level Python facade | 6, 8, 15–17 | `completed` |
 | 19 | Outcome serialization and external projections | 10, 11, 15–18 | `completed` |
 | 20 | CLI, target admission, and external-agent protocol | 7, 19 | `completed` |
-| 21 | Managed service, HTTP, and MCP projections | 7, 8, 19, 20 | `not-started` |
+| 21 | Managed service, HTTP, and MCP projections | 7, 8, 19, 20 | `completed` |
 | 22 | Required Codex app-server integration and optional provider/backend adapters | 9, 18–20 | `not-started` |
 | 23 | Consumer integration contract and conformance kit | 5, 8, 12, 15–20 | `not-started` |
 | 24 | End-to-end embedded/external/managed dogfoods | 10, 11, 15–23 | `not-started` |
@@ -2880,7 +2880,7 @@ Stop before HTTP/MCP compatibility or hosted-provider adapters.
 
 ## Block 21 — Managed libRSI service, HTTP, and MCP projections
 
-Status: `not-started`
+Status: `completed`
 
 ### Objective
 
@@ -2956,7 +2956,120 @@ Independent review covers shared-runtime authority, network/application permissi
 
 ### Completion evidence
 
-Pending.
+- Implementation: commit
+  `3dd4680180b9f63a56646af7d210f51b1e281bc9` adds the zero-dependency
+  `librsi.service` facade/managed runner, optional FastAPI/Uvicorn HTTP and MCP
+  SDK projections, stdio and stateless Streamable HTTP MCP entrypoints, scoped
+  bearer authority, bounded common envelopes, capability inspection, security
+  documentation, and installed-wheel entrypoint/extra proof. The service and
+  transports delegate to `ExternalAgentController`, canonical workflows,
+  runtime, knowledge, and outcome owners; no transport session, scheduler, or
+  second lifecycle is authoritative.
+- Managed semantic proof: the maintained service dogfoods produce the same
+  canonical validation projection under managed and externally submitted
+  results; execute a two-iteration improvement whose first intervention is
+  rejected, whose competing-hypothesis roster is broadened and replaced, and
+  whose second intervention is selected; and drive governed RSI through
+  historical replay, forward shadow, independent review, an application
+  authority stop, authoritative live-currentness resolution, apply, rejected
+  produced-state verification, and exact rollback. Out-of-band drift returns
+  `currentness-gate` with zero Applier calls; a missing resolver cannot execute
+  managed application effects.
+- Transport and durability proof: one facade backs versioned HTTP plus all MCP
+  tools/resources; local stdio and executable stateless Streamable HTTP MCP
+  smokes pass; admissions and run handles survive service/process restart;
+  duplicate/stale submissions fail closed; HTTP read/mutate/apply tokens are
+  distinct; generic MCP callers cannot claim automatic or application
+  authority; capabilities omit provider secrets; and HTTP startup failure
+  closes owned stores. Exact built-in positive integers prevent action-bound
+  comparison-subclass bypass, while HTTP streaming and common service/MCP
+  envelope checks reject oversized inputs before canonical decoding or store
+  mutation.
+- Packaging and documentation: `server`, `mcp`, and combined `service` optional
+  extras plus `librsi-http` and `librsi-mcp` entrypoints are present in the
+  built wheel. Base `librsi`/`librsi.service` import remains usable when
+  FastAPI, Uvicorn, and MCP are unavailable. `docs/service-protocol.md` records
+  lifecycle, endpoints, MCP tools/resources, auth, currentness, size, process
+  ownership, and deployment boundaries.
+- Focused validation: the final Block 21 acceptance matrix passed `30` tests at
+  `93.73%` branch-aware coverage over `librsi.service`, `librsi.http`, and
+  `librsi.mcp`. Ruff formatting/lint passed all `212` source/test files; mypy
+  passed all `127` source files; installed-wheel, loopback-server, restart,
+  currentness, bounds, and security tests are included.
+- Repository-wide validation: one uninterrupted CI-equivalent local run passed
+  all `729` tests at `90.82%` branch coverage in `1673.48s`; its `24` warnings
+  are the existing deprecated v0.2 compatibility-wrapper warnings. Tracker
+  verification and diff integrity passed after the evidence update.
+- Candidate freeze: exact content root
+  `b671a903fe7ad975c24456cdaf51924fc70e3104c862e167b65eaf947d742e10`
+  over `30` paths relative to base
+  `6a3d2372598575e69e0427c08b79c9e6dbeabc5a` remained unchanged through
+  final review, full validation, and implementation commit. Unrelated untracked
+  `uv.lock` was excluded and remained unchanged at size `134695`, mtime
+  `1787379167`, and SHA-256
+  `ea9a2eb3afc46401f2356ef098e005ec87ac33e27475e43bcd86eb4131ea960e`.
+- Remediation closure: independent review first rejected the candidate because
+  managed application lacked authoritative pre-effect currentness, integer
+  subclasses could bypass action limits, MCP/common request limits were
+  incomplete while HTTP buffered whole bodies, and HTTP startup failure could
+  leak stores. The corrected candidate added one host-owned exact snapshot
+  resolver before apply/verify/rollback, exact built-in integer bounds,
+  cumulative streaming/common-envelope limits, and unconditional startup
+  cleanup, with adversarial regressions for every finding.
+- Independent semantic review: Hubble returned `ACCEPT` against the final frozen
+  content root above, independently reproduced the currentness, comparison-
+  subclass, and chunked-stream probes, verified zero provider effects on drift,
+  confirmed every prior finding closed, and found no authority bypass,
+  lifecycle duplication, protected-owner regression, or Block 22 Stop crossing.
+- Product-capability review:
+  - Trigger: consequential posture.
+  - Frame identity: `docs/tracker.md`, Block 21,
+    `e189c53ff767433bd4fad712808d25d3e5adde421fdf0c241948a60f83cd472e`.
+  - Capability added or preserved: an embedding or standalone host can admit a
+    bounded objective, run validation/investigation/improvement/governed RSI,
+    execute configured automatic providers, and drive the same durable run over
+    Python, HTTP, stdio MCP, or Streamable HTTP MCP without changing canonical
+    outcomes or granting transport-derived application authority.
+  - Paths compared: transport-owned workflow/session state; separate HTTP and
+    MCP controllers; and the selected one-facade projection over the accepted
+    external-agent controller. The selected path preserves restart, exact
+    action/result identity, replaceability, and one lifecycle owner.
+  - Selected level and owner: `service/facade.py` owns operational composition;
+    `service/managed.py` owns only bounded dispatch and live-currentness gates;
+    `http/` and `mcp/` own transport/auth presentation; canonical workflow,
+    evidence, selection, application, runtime, and outcome meaning stays in its
+    existing libRSI modules.
+  - Protected-capability result: transport sessions, anonymous remote access,
+    generic MCP tools, provider narration, network reachability, and a managed
+    bound cannot manufacture evidence, selection, application authority,
+    currentness, or terminal outcome. Providers and their secrets never enter
+    capability projections or canonical state.
+  - Rejected alternatives: a second service scheduler/controller would split
+    lifecycle authority; transport-specific semantic models would drift roots;
+    implicit/unbounded autonomy would bypass admission and evaluation contracts;
+    and permitting MCP application would conflate network access with target
+    mutation authority.
+  - Tradeoffs and uncertainty: the service serializes SQLite access within one
+    process and uses static bearer seams rather than supplying a gateway,
+    federation, TLS, deployment, observability, or multitenant control plane.
+    These remain explicit host responsibilities and Block 21 non-goals.
+  - Frozen-candidate proof: implementation commit/content root above, focused
+    `30`-test/`93.73%` coverage, full `729`-test/`90.82%` acceptance, installed-
+    wheel proof, and final exact-root independent acceptance.
+- Resource posture: tests use temporary stores, loopback servers, one bounded
+  remote MCP subprocess, and no public endpoint. The service never starts a
+  model/provider/Codex app-server process; the embedding host remains the sole
+  process owner.
+- Retained open work: none within Block 21. Required shared-client Codex
+  app-server integration and optional provider/backend adapters remain Block 22;
+  consumer conformance, cross-mode dogfoods, comprehensive proof, and release
+  work remain Blocks 23–26.
+- Decision/continuation posture: not applicable; Block 22 is dependency-safe.
+- Post-block audit: accepted. No production deployment, gateway, provider-specific
+  adapter, distributed scheduler, UI, notification/observability platform, or
+  multitenant control plane crossed the Block 21 Stop.
+- Git durability: the implementation commit above is queued with this evidence
+  successor for non-force push on `origin/codex/block-21-managed-service`.
 
 ### Stop
 

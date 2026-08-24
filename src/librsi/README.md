@@ -151,6 +151,14 @@ The current implementation owns portable primitives including:
 - `projections/codec.py`, `projections/schemas.py`, and `projections/store.py` — closed
   deterministic JSON/reconstruction, published envelope schemas, and metadata-free
   exact-byte persistence behind a replaceable protocol;
+- `service/facade.py`, `service/managed.py`, and `service/records.py` — one durable
+  transport-independent service facade, explicit managed bounds, and bounded dispatch
+  over the external-agent controller without a second lifecycle, including mandatory
+  live-currentness resolution before managed application effects;
+- `http/app.py` and `http/auth.py` — optional versioned FastAPI projection with bounded
+  bodies and distinct read, mutate, and application bearer permissions;
+- `mcp/server.py` and `mcp/auth.py` — optional stdio and stateless Streamable HTTP MCP
+  tools/resources with no generic application-authority path;
 - `hypotheses.py` — canonical hypothesis creation/evidence updates plus legacy wrappers;
 - `experiments.py` — immutable command specs, host execution inputs, and evidence interpretation;
 - `ports.py` — typed host interfaces such as `ExperimentRunner`;

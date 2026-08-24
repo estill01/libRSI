@@ -97,6 +97,7 @@ class ExternalAgentController:
         agent_store: SQLiteAgentStore,
         runtime_store: RuntimeStore,
         knowledge_store: SQLiteKnowledgeStore,
+        capability_registry: CapabilityRegistry | None = None,
     ) -> None:
         if type(agent_store) is not SQLiteAgentStore:
             raise TypeError("external controller requires a SQLiteAgentStore")
@@ -104,19 +105,39 @@ class ExternalAgentController:
             raise TypeError("external controller requires a RuntimeStore")
         if type(knowledge_store) is not SQLiteKnowledgeStore:
             raise TypeError("external controller requires a SQLiteKnowledgeStore")
+        if capability_registry is not None and not isinstance(
+            capability_registry, CapabilityRegistry
+        ):
+            raise TypeError("external controller capability registry is invalid")
         self.agent_store = agent_store
         self.runtime_store = runtime_store
         self.knowledge_store = knowledge_store
+        self._capability_registry = capability_registry
 
     @classmethod
-    def local(cls, data_directory: str | Path) -> ExternalAgentController:
+    def local(
+        cls,
+        data_directory: str | Path,
+        *,
+        capability_registry: CapabilityRegistry | None = None,
+    ) -> ExternalAgentController:
         directory = Path(data_directory).expanduser().resolve()
         directory.mkdir(parents=True, exist_ok=True)
         return cls(
             agent_store=SQLiteAgentStore(directory / "agent.sqlite3"),
             runtime_store=SQLiteRuntimeStore(directory / "runtime.sqlite3"),
             knowledge_store=SQLiteKnowledgeStore(directory / "knowledge.sqlite3"),
+            capability_registry=capability_registry,
         )
+
+    def configure_capabilities(self, registry: CapabilityRegistry) -> None:
+        """Attach one process-owned provider registry to this controller composition."""
+
+        if not isinstance(registry, CapabilityRegistry):
+            raise TypeError("external controller capability registry is invalid")
+        if self._capability_registry is not None and self._capability_registry is not registry:
+            raise ValueError("external controller already has a different capability registry")
+        self._capability_registry = registry
 
     def close(self) -> None:
         self.agent_store.close()
@@ -157,9 +178,11 @@ class ExternalAgentController:
             ):
                 raise ValueError("RSI request is not bound to the target admission")
 
-    @staticmethod
-    def _registry(admission: TargetAdmission) -> CapabilityRegistry:
-        return CapabilityRegistry(routes=tuple(item.route() for item in admission.capabilities))
+    def _registry(self, admission: TargetAdmission) -> CapabilityRegistry:
+        routes = tuple(item.route() for item in admission.capabilities)
+        if self._capability_registry is None:
+            return CapabilityRegistry(routes=routes)
+        return self._capability_registry.scoped(routes)
 
     def _workflow(self, binding: AgentRunBinding) -> Workflow:
         if binding.workflow == "validation":

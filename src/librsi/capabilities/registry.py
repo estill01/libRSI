@@ -90,6 +90,40 @@ class CapabilityRegistry:
     def routes(self) -> tuple[CapabilityRoute, ...]:
         return tuple(self._routes.values())
 
+    @property
+    def configured_families(self) -> tuple[str, ...]:
+        """Return provider families without exposing provider objects or secrets."""
+
+        return tuple(sorted(self._providers))
+
+    def scoped(self, routes: Sequence[CapabilityRoute]) -> CapabilityRegistry:
+        """Bind configured providers to an admitted route subset without exposing them."""
+
+        route_items = tuple(routes)
+        matching_families = {
+            route.family
+            for route in route_items
+            if route.posture == "automatic" and self._routes.get(route.action_kind) == route
+        }
+        implementations: list[object] = []
+        for family in sorted(matching_families):
+            provider = self._providers.get(family)
+            if provider is not None and not any(provider is item for item in implementations):
+                implementations.append(provider)
+        validators = tuple(
+            validator
+            for action_kind, validator in self._result_validators.items()
+            if any(
+                route.action_kind == action_kind and self._routes.get(action_kind) == route
+                for route in route_items
+            )
+        )
+        return CapabilityRegistry(
+            routes=route_items,
+            implementations=tuple(implementations),
+            result_validators=validators,
+        )
+
     def has_result_validator(self, action_kind: str) -> bool:
         """Return whether an exact action kind has a pre-transition validator."""
 

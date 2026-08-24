@@ -424,6 +424,15 @@ from .runtime import (
 )
 from .selections import SelectionPolicy
 from .selector_policies import SelectorPolicy
+from .service import (
+    SERVICE_SCHEMA,
+    SERVICE_SCHEMA_VERSION,
+    LibRSIService,
+    ManagedBounds,
+    ManagedExecution,
+    ManagedServiceRunner,
+    ServiceLimits,
+)
 from .sqlite_knowledge import SQLiteKnowledgeStore
 from .targets import Target, TargetPolicy
 from .validation import (
@@ -608,6 +617,7 @@ __all__ = [
     "LinearEvidenceAggregator",
     "LibRSI",
     "LibRSIRun",
+    "LibRSIService",
     "LocalArtifactStore",
     "LocalCommandRunner",
     "LocalFilesystemInspector",
@@ -615,6 +625,9 @@ __all__ = [
     "LoggingTransitionSink",
     "Measurement",
     "MemoryProjectionStore",
+    "ManagedBounds",
+    "ManagedExecution",
+    "ManagedServiceRunner",
     "Metric",
     "Observation",
     "Objective",
@@ -694,6 +707,9 @@ __all__ = [
     "SelectionPolicy",
     "SelectorPolicy",
     "SemanticRecord",
+    "SERVICE_SCHEMA",
+    "SERVICE_SCHEMA_VERSION",
+    "ServiceLimits",
     "SELF_CHANGE_ACTION_KINDS",
     "SELF_CHANGE_CLASSES",
     "SELF_CHANGE_EVALUATION_STAGES",

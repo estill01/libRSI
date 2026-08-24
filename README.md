@@ -79,6 +79,14 @@ python -m pip install -e '.[dev]'
 python -m pytest
 ```
 
+Optional service projections remain separate from the zero-dependency core:
+
+```bash
+python -m pip install -e '.[server]'  # FastAPI/HTTP
+python -m pip install -e '.[mcp]'     # stdio + Streamable HTTP MCP
+python -m pip install -e '.[service]' # both projections
+```
+
 ## Quick start
 
 The facade can validate a typed claim with a small local setup while persisting the exact
@@ -134,6 +142,41 @@ See [`examples/local_validation.py`](examples/local_validation.py) and
 Every local default can be supplied independently through `LibRSI.local(...)`. Construct
 plain `LibRSI(...)` for a host-neutral composition, or use `LibRSI.start(request)` when an
 external host should own the action loop.
+
+## Managed service and remote projections
+
+`LibRSIService` provides durable target and run handles over the same canonical
+controller used by the external CLI. `run_managed()` executes only exact admitted
+automatic routes from the configured provider registry and requires an explicit action
+bound. It stops at unavailable, external, human-reserved, and application-authority
+frontiers; callers must separately opt into application, and ordinary governance and
+currentness checks still apply.
+
+```python
+from librsi import ManagedBounds
+from librsi.service import LibRSIService
+
+with LibRSIService.local(
+    ".librsi",
+    registry=capability_registry,
+    current_snapshot_resolver=read_authoritative_snapshot,
+) as service:
+    service.submit_target(admission)
+    service.start(request, admission_id=admission.admission_id)
+    execution = service.run_managed(
+        request.canonical_run().run_id,
+        ManagedBounds(max_actions=8, allow_application=False),
+    )
+```
+
+Managed apply/verify/rollback will not execute without that authoritative snapshot
+resolver. Out-of-band target drift stops before the provider call.
+
+The optional `librsi-http` and `librsi-mcp` entrypoints are thin projections over this
+facade. MCP supports local stdio and the maintained stateless Streamable HTTP transport.
+Neither transport launches a provider or owns semantic state. See
+[`docs/service-protocol.md`](docs/service-protocol.md) for endpoints, tools/resources,
+authentication scopes, request bounds, restart behavior, and deployment boundaries.
 
 ## Stable outcome projections
 
