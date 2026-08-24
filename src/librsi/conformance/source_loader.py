@@ -10,6 +10,8 @@ from pathlib import Path
 from threading import RLock
 from types import MappingProxyType, ModuleType
 
+from .behavior import module_behavior_root
+
 _LOAD_LOCK = RLock()
 
 
@@ -23,6 +25,7 @@ class CanonicalSourcePackage:
     root: ModuleType
     modules: Mapping[str, ModuleType]
     namespaces: Mapping[str, Mapping[str, object]]
+    behavior_roots: Mapping[str, str]
 
 
 def execute_source_package(import_root: str, package: Path) -> CanonicalSourcePackage:
@@ -60,6 +63,9 @@ def execute_source_package(import_root: str, package: Path) -> CanonicalSourcePa
             namespaces = {
                 name: MappingProxyType(dict(module.__dict__)) for name, module in modules.items()
             }
+            behavior_roots = {
+                name: module_behavior_root(module) for name, module in modules.items()
+            }
         except Exception:
             for name in tuple(sys.modules):
                 if name == alias or name.startswith(prefix):
@@ -74,4 +80,5 @@ def execute_source_package(import_root: str, package: Path) -> CanonicalSourcePa
             root=root,
             modules=MappingProxyType(modules),
             namespaces=MappingProxyType(namespaces),
+            behavior_roots=MappingProxyType(behavior_roots),
         )

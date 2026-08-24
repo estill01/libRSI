@@ -34,6 +34,7 @@ else:
 
 ADAPTER_RUNTIME_FILES = (
     "__init__.py",
+    "behavior.py",
     "lifecycle.py",
     "manifest.py",
     "shared-utilities.json",

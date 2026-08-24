@@ -25,7 +25,7 @@ unlicensed and unpublished; this internal test handoff is not a claim of public
 installability, reuse rights, redistribution, or release authority.
 
 The libRSI adapter root is
-`cc70c5c1f14235b0b25f0ac22dfe02423f7f8b676b6f639de6ad24c6e67c9ade`.
+`e3fc5b398ae562ece1c2ff7a7dbb9cba12d5f29f8995f21eb890afa4b175b3e8`.
 Its file set is fixed in libRSI code and includes the utility handoff document;
 the exact root is independently frozen by this document and the system test,
 not supplied by the handoff document itself.
@@ -33,10 +33,14 @@ libRSI resolves the exact installed distributions and executes their already-has
 sources under private libRSI-owned module namespaces. Adapter exports bind only
 from those executed module objects, so caller-populated canonical import entries,
 including shadows carrying copied loader metadata, cannot become operational.
+Immutable behavioral roots cover executed function code/defaults/closures and
+class-owned methods, descriptors, annotations, and fields. They are revalidated
+before use, so in-place mutation of an otherwise identical function or class
+object also fails closed.
 The external-agent schema source root is
 `89edd647d75977f1b33dba9173118ae5490f1699a9e5725e28207961b8fd4e1a`.
 The canonical descriptive manifest SHA-256 is
-`3596dcf3c489c1fdf686c3e4f40d969e52a353dc1e1012e98971465d80247409`.
+`8a38b964a39bd1d3563318c8e507bfecf6d5ec470e5e01b0ec1f6eddd4196ff7`.
 
 The lifecycle package checks only host shape, process ownership, run references,
 status, ordered events, cancellation, and structural outcomes. libRSI continues

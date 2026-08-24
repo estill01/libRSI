@@ -67,13 +67,13 @@ def test_exact_qualified_shared_package_set_and_descriptive_manifest_are_consume
     document = runtime_manifest_document()
     adapter_root, protocol_schema_root = _adapter_root()
     assert "shared-utilities.json" in ADAPTER_RUNTIME_FILES
-    assert adapter_root == "cc70c5c1f14235b0b25f0ac22dfe02423f7f8b676b6f639de6ad24c6e67c9ade"
+    assert adapter_root == "e3fc5b398ae562ece1c2ff7a7dbb9cba12d5f29f8995f21eb890afa4b175b3e8"
     assert (
         protocol_schema_root == "89edd647d75977f1b33dba9173118ae5490f1699a9e5725e28207961b8fd4e1a"
     )
     assert (
         hashlib.sha256(document.encode()).hexdigest()
-        == "3596dcf3c489c1fdf686c3e4f40d969e52a353dc1e1012e98971465d80247409"
+        == "8a38b964a39bd1d3563318c8e507bfecf6d5ec470e5e01b0ec1f6eddd4196ff7"
     )
     assert manifest_api.parse_manifest(document) == manifest
     assert manifest.component.name == "librsi"
@@ -376,6 +376,42 @@ def test_owned_source_loader_rejects_invalid_sources_and_freezes_executed_bindin
                 del sys.modules[name]
 
 
+def test_behavior_roots_reject_in_place_function_and_class_mutation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    lifecycle, manifest_api = load_shared_utilities()
+
+    def forged_compare(_expected: object, _observed: object) -> object:
+        return object()
+
+    monkeypatch.setattr(
+        manifest_api.compare_manifests,
+        "__code__",
+        forged_compare.__code__,
+    )
+    with pytest.raises(RuntimeError, match="executed behavior root"):
+        load_shared_utilities()
+    monkeypatch.undo()
+    load_shared_utilities()
+
+    def forged_contract_init(
+        self: object,
+        shape: object,
+        process_owner_count: int,
+        schema_version: int = 1,
+    ) -> None:
+        object.__setattr__(self, "shape", shape)
+        object.__setattr__(self, "process_owner_count", 999)
+        object.__setattr__(self, "schema_version", schema_version)
+
+    monkeypatch.setattr(lifecycle.HostContract, "__init__", forged_contract_init)
+    with pytest.raises(RuntimeError, match="executed behavior root"):
+        load_shared_utilities()
+    monkeypatch.undo()
+    contract = lifecycle.HostContract(lifecycle.HostShape.EMBEDDED, process_owner_count=0)
+    assert contract.process_owner_count == 0
+
+
 def test_lifecycle_projection_rejects_implicit_or_malformed_semantics() -> None:
     lifecycle, _ = load_shared_utilities()
     with pytest.raises(TypeError, match="HostShape"):
@@ -501,7 +537,7 @@ def test_shared_handoff_metadata_and_runtime_validation_edges(
     with pytest.raises(RuntimeError, match="runtime content root"):
         validate_shared_package(lifecycle, stale)
     monkeypatch.setattr(lifecycle, "__all__", tuple(lifecycle.__all__)[:-1])
-    with pytest.raises(RuntimeError, match="public surface"):
+    with pytest.raises(RuntimeError, match="behavior root|public surface"):
         validate_shared_package(lifecycle, EMBEDDED_SERVICE_HANDOFF)
     monkeypatch.undo()
 

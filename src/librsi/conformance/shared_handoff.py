@@ -12,6 +12,7 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any
 
+from .behavior import module_behavior_root
 from .source_loader import CanonicalSourcePackage, execute_source_package
 
 _OPERATIONAL_EXPORT_OWNERS = {
@@ -326,6 +327,11 @@ def _validate_canonical_package(
     if type(origin) is not str or Path(origin).resolve() != package / "__init__.py":
         raise RuntimeError(f"{handoff.distribution} has no stable filesystem origin")
     _validate_source_module(module, package / "__init__.py", handoff.distribution)
+    if set(package_source.modules) != set(package_source.behavior_roots):
+        raise RuntimeError(f"{handoff.distribution} executed behavior module set has drifted")
+    for name, owned in package_source.modules.items():
+        if module_behavior_root(owned) != package_source.behavior_roots[name]:
+            raise RuntimeError(f"{handoff.distribution} executed behavior root has drifted: {name}")
     _validate_contracts(package, handoff)
     if _package_runtime_content_root(package, handoff) != handoff.runtime_content_root_sha256:
         raise RuntimeError(f"{handoff.distribution} runtime content root has drifted")
