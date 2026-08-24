@@ -51,7 +51,17 @@ def test_built_wheel_installs_and_drives_the_external_cli(tmp_path: Path) -> Non
         entry_points = next(
             name for name in archive.namelist() if name.endswith(".dist-info/entry_points.txt")
         )
-        assert "librsi = librsi.cli.main:entrypoint" in archive.read(entry_points).decode()
+        entry_point_text = archive.read(entry_points).decode()
+        assert "librsi = librsi.cli.main:entrypoint" in entry_point_text
+        assert "librsi-http = librsi.http.__main__:entrypoint" in entry_point_text
+        assert "librsi-mcp = librsi.mcp.__main__:entrypoint" in entry_point_text
+        metadata = next(name for name in archive.namelist() if name.endswith(".dist-info/METADATA"))
+        metadata_text = archive.read(metadata).decode()
+        assert "Provides-Extra: server" in metadata_text
+        assert "Provides-Extra: mcp" in metadata_text
+        assert "Provides-Extra: service" in metadata_text
+        assert 'Requires-Dist: fastapi<1,>=0.141; extra == "server"' in metadata_text
+        assert 'Requires-Dist: mcp<3,>=2; extra == "mcp"' in metadata_text
         archive.extractall(site_packages)
 
     isolated = os.environ.copy()

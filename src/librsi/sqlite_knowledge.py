@@ -35,7 +35,7 @@ class SQLiteKnowledgeStore:
     def __init__(self, path: str | Path = ":memory:") -> None:
         if not isinstance(path, (str, Path)):
             raise TypeError("SQLite knowledge path must be text or a Path")
-        self._connection = sqlite3.connect(str(path))
+        self._connection = sqlite3.connect(str(path), check_same_thread=False)
         self._connection.row_factory = sqlite3.Row
         self._closed = False
         self._connection.execute("PRAGMA foreign_keys = ON")
