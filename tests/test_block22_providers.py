@@ -203,7 +203,9 @@ def test_process_owner_contract_rejects_two_owners_before_import() -> None:
         CodexAppServerExecutor(CodexProcessPolicy(owner="standalone"), session_factory=factory)
 
 
-def test_exact_handoff_and_compatibility_manifest_are_frozen(tmp_path: Path) -> None:
+def test_exact_handoff_and_compatibility_manifest_are_frozen(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     with pytest.raises(RuntimeError, match="origin"):
         validate_codex_client(_fake_codex_module())
     path = Path(__file__).parents[1] / "src/librsi/providers/compatibility.json"
@@ -250,7 +252,13 @@ def test_exact_handoff_and_compatibility_manifest_are_frozen(tmp_path: Path) -> 
     shadow.PINNED_PROTOCOL = client.PINNED_PROTOCOL
     for name in client.__all__:
         setattr(shadow, name, getattr(client, name))
-    shadow.AppServerSession = _FakeSession
+
+    class ForgedSession:
+        pass
+
+    ForgedSession.__module__ = "codex_app_server_client.session"
+    shadow.AppServerSession = ForgedSession
+    monkeypatch.setitem(sys.modules, "codex_app_server_client", shadow)
     with pytest.raises(RuntimeError, match="operational export"):
         validate_codex_client(shadow)
 

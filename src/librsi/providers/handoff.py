@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import hashlib
-import inspect
+import importlib
 import json
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from types import ModuleType
@@ -125,6 +126,8 @@ def _validate_operational_exports(module: ModuleType) -> None:
     if not isinstance(origin, str):
         raise RuntimeError("Codex client module has no stable filesystem origin")
     package = Path(origin).resolve().parent
+    if sys.modules.get("codex_app_server_client") is not module:
+        raise RuntimeError("Codex client root is not the active imported module")
     expected = {
         "resolve_codex_binary": ("codex_app_server_client.compatibility", "compatibility.py"),
         "inspect_compatibility": ("codex_app_server_client.compatibility", "compatibility.py"),
@@ -139,9 +142,10 @@ def _validate_operational_exports(module: ModuleType) -> None:
     }
     for name, (owner, filename) in expected.items():
         implementation = getattr(module, name, None)
-        source = inspect.getsourcefile(implementation) if implementation is not None else None
+        owner_module = importlib.import_module(owner)
+        source = getattr(owner_module, "__file__", None)
         if (
-            getattr(implementation, "__module__", None) != owner
+            implementation is not getattr(owner_module, name, None)
             or not isinstance(source, str)
             or Path(source).resolve() != package / filename
         ):
