@@ -41,9 +41,14 @@ class CompositeSnapshot:
     snapshot: TargetSnapshot
 
     def __post_init__(self) -> None:
-        if not isinstance(self.target, TargetRef) or not isinstance(self.snapshot, TargetSnapshot):
+        if type(self.target) is not TargetRef or type(self.snapshot) is not TargetSnapshot:
             raise TypeError("composite mapping requires canonical target and snapshot records")
-        if self.snapshot.target != self.target:
+        if type(self.snapshot.target) is not TargetRef:
+            raise TypeError("composite snapshot target must be a canonical TargetRef")
+        if (
+            self.snapshot.target.ref != self.target.ref
+            or self.snapshot.target.root != self.target.root
+        ):
             raise ValueError("composite mapping target and snapshot must match")
 
 

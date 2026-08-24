@@ -14,6 +14,16 @@ from tests.block23_reference_consumer import (
 )
 
 
+class EqualitySpoofTarget(TargetRef):
+    def __eq__(self, other: object) -> bool:
+        return True
+
+
+class EqualitySpoofSnapshot(TargetSnapshot):
+    def __eq__(self, other: object) -> bool:
+        return True
+
+
 def test_ordinary_multi_component_consumer_returns_evidence_bound_candidate() -> None:
     run = ordinary_multi_component_run()
     assert run.validation.disposition == "supported"
@@ -73,6 +83,35 @@ def test_mapping_rejects_partial_ambiguous_or_duplicate_components() -> None:
     other_snapshot = TargetSnapshot(target=other, revision="v1", state={"value": 1})
     with pytest.raises(ValueError, match="must match"):
         CompositeSnapshot(target=component_target(), snapshot=other_snapshot)
+
+
+def test_composite_wrapper_rejects_record_subclasses_and_equality_spoofs() -> None:
+    target = component_target()
+    snapshot = TargetSnapshot(target=target, revision="v1", state={"value": 1})
+    spoof_target = EqualitySpoofTarget(target_id="spoof", kind="opaque")
+
+    assert spoof_target == target
+    assert spoof_target.root != target.root
+    with pytest.raises(TypeError, match="canonical target and snapshot"):
+        CompositeSnapshot(target=spoof_target, snapshot=snapshot)
+    with pytest.raises(TypeError, match="canonical target and snapshot"):
+        CompositeSnapshot(
+            target=target,
+            snapshot=EqualitySpoofSnapshot(
+                target=target,
+                revision="v1",
+                state={"value": 1},
+            ),
+        )
+    with pytest.raises(TypeError, match="snapshot target.*canonical"):
+        CompositeSnapshot(
+            target=target,
+            snapshot=TargetSnapshot(
+                target=spoof_target,
+                revision="v1",
+                state={"value": 1},
+            ),
+        )
 
 
 def test_mapping_is_canonical_across_caller_component_order() -> None:
