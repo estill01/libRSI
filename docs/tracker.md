@@ -3470,7 +3470,7 @@ Review scenario completeness, reuse, semantic equivalence, exact outcomes, failu
 ### Completion evidence
 
 - Accepted implementation revision:
-  `f3e61581c70d1bc705df3216b9540a5a380a1e36`, developed from Block start
+  `1d81f6180b40435e10145756a2d99e6f334d31bc`, developed from Block start
   `1fd1258475f59799002486d4b89001923572e6bb`. The candidate adds the maintained
   external/managed system matrix, application-disabled and authorized
   apply/verify/rollback paths, interruption/resume, parallel search, governed
@@ -3497,22 +3497,22 @@ Review scenario completeness, reuse, semantic equivalence, exact outcomes, failu
   and projection root
   `72ce0e66a9d6d53261e6e2ac049063533405c0202bde0a70927239f4af60124a`.
   The utility adapter root is
-  `e3fc5b398ae562ece1c2ff7a7dbb9cba12d5f29f8995f21eb890afa4b175b3e8`,
+  `21db50bea1ffdbf1448d7e3f4c0318d5adca591fb1b6d7c927f66baed3150617`,
   the external schema root is
   `89edd647d75977f1b33dba9173118ae5490f1699a9e5725e28207961b8fd4e1a`,
   and the descriptive runtime-manifest SHA-256 is
-  `8a38b964a39bd1d3563318c8e507bfecf6d5ec470e5e01b0ec1f6eddd4196ff7`.
+  `b777c6691c0e9ad4b5aa965dbcbb6321abae3a83528470a7cade59f09105edc4`.
 - Focused and full validation: the Block 23/24 suite passed `17` tests with
-  `93.02%` branch coverage; Ruff over all source/tests, Ruff format checking,
+  `93.68%` branch coverage; Ruff over all source/tests, Ruff format checking,
   Mypy over all source, exact-root verification, and diff-integrity checks passed.
   The frozen full suite passed `757` tests with `90.97%` branch coverage in
-  `1115.77s`; its `24` warnings are the retained v0.2 compatibility-wrapper
+  `3804.46s`; its `24` warnings are the retained v0.2 compatibility-wrapper
   deprecations.
-- Distribution proof: an isolated source archive of exact revision `f3e6158`
+- Distribution proof: an isolated source archive of exact revision `1d81f61`
   built `librsi-0.2.0-py3-none-any.whl` with SHA-256
-  `a23668227b4a14e32d570c5ec47507398df27b6edd37fa52a61626ebc7e1ef28`
+  `6b06612150d2f3a11b23de14870738ea9cd6b704574c8cea2c8e811392454659`
   and `librsi-0.2.0.tar.gz` with SHA-256
-  `f484a502bee4684efedaae2024d22d7951e5ce795159da621a3ca5b0c2a0e9e7`.
+  `e3ca4a817b80043ea59ba153e4d3ba105c86ad74183cb28816d66dd6d0f813c0`.
   Both archives contain the owned behavior-root/source-loader/qualified-metadata
   files. A fresh Python 3.14 environment installed the libRSI wheel with
   `--no-deps` and imported the lightweight public package; after installing only
@@ -3523,9 +3523,15 @@ Review scenario completeness, reuse, semantic equivalence, exact outcomes, failu
   roots covered the utility functions, classes, private helpers, and bindings used
   during owned source execution. Hubble independently mutated
   `compare_manifests.__code__` and `HostContract.__init__`, observed fail-closed
-  behavior-root drift, restored genuine operation, reran the focused suite under
-  coverage instrumentation, and accepted exact revision `f3e6158` with no
-  remaining finding.
+  behavior-root drift, and restored genuine operation. GitHub Actions run
+  `32732242027` then exposed a Python 3.11-only runtime-Protocol cache transition:
+  `751` tests passed and `6` Block 24 tests failed because the first structural
+  instance check materialized a semantically empty annotation mapping. Revision
+  `1d81f61` normalizes only exact empty interpreter caches while retaining
+  nonempty annotations, non-null annotation functions, executable code, and class
+  fields. Hubble first rejected an equality-spoofable draft, independently
+  reproduced that attack, then accepted the exact-dict repair after Python
+  3.11/3.14 coverage checks and the function/class mutation attacks all passed.
 - Boundary and post-block audit: accepted. The Codex fake causally supplies the
   exact hypotheses later consumed unchanged; embedded plus service composition has
   exactly one process owner; manifests remain descriptive; and application,
