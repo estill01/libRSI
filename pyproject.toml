@@ -42,11 +42,11 @@ openai = [
   "openai>=3,<4",
 ]
 codex = [
-  "codex-app-server-client @ git+https://github.com/estill01/utils.git@08c416da4202b7036110e33e43d34ea590054e2e#subdirectory=packages/codex-app-server-client",
+  "codex-app-server-client @ git+https://github.com/estill01/utils.git@a5659745a7cbcbb002b5f06051f6ed9826f721a7#subdirectory=packages/codex-app-server-client",
 ]
 providers = [
   "openai>=3,<4",
-  "codex-app-server-client @ git+https://github.com/estill01/utils.git@08c416da4202b7036110e33e43d34ea590054e2e#subdirectory=packages/codex-app-server-client",
+  "codex-app-server-client @ git+https://github.com/estill01/utils.git@a5659745a7cbcbb002b5f06051f6ed9826f721a7#subdirectory=packages/codex-app-server-client",
 ]
 server = [
   "fastapi>=0.141,<1",

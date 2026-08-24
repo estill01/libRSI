@@ -10,7 +10,9 @@ configuration. libRSI does not serialize credentials or provider response
 objects into canonical records. Deterministic fake clients are the ordinary
 test path; live calls require separate credential and spend authority.
 
-`libRSI[codex]` is pinned to the exact accepted internal utils source revision,
+`libRSI[codex]` is pinned to terminal accepted utils revision
+`a5659745a7cbcbb002b5f06051f6ed9826f721a7` and its unchanged exact package
+source/artifact roots,
 not to the unrelated public registry package with the same name and version.
 The exact producer, artifact, API, schema, surface, qualification, and adapter
 roots are recorded in `librsi/providers/compatibility.json`. The upstream

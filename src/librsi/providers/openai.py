@@ -48,6 +48,12 @@ class OpenAIResponsesBackend:
         if not callable(create):
             raise TypeError("OpenAI client must expose responses.create")
         response = create(model=self._config.model, input=reasoning_prompt(request))
+        if (
+            getattr(response, "status", None) != "completed"
+            or getattr(response, "error", None) is not None
+            or getattr(response, "incomplete_details", None) is not None
+        ):
+            raise RuntimeError("OpenAI response did not complete successfully")
         output_text = getattr(response, "output_text", None)
         if not isinstance(output_text, str):
             raise TypeError("OpenAI response must expose output_text")

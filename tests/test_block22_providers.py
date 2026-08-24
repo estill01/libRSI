@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import importlib
 import json
 import subprocess
@@ -10,6 +11,7 @@ from types import ModuleType, SimpleNamespace
 
 import pytest
 
+import librsi.providers.codex as codex_provider
 from librsi import Goal, ReasoningRequest, TargetRef, TargetSnapshot
 from librsi.providers import (
     CODEX_CLIENT_HANDOFF,
@@ -53,7 +55,9 @@ class _FakeResponses:
 
     def create(self, **kwargs: object) -> object:
         self.calls.append(kwargs)
-        return SimpleNamespace(output_text=_RESULT)
+        return SimpleNamespace(
+            output_text=_RESULT, status="completed", error=None, incomplete_details=None
+        )
 
 
 def test_openai_responses_adapter_preserves_typed_proposal_boundary() -> None:
@@ -125,12 +129,13 @@ def _fake_codex_module() -> ModuleType:
         pass
 
     class AgentMessageDeltaNotification:
-        def __init__(self, thread_id: str, delta: str) -> None:
-            self.threadId, self.delta = thread_id, delta
+        def __init__(self, thread_id: str, turn_id: str, delta: str) -> None:
+            self.threadId, self.turnId, self.delta = thread_id, turn_id, delta
 
     class TurnCompletedNotification:
-        def __init__(self, thread_id: str) -> None:
+        def __init__(self, thread_id: str, turn_id: str, status: str = "completed") -> None:
             self.threadId = thread_id
+            self.turn = SimpleNamespace(id=turn_id, status=status, error=None)
 
     module.ThreadStartParams, module.TurnStartParams = ThreadStartParams, TurnStartParams
     module.AgentMessageDeltaNotification = AgentMessageDeltaNotification
@@ -148,12 +153,12 @@ class _FakeSession:
 
     async def start_turn(self, params: object, *, timeout: float) -> object:
         self.turn_args = (params, timeout)
-        return object()
+        return SimpleNamespace(turn=SimpleNamespace(id="turn-1"))
 
     async def events(self):
-        yield self.module.AgentMessageDeltaNotification("thread-1", _RESULT[:20])
-        yield self.module.AgentMessageDeltaNotification("thread-1", _RESULT[20:])
-        yield self.module.TurnCompletedNotification("thread-1")
+        yield self.module.AgentMessageDeltaNotification("thread-1", "turn-1", _RESULT[:20])
+        yield self.module.AgentMessageDeltaNotification("thread-1", "turn-1", _RESULT[20:])
+        yield self.module.TurnCompletedNotification("thread-1", "turn-1")
 
 
 def test_injected_codex_session_uses_typed_surface_without_process_ownership(
@@ -162,6 +167,7 @@ def test_injected_codex_session_uses_typed_surface_without_process_ownership(
     module = _fake_codex_module()
     session = _FakeSession(module)
     monkeypatch.setattr(importlib, "import_module", lambda name: module)
+    monkeypatch.setattr(codex_provider, "validate_codex_client", lambda value: None)
 
     async def factory() -> object:
         return session
@@ -196,15 +202,25 @@ def test_process_owner_contract_rejects_two_owners_before_import() -> None:
         CodexAppServerExecutor(CodexProcessPolicy(owner="standalone"), session_factory=factory)
 
 
-def test_exact_handoff_and_compatibility_manifest_are_frozen() -> None:
-    validate_codex_client(_fake_codex_module())
+def test_exact_handoff_and_compatibility_manifest_are_frozen(tmp_path: Path) -> None:
+    with pytest.raises(RuntimeError, match="origin"):
+        validate_codex_client(_fake_codex_module())
     path = Path(__file__).parents[1] / "src/librsi/providers/compatibility.json"
     manifest = json.loads(path.read_text())
     assert (
-        manifest["codex_app_server_client"]["producer_source_commit"]
-        == CODEX_CLIENT_HANDOFF.producer_source_commit
+        manifest["codex_app_server_client"]["producer_revision"]
+        == CODEX_CLIENT_HANDOFF.producer_revision
     )
     assert manifest["posture"] == "no-license-selected/unpublished"
+    provider_root = path.parent
+    entries = []
+    for source in sorted(provider_root.glob("*.py")):
+        data = source.read_bytes()
+        entries.append(
+            {"path": source.name, "sha256": hashlib.sha256(data).hexdigest(), "size": len(data)}
+        )
+    payload = (json.dumps(entries, sort_keys=True, separators=(",", ":")) + "\n").encode()
+    assert manifest["librsi_adapter"]["content_root_sha256"] == hashlib.sha256(payload).hexdigest()
 
     with pytest.raises(TypeError, match="imported module"):
         validate_codex_client(object())  # type: ignore[arg-type]
@@ -212,10 +228,17 @@ def test_exact_handoff_and_compatibility_manifest_are_frozen() -> None:
     wrong_version.__version__ = "9.0"
     with pytest.raises(RuntimeError, match="version"):
         validate_codex_client(wrong_version)
-    wrong_surface = _fake_codex_module()
-    wrong_surface.PINNED_PROTOCOL.schema_tree_root_sha256 = "sha256:wrong"
-    with pytest.raises(RuntimeError, match="protocol surface"):
-        validate_codex_client(wrong_surface)
+    wrong_artifact = _fake_codex_module()
+    package = tmp_path / "codex_app_server_client"
+    protocol = package / "_protocol"
+    protocol.mkdir(parents=True)
+    origin = package / "__init__.py"
+    origin.write_text("")
+    (protocol / "compatibility.json").write_text("{}")
+    (protocol / "public-api.json").write_text("{}")
+    wrong_artifact.__file__ = str(origin)
+    with pytest.raises(RuntimeError, match="artifact hashes"):
+        validate_codex_client(wrong_artifact)
 
 
 def test_base_import_does_not_import_provider_sdks() -> None:
@@ -275,8 +298,47 @@ def test_openai_configuration_lazy_import_and_failure_boundaries(
             _request()
         )
     bad = SimpleNamespace(responses=SimpleNamespace(create=lambda **kwargs: object()))
-    with pytest.raises(TypeError, match="output_text"):
+    with pytest.raises(RuntimeError, match="did not complete"):
         OpenAIResponsesBackend(OpenAIResponsesConfig("gpt-test"), client=bad).respond(_request())
+
+    for status in ("failed", "incomplete", "in_progress", "cancelled", "queued"):
+        failed = SimpleNamespace(
+            responses=SimpleNamespace(
+                create=lambda status=status, **kwargs: SimpleNamespace(
+                    status=status, output_text=_RESULT, error=None, incomplete_details=None
+                )
+            )
+        )
+        with pytest.raises(RuntimeError, match="did not complete"):
+            OpenAIResponsesBackend(OpenAIResponsesConfig("gpt-test"), client=failed).respond(
+                _request()
+            )
+    for details in ({"code": "failed"}, {"reason": "max_output_tokens"}):
+        unsettled = SimpleNamespace(
+            responses=SimpleNamespace(
+                create=lambda details=details, **kwargs: SimpleNamespace(
+                    status="completed",
+                    output_text=_RESULT,
+                    error=details if "code" in details else None,
+                    incomplete_details=details if "reason" in details else None,
+                )
+            )
+        )
+        with pytest.raises(RuntimeError, match="did not complete"):
+            OpenAIResponsesBackend(OpenAIResponsesConfig("gpt-test"), client=unsettled).respond(
+                _request()
+            )
+    no_text = SimpleNamespace(
+        responses=SimpleNamespace(
+            create=lambda **kwargs: SimpleNamespace(
+                status="completed", error=None, incomplete_details=None, output_text=None
+            )
+        )
+    )
+    with pytest.raises(TypeError, match="output_text"):
+        OpenAIResponsesBackend(OpenAIResponsesConfig("gpt-test"), client=no_text).respond(
+            _request()
+        )
 
 
 def test_standalone_executor_uses_one_owned_client_and_closes(
@@ -311,6 +373,7 @@ def test_standalone_executor_uses_one_owned_client_and_closes(
 
     module.AppServerClient = AppServerClient
     monkeypatch.setattr(importlib, "import_module", lambda name: module)
+    monkeypatch.setattr(codex_provider, "validate_codex_client", lambda value: None)
     executor = CodexAppServerExecutor(CodexProcessPolicy(owner="standalone"))
     assert asyncio.run(executor.complete_async(_request())) == _RESULT
     assert state["closed"] is True
@@ -324,6 +387,7 @@ def test_injected_session_shape_and_event_filtering_fail_closed(
 ) -> None:
     module = _fake_codex_module()
     monkeypatch.setattr(importlib, "import_module", lambda name: module)
+    monkeypatch.setattr(codex_provider, "validate_codex_client", lambda value: None)
 
     async def invalid_factory() -> object:
         return object()
@@ -336,11 +400,13 @@ def test_injected_session_shape_and_event_filtering_fail_closed(
 
     class FilteringSession(_FakeSession):
         async def events(self):
-            yield self.module.AgentMessageDeltaNotification("other", "ignored")
+            yield self.module.AgentMessageDeltaNotification("other", "turn-1", "ignored")
+            yield self.module.AgentMessageDeltaNotification("thread-1", "other", "ignored")
             yield object()
-            yield self.module.AgentMessageDeltaNotification("thread-1", _RESULT)
-            yield self.module.TurnCompletedNotification("other")
-            yield self.module.TurnCompletedNotification("thread-1")
+            yield self.module.AgentMessageDeltaNotification("thread-1", "turn-1", _RESULT)
+            yield self.module.TurnCompletedNotification("other", "turn-1")
+            yield self.module.TurnCompletedNotification("thread-1", "other")
+            yield self.module.TurnCompletedNotification("thread-1", "turn-1")
 
     async def filtering_factory() -> object:
         return FilteringSession(module)
@@ -362,3 +428,30 @@ def test_injected_session_shape_and_event_filtering_fail_closed(
     )
     with pytest.raises(RuntimeError, match="thread id"):
         asyncio.run(no_thread.complete_async(_request()))
+
+    class FailedSession(_FakeSession):
+        async def events(self):
+            yield self.module.AgentMessageDeltaNotification("thread-1", "turn-1", _RESULT)
+            yield self.module.TurnCompletedNotification("thread-1", "turn-1", "failed")
+
+    async def failed_factory() -> object:
+        return FailedSession(module)
+
+    failed = CodexAppServerExecutor(
+        CodexProcessPolicy(owner="embedding-host"), session_factory=failed_factory
+    )
+    with pytest.raises(RuntimeError, match="did not complete"):
+        asyncio.run(failed.complete_async(_request()))
+
+    class ExhaustedSession(_FakeSession):
+        async def events(self):
+            yield self.module.AgentMessageDeltaNotification("thread-1", "turn-1", _RESULT)
+
+    async def exhausted_factory() -> object:
+        return ExhaustedSession(module)
+
+    exhausted = CodexAppServerExecutor(
+        CodexProcessPolicy(owner="embedding-host"), session_factory=exhausted_factory
+    )
+    with pytest.raises(RuntimeError, match="before exact turn"):
+        asyncio.run(exhausted.complete_async(_request()))

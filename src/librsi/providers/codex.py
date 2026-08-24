@@ -105,7 +105,7 @@ class CodexAppServerExecutor:
         thread_id = getattr(getattr(thread_response, "thread", None), "id", None)
         if not isinstance(thread_id, str) or not thread_id:
             raise RuntimeError("Codex thread response has no thread id")
-        await start_turn(
+        turn_response = await start_turn(
             module.TurnStartParams(
                 input=({"type": "text", "text": reasoning_prompt(request)},),
                 model=self._policy.model,
@@ -114,17 +114,31 @@ class CodexAppServerExecutor:
             ),
             timeout=self._policy.timeout_seconds,
         )
+        started_turn = getattr(turn_response, "turn", None)
+        turn_id = getattr(started_turn, "id", None)
+        if not isinstance(turn_id, str) or not turn_id:
+            raise RuntimeError("Codex turn response has no turn id")
         chunks: list[str] = []
+        settled = False
         async with asyncio.timeout(self._policy.timeout_seconds):
             async for event in events():
                 if isinstance(event, module.AgentMessageDeltaNotification):
-                    if event.threadId == thread_id:
+                    if event.threadId == thread_id and event.turnId == turn_id:
                         chunks.append(event.delta)
                 elif (
                     isinstance(event, module.TurnCompletedNotification)
                     and event.threadId == thread_id
+                    and getattr(event.turn, "id", None) == turn_id
                 ):
+                    if (
+                        getattr(event.turn, "status", None) != "completed"
+                        or getattr(event.turn, "error", None) is not None
+                    ):
+                        raise RuntimeError("Codex turn did not complete successfully")
+                    settled = True
                     break
+        if not settled:
+            raise RuntimeError("Codex event stream ended before exact turn completion")
         return "".join(chunks)
 
 
