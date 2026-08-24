@@ -4,6 +4,9 @@
 
 `libRSI` is a zero-dependency Python library of evidence-bound primitives for
 validation, investigation, improvement, and governed recursive self-improvement.
+Optional hosted-model and exact utils-backed Codex app-server integrations are
+documented in [docs/providers.md](docs/providers.md); both preserve the same
+proposal-only reasoning boundary.
 The current package supplies deterministic policies and canonical records for
 reflection, hypothesis testing, experiment interpretation, program evolution,
 reviewed selection, and safe changes to the selector itself, plus typed ports for
