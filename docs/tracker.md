@@ -343,7 +343,7 @@ content with libRSI merely to save threads.
 | 21 | Managed service, HTTP, and MCP projections | 7, 8, 19, 20 | `completed` |
 | 22 | Required Codex app-server integration and optional provider/backend adapters | 9, 18–20 | `completed` |
 | 23 | Consumer integration contract and conformance kit | 5, 8, 12, 15–20 | `completed` |
-| 24 | End-to-end embedded/external/managed dogfoods | 10, 11, 15–23 | `not-started` |
+| 24 | End-to-end embedded/external/managed dogfoods | 10, 11, 15–23 | `in-progress` |
 | 25 | Comprehensive cross-domain proof | 24 | `not-started` |
 | 26 | Public API, docs, packaging, migration, release gate | 21–25 | `not-started` |
 
@@ -3387,7 +3387,7 @@ consumer repository, or claiming the full architecture proof owned by Block 24.
 
 ## Block 24 — End-to-end embedded, external, and managed dogfoods
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 
