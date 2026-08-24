@@ -5,24 +5,39 @@ from __future__ import annotations
 import itertools
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
-from typing import Any, Literal
-
-from embedded_service_contract import (  # type: ignore[import-untyped]
-    Cancelled,
-    CancelResult,
-    EventRecord,
-    Failed,
-    HostContract,
-    HostShape,
-    InvalidCursorError,
-    RunRef,
-    RunState,
-    RunStatus,
-    Succeeded,
-    UnknownRunError,
-)
+from typing import TYPE_CHECKING, Any, Literal
 
 from .shared_handoff import load_shared_utilities
+
+if TYPE_CHECKING:
+    from embedded_service_contract import (  # type: ignore[import-untyped]
+        Cancelled,
+        CancelResult,
+        EventRecord,
+        Failed,
+        HostContract,
+        HostShape,
+        InvalidCursorError,
+        RunRef,
+        RunState,
+        RunStatus,
+        Succeeded,
+        UnknownRunError,
+    )
+else:
+    _lifecycle_api, _ = load_shared_utilities()
+    Cancelled = _lifecycle_api.Cancelled
+    CancelResult = _lifecycle_api.CancelResult
+    EventRecord = _lifecycle_api.EventRecord
+    Failed = _lifecycle_api.Failed
+    HostContract = _lifecycle_api.HostContract
+    HostShape = _lifecycle_api.HostShape
+    InvalidCursorError = _lifecycle_api.InvalidCursorError
+    RunRef = _lifecycle_api.RunRef
+    RunState = _lifecycle_api.RunState
+    RunStatus = _lifecycle_api.RunStatus
+    Succeeded = _lifecycle_api.Succeeded
+    UnknownRunError = _lifecycle_api.UnknownRunError
 
 ObservationState = Literal["running", "succeeded", "failed"]
 LifecycleExecutor = Callable[[object], "LifecycleObservation"]

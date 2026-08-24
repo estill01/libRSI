@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import importlib
 import json
+import subprocess
 import sys
 from copy import deepcopy
 from dataclasses import replace
@@ -66,13 +67,13 @@ def test_exact_qualified_shared_package_set_and_descriptive_manifest_are_consume
     document = runtime_manifest_document()
     adapter_root, protocol_schema_root = _adapter_root()
     assert "shared-utilities.json" in ADAPTER_RUNTIME_FILES
-    assert adapter_root == "cd54bf6ffa4cd1d9ee450fb86a5f52f569c01571bed23adae5fd2b274fc5eae9"
+    assert adapter_root == "57e2eb02e50bedd266a36927ef61c3d835cb3f57d7d446d1156d25a3f1f7a905"
     assert (
         protocol_schema_root == "89edd647d75977f1b33dba9173118ae5490f1699a9e5725e28207961b8fd4e1a"
     )
     assert (
         hashlib.sha256(document.encode()).hexdigest()
-        == "d2cd2b04c0549ae51ed48fd43b21ded14cc05882e2f7b1045a8285f2e4228cec"
+        == "dccf76c504e07940f0b774b1aef259fb97a1cccf690f31e57288a5a840b8c21a"
     )
     assert manifest_api.parse_manifest(document) == manifest
     assert manifest.component.name == "librsi"
@@ -189,6 +190,8 @@ def test_shared_utility_substitutes_missing_lanes_and_manifest_authority_fail_cl
     lifecycle_shadow.__file__ = lifecycle.__file__
     lifecycle_shadow.__version__ = lifecycle.__version__
     lifecycle_shadow.__all__ = lifecycle.__all__
+    lifecycle_shadow.__spec__ = lifecycle.__spec__
+    lifecycle_shadow.__loader__ = lifecycle.__loader__
     for name in lifecycle_shadow.__all__:
         setattr(lifecycle_shadow, name, getattr(lifecycle, name))
     lifecycle_shadow.HostContract = object()
@@ -197,16 +200,47 @@ def test_shared_utility_substitutes_missing_lanes_and_manifest_authority_fail_cl
         validate_shared_package(lifecycle_shadow, EMBEDDED_SERVICE_HANDOFF)
     monkeypatch.undo()
 
+    lifecycle_owner = importlib.import_module("embedded_service_contract.contract")
+    owner_shadow = ModuleType("embedded_service_contract.contract")
+    owner_shadow.__file__ = lifecycle_owner.__file__
+    forged_contract = type("HostContract", (), {})
+    forged_contract.__module__ = owner_shadow.__name__
+    owner_shadow.HostContract = forged_contract
+    lifecycle_shadow.HostContract = forged_contract
+    monkeypatch.setitem(sys.modules, "embedded_service_contract", lifecycle_shadow)
+    monkeypatch.setitem(sys.modules, "embedded_service_contract.contract", owner_shadow)
+    with pytest.raises(RuntimeError, match="source loader"):
+        validate_shared_package(lifecycle_shadow, EMBEDDED_SERVICE_HANDOFF)
+    monkeypatch.undo()
+
     _, manifest_api = load_shared_utilities()
     manifest_shadow = ModuleType("runtime_manifest")
     manifest_shadow.__file__ = manifest_api.__file__
     manifest_shadow.__version__ = manifest_api.__version__
     manifest_shadow.__all__ = manifest_api.__all__
+    manifest_shadow.__spec__ = manifest_api.__spec__
+    manifest_shadow.__loader__ = manifest_api.__loader__
     for name in manifest_shadow.__all__:
         setattr(manifest_shadow, name, getattr(manifest_api, name))
     manifest_shadow.compare_manifests = object()
     monkeypatch.setitem(sys.modules, "runtime_manifest", manifest_shadow)
     with pytest.raises(RuntimeError, match="operational export owner"):
+        validate_shared_package(manifest_shadow, RUNTIME_MANIFEST_HANDOFF)
+    monkeypatch.undo()
+
+    manifest_owner = importlib.import_module("runtime_manifest.compatibility")
+    compatibility_shadow = ModuleType("runtime_manifest.compatibility")
+    compatibility_shadow.__file__ = manifest_owner.__file__
+
+    def forged_compare(*_args: object) -> object:
+        return object()
+
+    forged_compare.__module__ = compatibility_shadow.__name__
+    compatibility_shadow.compare_manifests = forged_compare
+    manifest_shadow.compare_manifests = forged_compare
+    monkeypatch.setitem(sys.modules, "runtime_manifest", manifest_shadow)
+    monkeypatch.setitem(sys.modules, "runtime_manifest.compatibility", compatibility_shadow)
+    with pytest.raises(RuntimeError, match="source loader"):
         validate_shared_package(manifest_shadow, RUNTIME_MANIFEST_HANDOFF)
     monkeypatch.undo()
 
@@ -233,6 +267,82 @@ def test_shared_utility_substitutes_missing_lanes_and_manifest_authority_fail_cl
         compare_runtime_description(object())  # type: ignore[arg-type]
     with pytest.raises(TypeError, match="exactly one process owner|HostContract"):
         require_single_process_owner((object(),))  # type: ignore[arg-type]
+
+
+def test_adapter_imports_fail_closed_before_binding_poisoned_utility_exports() -> None:
+    script = r"""
+import importlib
+import sys
+from types import ModuleType
+
+
+def paired_shadow(root_name, owner_name, export_name, forged):
+    genuine_root = importlib.import_module(root_name)
+    genuine_owner = importlib.import_module(owner_name)
+    root = ModuleType(root_name)
+    root.__file__ = genuine_root.__file__
+    root.__version__ = genuine_root.__version__
+    root.__all__ = genuine_root.__all__
+    root.__spec__ = genuine_root.__spec__
+    root.__loader__ = genuine_root.__loader__
+    for name in root.__all__:
+        setattr(root, name, getattr(genuine_root, name))
+    owner = ModuleType(owner_name)
+    owner.__file__ = genuine_owner.__file__
+    forged.__module__ = owner_name
+    setattr(owner, export_name, forged)
+    setattr(root, export_name, forged)
+    return genuine_root, genuine_owner, root, owner
+
+
+genuine_lifecycle, genuine_contract, lifecycle_shadow, contract_shadow = paired_shadow(
+    "embedded_service_contract",
+    "embedded_service_contract.contract",
+    "HostContract",
+    type("HostContract", (), {}),
+)
+sys.modules["embedded_service_contract"] = lifecycle_shadow
+sys.modules["embedded_service_contract.contract"] = contract_shadow
+try:
+    importlib.import_module("librsi.conformance.lifecycle")
+except RuntimeError as exc:
+    assert "source loader" in str(exc)
+else:
+    raise AssertionError("poisoned lifecycle exports were bound")
+finally:
+    sys.modules["embedded_service_contract"] = genuine_lifecycle
+    sys.modules["embedded_service_contract.contract"] = genuine_contract
+sys.modules.pop("librsi.conformance.lifecycle", None)
+lifecycle_adapter = importlib.import_module("librsi.conformance.lifecycle")
+assert lifecycle_adapter.HostContract is genuine_lifecycle.HostContract
+
+
+def forged_compare(*_args):
+    return object()
+
+
+genuine_manifest, genuine_compatibility, manifest_shadow, compatibility_shadow = paired_shadow(
+    "runtime_manifest",
+    "runtime_manifest.compatibility",
+    "compare_manifests",
+    forged_compare,
+)
+sys.modules["runtime_manifest"] = manifest_shadow
+sys.modules["runtime_manifest.compatibility"] = compatibility_shadow
+try:
+    importlib.import_module("librsi.conformance.manifest")
+except RuntimeError as exc:
+    assert "source loader" in str(exc)
+else:
+    raise AssertionError("poisoned manifest exports were bound")
+finally:
+    sys.modules["runtime_manifest"] = genuine_manifest
+    sys.modules["runtime_manifest.compatibility"] = genuine_compatibility
+sys.modules.pop("librsi.conformance.manifest", None)
+manifest_adapter = importlib.import_module("librsi.conformance.manifest")
+assert manifest_adapter.RuntimeManifest is genuine_manifest.RuntimeManifest
+"""
+    subprocess.run([sys.executable, "-c", script], check=True)
 
 
 def test_lifecycle_projection_rejects_implicit_or_malformed_semantics() -> None:

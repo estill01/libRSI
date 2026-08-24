@@ -25,14 +25,14 @@ unlicensed and unpublished; this internal test handoff is not a claim of public
 installability, reuse rights, redistribution, or release authority.
 
 The libRSI adapter root is
-`cd54bf6ffa4cd1d9ee450fb86a5f52f569c01571bed23adae5fd2b274fc5eae9`.
+`57e2eb02e50bedd266a36927ef61c3d835cb3f57d7d446d1156d25a3f1f7a905`.
 Its file set is fixed in libRSI code and includes the utility handoff document;
 the exact root is independently frozen by this document and the system test,
 not supplied by the handoff document itself.
 The external-agent schema source root is
 `89edd647d75977f1b33dba9173118ae5490f1699a9e5725e28207961b8fd4e1a`.
 The canonical descriptive manifest SHA-256 is
-`d2cd2b04c0549ae51ed48fd43b21ded14cc05882e2f7b1045a8285f2e4228cec`.
+`dccf76c504e07940f0b774b1aef259fb97a1cccf690f31e57288a5a840b8c21a`.
 
 The lifecycle package checks only host shape, process ownership, run references,
 status, ordered events, cancellation, and structural outcomes. libRSI continues

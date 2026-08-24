@@ -8,6 +8,7 @@ import json
 import sys
 from dataclasses import dataclass
 from importlib import resources
+from importlib.machinery import ModuleSpec, SourceFileLoader
 from pathlib import Path
 from types import ModuleType
 from typing import Any
@@ -246,6 +247,30 @@ def _validate_contracts(package: Path, handoff: SharedPackageHandoff) -> None:
             raise RuntimeError(f"{handoff.distribution} public contract root has drifted")
 
 
+def _validate_source_module(module: ModuleType, expected: Path, distribution: str) -> None:
+    spec = getattr(module, "__spec__", None)
+    loader = getattr(module, "__loader__", None)
+    if type(spec) is not ModuleSpec or type(loader) is not SourceFileLoader:
+        raise RuntimeError(f"{distribution} source loader is not exact")
+    if (
+        spec.loader is not loader
+        or spec.name != module.__name__
+        or loader.name != module.__name__
+        or spec.origin is None
+        or Path(spec.origin).resolve() != expected
+        or Path(loader.path).resolve() != expected
+        or spec.has_location is not True
+    ):
+        raise RuntimeError(f"{distribution} source loader identity has drifted")
+    try:
+        source = loader.get_data(str(expected))
+        installed = expected.read_bytes()
+    except OSError as exc:
+        raise RuntimeError(f"{distribution} exact source is unavailable") from exc
+    if source != installed:
+        raise RuntimeError(f"{distribution} source loader bytes have drifted")
+
+
 def _validate_export_owners(
     module: ModuleType,
     package: Path,
@@ -263,8 +288,10 @@ def _validate_export_owners(
         if sys.modules.get(owner_name) is not owner:
             raise RuntimeError(f"{handoff.distribution} export owner is not active")
         origin = getattr(owner, "__file__", None)
-        if type(origin) is not str or Path(origin).resolve() != package / f"{relative_module}.py":
+        expected = package / f"{relative_module}.py"
+        if type(origin) is not str or Path(origin).resolve() != expected:
             raise RuntimeError(f"{handoff.distribution} export owner source has drifted")
+        _validate_source_module(owner, expected, handoff.distribution)
         for name in names:
             root_object = getattr(module, name, None)
             owner_object = getattr(owner, name, None)
@@ -290,6 +317,7 @@ def validate_shared_package(module: ModuleType, handoff: SharedPackageHandoff) -
     if type(origin) is not str:
         raise RuntimeError(f"{handoff.distribution} has no stable filesystem origin")
     package = Path(origin).resolve().parent
+    _validate_source_module(module, package / "__init__.py", handoff.distribution)
     _validate_contracts(package, handoff)
     if _runtime_content_root(module, handoff) != handoff.runtime_content_root_sha256:
         raise RuntimeError(f"{handoff.distribution} runtime content root has drifted")

@@ -7,15 +7,7 @@ import importlib
 import json
 from importlib import resources
 from pathlib import Path
-from typing import Any
-
-from runtime_manifest import (  # type: ignore[import-untyped]
-    Capability,
-    Component,
-    Protocol,
-    RuntimeManifest,
-    Sha256Root,
-)
+from typing import TYPE_CHECKING, Any
 
 from ..providers import CODEX_CLIENT_HANDOFF, validate_codex_client
 from .shared_handoff import (
@@ -23,6 +15,22 @@ from .shared_handoff import (
     RUNTIME_MANIFEST_HANDOFF,
     load_shared_utilities,
 )
+
+if TYPE_CHECKING:
+    from runtime_manifest import (  # type: ignore[import-untyped]
+        Capability,
+        Component,
+        Protocol,
+        RuntimeManifest,
+        Sha256Root,
+    )
+else:
+    _, _manifest_api = load_shared_utilities()
+    Capability = _manifest_api.Capability
+    Component = _manifest_api.Component
+    Protocol = _manifest_api.Protocol
+    RuntimeManifest = _manifest_api.RuntimeManifest
+    Sha256Root = _manifest_api.Sha256Root
 
 ADAPTER_RUNTIME_FILES = (
     "__init__.py",
