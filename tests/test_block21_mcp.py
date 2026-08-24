@@ -8,9 +8,12 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
 from mcp import Client, StdioServerParameters
 from mcp.client.stdio import stdio_client
+from mcp.server.mcpserver.exceptions import ResourceError, ToolError
 
+import librsi.mcp.server as mcp_server
 from librsi import ServiceLimits
 from librsi.mcp import create_mcp_server
 from librsi.service import LibRSIService
@@ -306,5 +309,154 @@ def test_mcp_common_request_bound_rejects_before_canonical_decode_or_mutation(tm
             assert "request byte limit" in rejected.content[0].text
             assert service.controller.agent_store.get_admission("fermenter-admission") is None
         service.close()
+
+    asyncio.run(exercise())
+
+
+def test_mcp_expected_failures_remain_actionable_and_server_faults_remain_masked(
+    tmp_path, monkeypatch
+) -> None:
+    async def exercise() -> None:
+        service = LibRSIService.local(tmp_path / "service")
+        admission = target_admission()
+        request = validation_request()
+        service.submit_target(admission)
+        service.start(request, admission_id=admission.admission_id)
+        server = create_mcp_server(service)
+        async with Client(server) as client:
+            malformed = await client.call_tool(
+                "librsi_target_submit",
+                {"admission": {}},
+            )
+            missing = await client.call_tool(
+                "librsi_run_status",
+                {"run_id": "missing"},
+            )
+            invalid_bound = await client.call_tool(
+                "librsi_run_managed",
+                {"run_id": "missing", "max_actions": 0},
+            )
+            malformed_query = await client.call_tool(
+                "librsi_knowledge_query",
+                {"query": {"unknown": True}},
+            )
+            assert "unsupported semantic record schema" in malformed.content[0].text
+            assert "unknown external run id" in missing.content[0].text
+            assert "positive" in invalid_bound.content[0].text
+            assert "unknown fields" in malformed_query.content[0].text
+            assert all(
+                result.is_error is True
+                for result in (malformed, missing, invalid_bound, malformed_query)
+            )
+
+            def crash() -> dict:
+                raise RuntimeError("private server detail")
+
+            monkeypatch.setattr(service, "capabilities", crash)
+            unexpected = await client.call_tool("librsi_capabilities", {})
+            assert unexpected.is_error is True
+            assert "internal tool error" in unexpected.content[0].text
+            assert "private server detail" not in unexpected.content[0].text
+
+            def tool_error_crash() -> dict:
+                raise ToolError("private transport-tool detail")
+
+            monkeypatch.setattr(service, "capabilities", tool_error_crash)
+            transport_tool = await client.call_tool("librsi_capabilities", {})
+            assert "internal tool error" in transport_tool.content[0].text
+            assert "private transport-tool detail" not in transport_tool.content[0].text
+
+            def value_error_crash() -> dict:
+                raise ValueError("private value-tool detail")
+
+            monkeypatch.setattr(service, "capabilities", value_error_crash)
+            value_tool = await client.call_tool("librsi_capabilities", {})
+            assert "internal tool error" in value_tool.content[0].text
+            assert "private value-tool detail" not in value_tool.content[0].text
+
+            def exact_origin_spoof() -> dict:
+                raise mcp_server._ClientFault(object(), "private exact-origin detail")
+
+            monkeypatch.setattr(service, "capabilities", exact_origin_spoof)
+            exact_origin = await client.call_tool("librsi_capabilities", {})
+            assert "internal tool error" in exact_origin.content[0].text
+            assert "private exact-origin detail" not in exact_origin.content[0].text
+
+            class ForgedClientFault(mcp_server._ClientFault):
+                pass
+
+            def subclass_origin_spoof() -> dict:
+                raise ForgedClientFault(object(), "private subclass-origin detail")
+
+            monkeypatch.setattr(service, "capabilities", subclass_origin_spoof)
+            subclass_origin = await client.call_tool("librsi_capabilities", {})
+            assert "internal tool error" in subclass_origin.content[0].text
+            assert "private subclass-origin detail" not in subclass_origin.content[0].text
+
+            def resource_crash(_run_id: str) -> dict:
+                raise RuntimeError("private resource detail")
+
+            monkeypatch.setattr(service, "get_run", resource_crash)
+            with pytest.raises(Exception) as unexpected_resource:
+                await client.read_resource(f"librsi://runs/{request.validation_id}")
+            assert "internal resource error" in str(unexpected_resource.value)
+            assert "private resource detail" not in str(unexpected_resource.value)
+
+            def resource_error_crash(_run_id: str) -> dict:
+                raise ResourceError("private transport-resource detail")
+
+            monkeypatch.setattr(service, "get_run", resource_error_crash)
+            with pytest.raises(Exception) as transport_resource:
+                await client.read_resource(f"librsi://runs/{request.validation_id}")
+            assert "internal resource error" in str(transport_resource.value)
+            assert "private transport-resource detail" not in str(transport_resource.value)
+
+            def value_resource_crash(_run_id: str) -> dict:
+                raise ValueError("private value-resource detail")
+
+            monkeypatch.setattr(service, "get_run", value_resource_crash)
+            with pytest.raises(Exception) as value_resource:
+                await client.read_resource(f"librsi://runs/{request.validation_id}")
+            assert "internal resource error" in str(value_resource.value)
+            assert "private value-resource detail" not in str(value_resource.value)
+
+            def exact_resource_origin_spoof(_run_id: str) -> dict:
+                raise mcp_server._ClientFault(
+                    object(),
+                    "private exact-resource-origin detail",
+                    not_found=True,
+                )
+
+            monkeypatch.setattr(service, "get_run", exact_resource_origin_spoof)
+            with pytest.raises(Exception) as exact_resource_origin:
+                await client.read_resource(f"librsi://runs/{request.validation_id}")
+            assert "internal resource error" in str(exact_resource_origin.value)
+            assert "private exact-resource-origin detail" not in str(exact_resource_origin.value)
+
+            def subclass_resource_origin_spoof(_run_id: str) -> dict:
+                raise ForgedClientFault(
+                    object(),
+                    "private subclass-resource-origin detail",
+                    not_found=True,
+                )
+
+            monkeypatch.setattr(service, "get_run", subclass_resource_origin_spoof)
+            with pytest.raises(Exception) as subclass_resource_origin:
+                await client.read_resource(f"librsi://runs/{request.validation_id}")
+            assert "internal resource error" in str(subclass_resource_origin.value)
+            assert "private subclass-resource-origin detail" not in str(
+                subclass_resource_origin.value
+            )
+        service.close()
+
+        bounded = LibRSIService.local(
+            tmp_path / "bounded",
+            limits=ServiceLimits(max_request_bytes=1),
+        )
+        bounded_server = create_mcp_server(bounded)
+        async with Client(bounded_server) as client:
+            with pytest.raises(Exception, match="request byte limit"):
+                await client.read_resource("librsi://runs/oversized")
+        bounded.close()
 
     asyncio.run(exercise())
