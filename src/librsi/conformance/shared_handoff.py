@@ -3,15 +3,16 @@
 from __future__ import annotations
 
 import hashlib
-import importlib
+import importlib.metadata
 import json
-import sys
 from dataclasses import dataclass
 from importlib import resources
 from importlib.machinery import ModuleSpec, SourceFileLoader
 from pathlib import Path
 from types import ModuleType
 from typing import Any
+
+from .source_loader import CanonicalSourcePackage, execute_source_package
 
 _OPERATIONAL_EXPORT_OWNERS = {
     "embedded_service_contract": {
@@ -210,12 +211,18 @@ EMBEDDED_SERVICE_HANDOFF = _package(_DOCUMENT, "embedded-service-contract")
 RUNTIME_MANIFEST_HANDOFF = _package(_DOCUMENT, "runtime-manifest")
 SHARED_UTILITY_HANDOFFS = (EMBEDDED_SERVICE_HANDOFF, RUNTIME_MANIFEST_HANDOFF)
 
+_CANONICAL_PACKAGES: dict[str, CanonicalSourcePackage] = {}
+
 
 def _runtime_content_root(module: ModuleType, handoff: SharedPackageHandoff) -> str:
     origin = getattr(module, "__file__", None)
     if type(origin) is not str:
         raise RuntimeError(f"{handoff.distribution} has no stable filesystem origin")
     package = Path(origin).resolve().parent
+    return _package_runtime_content_root(package, handoff)
+
+
+def _package_runtime_content_root(package: Path, handoff: SharedPackageHandoff) -> str:
     rows: list[dict[str, str | int]] = []
     for relative in handoff.runtime_files:
         path = package / relative
@@ -275,6 +282,7 @@ def _validate_export_owners(
     module: ModuleType,
     package: Path,
     handoff: SharedPackageHandoff,
+    package_source: CanonicalSourcePackage,
 ) -> None:
     owners = _OPERATIONAL_EXPORT_OWNERS.get(handoff.import_root)
     if owners is None:
@@ -283,10 +291,10 @@ def _validate_export_owners(
     if expected_names != set(module.__all__) - {"__version__"}:
         raise RuntimeError(f"{handoff.distribution} export-owner map has drifted")
     for relative_module, names in owners.items():
-        owner_name = f"{handoff.import_root}.{relative_module}"
-        owner = importlib.import_module(owner_name)
-        if sys.modules.get(owner_name) is not owner:
-            raise RuntimeError(f"{handoff.distribution} export owner is not active")
+        owner_name = f"{module.__name__}.{relative_module}"
+        owner = package_source.modules.get(owner_name)
+        if type(owner) is not ModuleType:
+            raise RuntimeError(f"{handoff.distribution} export owner was not source-loaded")
         origin = getattr(owner, "__file__", None)
         expected = package / f"{relative_module}.py"
         if type(origin) is not str or Path(origin).resolve() != expected:
@@ -297,29 +305,29 @@ def _validate_export_owners(
             owner_object = getattr(owner, name, None)
             if (
                 root_object is not owner_object
+                or root_object is not package_source.namespaces[module.__name__].get(name)
+                or owner_object is not package_source.namespaces[owner_name].get(name)
                 or getattr(root_object, "__module__", None) != owner_name
             ):
                 raise RuntimeError(f"{handoff.distribution} operational export owner has drifted")
 
 
-def validate_shared_package(module: ModuleType, handoff: SharedPackageHandoff) -> None:
-    """Fail closed unless one imported package is the exact accepted handoff."""
-
-    if type(module) is not ModuleType:
-        raise TypeError("shared utility validation requires an imported module")
-    if module.__name__ != handoff.import_root:
+def _validate_canonical_package(
+    package_source: CanonicalSourcePackage,
+    handoff: SharedPackageHandoff,
+) -> None:
+    module = package_source.root
+    package = package_source.package
+    if package_source.import_root != handoff.import_root:
         raise RuntimeError(f"{handoff.distribution} import root does not match its handoff")
-    if sys.modules.get(handoff.import_root) is not module:
-        raise RuntimeError(f"{handoff.distribution} is not the active imported module")
     if getattr(module, "__version__", None) != handoff.version:
         raise RuntimeError(f"{handoff.distribution} version does not match its handoff")
     origin = getattr(module, "__file__", None)
-    if type(origin) is not str:
+    if type(origin) is not str or Path(origin).resolve() != package / "__init__.py":
         raise RuntimeError(f"{handoff.distribution} has no stable filesystem origin")
-    package = Path(origin).resolve().parent
     _validate_source_module(module, package / "__init__.py", handoff.distribution)
     _validate_contracts(package, handoff)
-    if _runtime_content_root(module, handoff) != handoff.runtime_content_root_sha256:
+    if _package_runtime_content_root(package, handoff) != handoff.runtime_content_root_sha256:
         raise RuntimeError(f"{handoff.distribution} runtime content root has drifted")
     contract_name = (
         "structural-contract.json" if handoff is EMBEDDED_SERVICE_HANDOFF else "public-api.json"
@@ -338,14 +346,48 @@ def validate_shared_package(module: ModuleType, handoff: SharedPackageHandoff) -
         or any(not hasattr(module, name) for name in exports)
     ):
         raise RuntimeError(f"{handoff.distribution} public surface has drifted")
-    _validate_export_owners(module, package, handoff)
+    _validate_export_owners(module, package, handoff, package_source)
+
+
+def _installed_package_path(handoff: SharedPackageHandoff) -> Path:
+    try:
+        distribution = importlib.metadata.distribution(handoff.distribution)
+    except importlib.metadata.PackageNotFoundError as exc:
+        raise ModuleNotFoundError(f"mapped {handoff.distribution} lane is unavailable") from exc
+    if distribution.version != handoff.version:
+        raise RuntimeError(f"{handoff.distribution} installed version has drifted")
+    package = Path(str(distribution.locate_file(handoff.import_root))).resolve()
+    if not package.is_dir():
+        raise ModuleNotFoundError(f"mapped {handoff.distribution} lane is unavailable")
+    return package
+
+
+def _canonical_package(handoff: SharedPackageHandoff) -> CanonicalSourcePackage:
+    package_source = _CANONICAL_PACKAGES.get(handoff.import_root)
+    if package_source is None:
+        package = _installed_package_path(handoff)
+        _validate_contracts(package, handoff)
+        if _package_runtime_content_root(package, handoff) != handoff.runtime_content_root_sha256:
+            raise RuntimeError(f"{handoff.distribution} runtime content root has drifted")
+        package_source = execute_source_package(handoff.import_root, package)
+        _CANONICAL_PACKAGES[handoff.import_root] = package_source
+    _validate_canonical_package(package_source, handoff)
+    return package_source
+
+
+def validate_shared_package(module: ModuleType, handoff: SharedPackageHandoff) -> None:
+    """Fail closed unless a module is the libRSI-loaded exact accepted handoff."""
+
+    if type(module) is not ModuleType:
+        raise TypeError("shared utility validation requires an imported module")
+    package_source = _canonical_package(handoff)
+    if module is not package_source.root:
+        raise RuntimeError(f"{handoff.distribution} is not the canonical loaded module")
 
 
 def load_shared_utilities() -> tuple[ModuleType, ModuleType]:
     """Import and validate both exact internal shared packages as one set."""
 
-    lifecycle = importlib.import_module(EMBEDDED_SERVICE_HANDOFF.import_root)
-    manifest = importlib.import_module(RUNTIME_MANIFEST_HANDOFF.import_root)
-    validate_shared_package(lifecycle, EMBEDDED_SERVICE_HANDOFF)
-    validate_shared_package(manifest, RUNTIME_MANIFEST_HANDOFF)
+    lifecycle = _canonical_package(EMBEDDED_SERVICE_HANDOFF).root
+    manifest = _canonical_package(RUNTIME_MANIFEST_HANDOFF).root
     return lifecycle, manifest

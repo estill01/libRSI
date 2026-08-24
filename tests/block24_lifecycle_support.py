@@ -5,13 +5,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal
 
-from embedded_service_contract import (  # type: ignore[import-untyped]
-    ConformanceFixture,
-    HostShape,
-)
-
 from librsi import CapabilityRegistry, CapabilityRoute, LibRSI, ManagedBounds
 from librsi.conformance.lifecycle import LifecycleObservation, LifecycleProjection
+from librsi.conformance.shared_handoff import load_shared_utilities
 from librsi.service import LibRSIService
 from tests.block20_support import target_admission, validation_request
 from tests.block21_support import (
@@ -19,6 +15,10 @@ from tests.block21_support import (
     automatic_validation_admission,
     automatic_validation_registry,
 )
+
+_lifecycle_api, _ = load_shared_utilities()
+ConformanceFixture = _lifecycle_api.ConformanceFixture
+HostShape = _lifecycle_api.HostShape
 
 LifecycleMode = Literal["succeed", "fail", "wait"]
 

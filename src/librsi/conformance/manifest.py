@@ -38,6 +38,7 @@ ADAPTER_RUNTIME_FILES = (
     "manifest.py",
     "shared-utilities.json",
     "shared_handoff.py",
+    "source_loader.py",
 )
 
 
