@@ -10,7 +10,9 @@ from librsi import (
     CandidateSnapshot,
     CapabilityRegistry,
     Evidence,
+    Hypothesis,
     ImprovementCycleProposal,
+    ImprovementRequest,
     InterventionImplementationRequest,
     InterventionSpec,
     ManagedBounds,
@@ -25,10 +27,11 @@ from librsi import (
     record_from_dict,
 )
 from librsi.investigation import InvestigationEvidenceBatch
-from librsi.providers import CodexAppServerBackend
+from librsi.protocol import TargetAdmission
+from librsi.providers import CodexAppServerBackend, CodexProcessPolicy
 from librsi.service import LibRSIService
 from tests.block14_support import ComparisonContext, comparison_context, trial_batch
-from tests.block15_support import CycleReasoner, hypotheses, improvement_request
+from tests.block15_support import CycleReasoner, hypotheses
 from tests.block20_support import workflow_cases
 from tests.block21_support import ManagedImprovementProvider, automatic_admission
 
@@ -173,12 +176,25 @@ class SystemScenarioResult:
     projection: dict[str, object]
     provider: SystemCycleProvider
     execution_stop_reason: str
+    request: ImprovementRequest
 
 
-def run_system_improvement(root: Path, *, managed: bool) -> SystemScenarioResult:
+@dataclass(frozen=True, slots=True)
+class SystemScenarioInput:
+    request: ImprovementRequest
+    admission: TargetAdmission
+    proposal: ReasoningResult
+    executor: InjectedCodexFake
+
+
+def run_system_improvement(
+    root: Path,
+    *,
+    managed: bool,
+    scenario: SystemScenarioInput,
+) -> SystemScenarioResult:
     context = comparison_context()
-    case = next(item for item in workflow_cases() if item.command == "improve")
-    admission = automatic_admission(case.admission) if managed else case.admission
+    admission = automatic_admission(scenario.admission) if managed else scenario.admission
     provider = SystemCycleProvider(context)
     registry = (
         CapabilityRegistry(
@@ -189,10 +205,10 @@ def run_system_improvement(root: Path, *, managed: bool) -> SystemScenarioResult
         else None
     )
     service = LibRSIService.local(root, registry=registry)
-    run_id = case.request.canonical_run().run_id
+    run_id = scenario.request.canonical_run().run_id
     try:
         service.submit_target(admission)
-        service.improve(case.request, admission_id=admission.admission_id)
+        service.improve(scenario.request, admission_id=admission.admission_id)
         if managed:
             execution = service.run_managed(run_id, ManagedBounds(max_actions=4))
             stop_reason = execution.stop_reason
@@ -209,13 +225,21 @@ def run_system_improvement(root: Path, *, managed: bool) -> SystemScenarioResult
             stop_reason = "outcome"
         projection = service.get_outcome(run_id)["data"]["projection"]
         assert type(projection) is dict
-        return SystemScenarioResult(projection, provider, stop_reason)
+        return SystemScenarioResult(projection, provider, stop_reason, scenario.request)
     finally:
         service.close()
 
 
-class FakeCodexExecutor:
+class InjectedCodexFake:
+    """Injected proposal provider that owns no process and records its exact input."""
+
+    def __init__(self) -> None:
+        self.policy = CodexProcessPolicy(owner="embedding-host")
+        self.process_owner_count = 0
+        self.requests: list[ReasoningRequest] = []
+
     def complete(self, request: ReasoningRequest) -> str:
+        self.requests.append(request)
         assert request.kind == "hypothesis-generation"
         return json.dumps(
             {
@@ -240,8 +264,12 @@ class FakeCodexExecutor:
         )
 
 
-def codex_hypothesis_proposal() -> ReasoningResult:
-    request = improvement_request()
+def system_scenario_input() -> SystemScenarioInput:
+    """Build one request whose initial hypotheses derive from the Codex proposal."""
+
+    case = next(item for item in workflow_cases() if item.command == "improve")
+    request = case.request
+    assert type(request) is ImprovementRequest
     reasoning = ReasoningRequest(
         request_id="system-codex-hypotheses",
         kind="hypothesis-generation",
@@ -251,4 +279,30 @@ def codex_hypothesis_proposal() -> ReasoningResult:
         context={"objective": request.contract.goal.statement},
         lineage=(request.question.ref, request.baseline.ref),
     )
-    return CodexAppServerBackend(FakeCodexExecutor()).respond(reasoning)
+    executor = InjectedCodexFake()
+    proposal = CodexAppServerBackend(executor).respond(reasoning)
+    rows = proposal.content["hypotheses"]
+    if not isinstance(rows, tuple) or len(rows) != 2:
+        raise RuntimeError("system Codex proposal must contain two hypotheses")
+    derived = tuple(
+        Hypothesis(
+            statement=row["statement"],
+            target=request.question.target,
+            causal_model=row["causal_model"],
+            predictions=tuple(row["predictions"]),
+            source_refs=(request.question.ref, proposal.ref),
+            confidence=row["confidence"],
+            lineage=(proposal.ref, proposal.request.ref, *proposal.request.input_refs),
+        )
+        for row in rows
+    )
+    causal_request = ImprovementRequest.create(
+        request_id=request.request_id,
+        operationalization=request.operationalization,
+        question=request.question,
+        initial_hypotheses=derived,
+        risk_policy=request.risk_policy,
+        governance_requirement=request.governance_requirement,
+        budget=request.budget,
+    )
+    return SystemScenarioInput(causal_request, case.admission, proposal, executor)

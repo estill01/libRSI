@@ -21,16 +21,21 @@ from ..providers import CODEX_CLIENT_HANDOFF, validate_codex_client
 from .shared_handoff import (
     EMBEDDED_SERVICE_HANDOFF,
     RUNTIME_MANIFEST_HANDOFF,
-    librsi_adapter_contract,
     load_shared_utilities,
 )
 
+ADAPTER_RUNTIME_FILES = (
+    "__init__.py",
+    "lifecycle.py",
+    "manifest.py",
+    "shared-utilities.json",
+    "shared_handoff.py",
+)
 
-def _adapter_root() -> tuple[str, str]:
-    contract = librsi_adapter_contract()
-    package = Path(str(resources.files("librsi.conformance")))
+
+def _content_root(package: Path, files: tuple[str, ...]) -> str:
     rows: list[dict[str, str | int]] = []
-    for relative in contract["files"]:
+    for relative in files:
         path = package / relative
         try:
             data = path.read_bytes()
@@ -44,17 +49,17 @@ def _adapter_root() -> tuple[str, str]:
             }
         )
     payload = (json.dumps(rows, sort_keys=True, separators=(",", ":")) + "\n").encode()
-    observed = hashlib.sha256(payload).hexdigest()
-    expected = str(contract["content_root_sha256"])
-    if observed != expected:
-        raise RuntimeError("libRSI shared-utility adapter root has drifted")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def _adapter_root() -> tuple[str, str]:
+    package = Path(str(resources.files("librsi.conformance")))
+    observed = _content_root(package, ADAPTER_RUNTIME_FILES)
     schema = Path(__file__).parents[1] / "protocol" / "schemas.py"
     try:
         schema_root = hashlib.sha256(schema.read_bytes()).hexdigest()
     except OSError as exc:
         raise RuntimeError("libRSI external protocol schema is unavailable") from exc
-    if schema_root != contract["protocol_schema_root_sha256"]:
-        raise RuntimeError("libRSI external protocol schema root has drifted")
     return observed, schema_root
 
 

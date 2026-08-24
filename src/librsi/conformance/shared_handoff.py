@@ -12,6 +12,51 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any
 
+_OPERATIONAL_EXPORT_OWNERS = {
+    "embedded_service_contract": {
+        "contract": (
+            "CancelResult",
+            "Cancelled",
+            "EventRecord",
+            "Failed",
+            "HostContract",
+            "HostShape",
+            "InvalidCursorError",
+            "LifecycleContractError",
+            "LifecycleHost",
+            "RunRef",
+            "RunState",
+            "RunStatus",
+            "Succeeded",
+            "UnknownRunError",
+        ),
+        "conformance": (
+            "ConformanceError",
+            "ConformanceFixture",
+            "ConformanceReport",
+            "assert_lifecycle_conformance",
+        ),
+    },
+    "runtime_manifest": {
+        "model": (
+            "Capability",
+            "CompatibilityReport",
+            "Component",
+            "ManifestDecodeError",
+            "ManifestError",
+            "ManifestValidationError",
+            "Protocol",
+            "RuntimeManifest",
+            "Sha256Root",
+            "UnavailableKind",
+            "UnavailableReason",
+            "UnsupportedSchemaError",
+        ),
+        "compatibility": ("compare_manifests",),
+        "serialization": ("canonical_json", "parse_manifest"),
+    },
+}
+
 
 @dataclass(frozen=True, slots=True)
 class SharedPackageHandoff:
@@ -75,7 +120,6 @@ def _metadata() -> dict[str, Any]:
         "schema_version",
         "qualified_set",
         "packages",
-        "librsi_adapter",
     }:
         raise RuntimeError("shared utility handoff metadata has an unexpected shape")
     if document["schema_version"] != 1:
@@ -202,6 +246,35 @@ def _validate_contracts(package: Path, handoff: SharedPackageHandoff) -> None:
             raise RuntimeError(f"{handoff.distribution} public contract root has drifted")
 
 
+def _validate_export_owners(
+    module: ModuleType,
+    package: Path,
+    handoff: SharedPackageHandoff,
+) -> None:
+    owners = _OPERATIONAL_EXPORT_OWNERS.get(handoff.import_root)
+    if owners is None:
+        raise RuntimeError(f"{handoff.distribution} has no accepted export-owner map")
+    expected_names = {name for names in owners.values() for name in names}
+    if expected_names != set(module.__all__) - {"__version__"}:
+        raise RuntimeError(f"{handoff.distribution} export-owner map has drifted")
+    for relative_module, names in owners.items():
+        owner_name = f"{handoff.import_root}.{relative_module}"
+        owner = importlib.import_module(owner_name)
+        if sys.modules.get(owner_name) is not owner:
+            raise RuntimeError(f"{handoff.distribution} export owner is not active")
+        origin = getattr(owner, "__file__", None)
+        if type(origin) is not str or Path(origin).resolve() != package / f"{relative_module}.py":
+            raise RuntimeError(f"{handoff.distribution} export owner source has drifted")
+        for name in names:
+            root_object = getattr(module, name, None)
+            owner_object = getattr(owner, name, None)
+            if (
+                root_object is not owner_object
+                or getattr(root_object, "__module__", None) != owner_name
+            ):
+                raise RuntimeError(f"{handoff.distribution} operational export owner has drifted")
+
+
 def validate_shared_package(module: ModuleType, handoff: SharedPackageHandoff) -> None:
     """Fail closed unless one imported package is the exact accepted handoff."""
 
@@ -237,6 +310,7 @@ def validate_shared_package(module: ModuleType, handoff: SharedPackageHandoff) -
         or any(not hasattr(module, name) for name in exports)
     ):
         raise RuntimeError(f"{handoff.distribution} public surface has drifted")
+    _validate_export_owners(module, package, handoff)
 
 
 def load_shared_utilities() -> tuple[ModuleType, ModuleType]:
@@ -247,25 +321,3 @@ def load_shared_utilities() -> tuple[ModuleType, ModuleType]:
     validate_shared_package(lifecycle, EMBEDDED_SERVICE_HANDOFF)
     validate_shared_package(manifest, RUNTIME_MANIFEST_HANDOFF)
     return lifecycle, manifest
-
-
-def librsi_adapter_contract() -> dict[str, Any]:
-    """Return the frozen libRSI-owned adapter roots from the handoff document."""
-
-    row = _DOCUMENT["librsi_adapter"]
-    if type(row) is not dict or set(row) != {
-        "content_root_sha256",
-        "protocol_schema_root_sha256",
-        "files",
-    }:
-        raise RuntimeError("libRSI shared-utility adapter metadata is not exact")
-    files = row["files"]
-    if type(files) is not list or not files or any(type(name) is not str for name in files):
-        raise RuntimeError("libRSI shared-utility adapter file set is invalid")
-    return {
-        "content_root_sha256": _sha256(row["content_root_sha256"], "adapter root"),
-        "protocol_schema_root_sha256": _sha256(
-            row["protocol_schema_root_sha256"], "protocol schema root"
-        ),
-        "files": tuple(sorted(files)),
-    }

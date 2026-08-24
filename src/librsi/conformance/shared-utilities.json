@@ -62,15 +62,5 @@
       ],
       "posture": "no-license-selected/unpublished"
     }
-  },
-  "librsi_adapter": {
-    "content_root_sha256": "170d5d377877b361d9699051f6ff21c97c185436d2fd24b2f030e1bf25b75a76",
-    "protocol_schema_root_sha256": "89edd647d75977f1b33dba9173118ae5490f1699a9e5725e28207961b8fd4e1a",
-    "files": [
-      "__init__.py",
-      "lifecycle.py",
-      "manifest.py",
-      "shared_handoff.py"
-    ]
   }
 }

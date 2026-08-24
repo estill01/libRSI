@@ -11,6 +11,7 @@ from types import ModuleType
 
 import pytest
 from embedded_service_contract import (  # type: ignore[import-untyped]
+    HostContract,
     HostShape,
     assert_lifecycle_conformance,
 )
@@ -30,6 +31,8 @@ from librsi.conformance.lifecycle import (
     require_single_process_owner,
 )
 from librsi.conformance.manifest import (
+    ADAPTER_RUNTIME_FILES,
+    _adapter_root,
     build_runtime_manifest,
     compare_runtime_description,
     runtime_manifest_document,
@@ -39,17 +42,17 @@ from tests.block24_lifecycle_support import (
     service_lifecycle_fixture,
 )
 from tests.block24_scenario_support import (
-    codex_hypothesis_proposal,
     run_system_improvement,
+    system_scenario_input,
 )
 
 SYSTEM_ACTION_ROOTS = (
-    "7dea1ad37698dfb655a5f5d2c9ed6b6f4b829fe65a85508de440fee5f01f32fb",
-    "8de64a259adca0c983df5e5a2f2b63397cbad4e39dcfac36c97343c3ad501ba2",
+    "7177156a4f6f7c829b3be17a8411b5003adaa0a66d0255681d74ca26e33b404d",
+    "fae7619b63c69b98cca3590846b22e6c65d48ee71604ba404538ac0b105083ff",
 )
-SYSTEM_RESULT_ROOT = "907ea507e742dfee6f4d2d9b561d55a3d32af9624ede9467ff002a9f56ed0d0b"
-SYSTEM_OUTCOME_ROOT = "bb4ba179eb57f4d36e922f7f15a8567d0f70e46ca241768fe7d7bc5c920c09f8"
-SYSTEM_PROJECTION_ROOT = "b468cd5c638a360cc39ebb7558e56ef6fbbf4189ff24ea3c6d3c8fe730514fba"
+SYSTEM_RESULT_ROOT = "aa061bc0d8c92e9f3cdd8f5311054d3ccca4eabfbb66b3af7aa537849b48b841"
+SYSTEM_OUTCOME_ROOT = "25443d2238e70a2dc38ebf2ede9778318824cdda8e05d59909d9fa916baf5630"
+SYSTEM_PROJECTION_ROOT = "72ce0e66a9d6d53261e6e2ac049063533405c0202bde0a70927239f4af60124a"
 
 
 def test_exact_qualified_shared_package_set_and_descriptive_manifest_are_consumed() -> None:
@@ -61,9 +64,15 @@ def test_exact_qualified_shared_package_set_and_descriptive_manifest_are_consume
 
     manifest = build_runtime_manifest()
     document = runtime_manifest_document()
+    adapter_root, protocol_schema_root = _adapter_root()
+    assert "shared-utilities.json" in ADAPTER_RUNTIME_FILES
+    assert adapter_root == "cd54bf6ffa4cd1d9ee450fb86a5f52f569c01571bed23adae5fd2b274fc5eae9"
+    assert (
+        protocol_schema_root == "89edd647d75977f1b33dba9173118ae5490f1699a9e5725e28207961b8fd4e1a"
+    )
     assert (
         hashlib.sha256(document.encode()).hexdigest()
-        == "ba4a9a51a85cd56fe50f3b47a9725128902ae75afadba3892e0e3d72f67253db"
+        == "d2cd2b04c0549ae51ed48fd43b21ded14cc05882e2f7b1045a8285f2e4228cec"
     )
     assert manifest_api.parse_manifest(document) == manifest
     assert manifest.component.name == "librsi"
@@ -101,13 +110,34 @@ def test_real_embedded_and_service_hosts_pass_exact_structural_conformance(tmp_p
 
 
 def test_external_and_managed_system_improvement_have_exact_roots_and_outcomes(tmp_path) -> None:
-    codex = codex_hypothesis_proposal()
+    scenario = system_scenario_input()
+    codex = scenario.proposal
     assert type(codex) is ReasoningResult
     assert len(codex.content["hypotheses"]) == 2
     assert not isinstance(codex, Evidence)
+    assert scenario.executor.policy.owner == "embedding-host"
+    assert scenario.executor.process_owner_count == 0
+    assert scenario.executor.requests == [codex.request]
+    assert codex.request.target_snapshot is not None
+    assert all(codex.ref in item.source_refs for item in scenario.request.initial_hypotheses)
+    assert all(
+        codex.request.ref in item.lineage and codex.request.target_snapshot.ref in item.lineage
+        for item in scenario.request.initial_hypotheses
+    )
+    provider_contract = HostContract(
+        shape=HostShape.EMBEDDED,
+        process_owner_count=scenario.executor.process_owner_count,
+    )
+    service_contract = (
+        service_lifecycle_fixture(tmp_path / "composition")
+        .host_factory("system-provider-owner")
+        .contract
+    )
+    require_single_process_owner((provider_contract, service_contract))
 
-    external = run_system_improvement(tmp_path / "external", managed=False)
-    managed = run_system_improvement(tmp_path / "managed", managed=True)
+    external = run_system_improvement(tmp_path / "external", managed=False, scenario=scenario)
+    managed = run_system_improvement(tmp_path / "managed", managed=True, scenario=scenario)
+    assert external.request == managed.request == scenario.request
     assert external.execution_stop_reason == managed.execution_stop_reason == "outcome"
     assert external.projection == managed.projection
     assert [item.root for item in external.provider.actions] == [
@@ -154,6 +184,31 @@ def test_shared_utility_substitutes_missing_lanes_and_manifest_authority_fail_cl
         setattr(copied, name, getattr(lifecycle, name))
     with pytest.raises(RuntimeError, match="active imported module"):
         validate_shared_package(copied, EMBEDDED_SERVICE_HANDOFF)
+
+    lifecycle_shadow = ModuleType("embedded_service_contract")
+    lifecycle_shadow.__file__ = lifecycle.__file__
+    lifecycle_shadow.__version__ = lifecycle.__version__
+    lifecycle_shadow.__all__ = lifecycle.__all__
+    for name in lifecycle_shadow.__all__:
+        setattr(lifecycle_shadow, name, getattr(lifecycle, name))
+    lifecycle_shadow.HostContract = object()
+    monkeypatch.setitem(sys.modules, "embedded_service_contract", lifecycle_shadow)
+    with pytest.raises(RuntimeError, match="operational export owner"):
+        validate_shared_package(lifecycle_shadow, EMBEDDED_SERVICE_HANDOFF)
+    monkeypatch.undo()
+
+    _, manifest_api = load_shared_utilities()
+    manifest_shadow = ModuleType("runtime_manifest")
+    manifest_shadow.__file__ = manifest_api.__file__
+    manifest_shadow.__version__ = manifest_api.__version__
+    manifest_shadow.__all__ = manifest_api.__all__
+    for name in manifest_shadow.__all__:
+        setattr(manifest_shadow, name, getattr(manifest_api, name))
+    manifest_shadow.compare_manifests = object()
+    monkeypatch.setitem(sys.modules, "runtime_manifest", manifest_shadow)
+    with pytest.raises(RuntimeError, match="operational export owner"):
+        validate_shared_package(manifest_shadow, RUNTIME_MANIFEST_HANDOFF)
+    monkeypatch.undo()
 
     monkeypatch.setattr(lifecycle, "__version__", "0.1.1")
     with pytest.raises(RuntimeError, match="version"):
@@ -312,44 +367,16 @@ def test_shared_handoff_metadata_and_runtime_validation_edges(
         validate_shared_package(lifecycle, EMBEDDED_SERVICE_HANDOFF)
     monkeypatch.undo()
 
-    malformed = deepcopy(document)
-    malformed["librsi_adapter"] = {}
-    monkeypatch.setattr(handoff_module, "_DOCUMENT", malformed)
-    with pytest.raises(RuntimeError, match="adapter metadata"):
-        handoff_module.librsi_adapter_contract()
-    malformed = deepcopy(document)
-    malformed["librsi_adapter"]["files"] = []
-    monkeypatch.setattr(handoff_module, "_DOCUMENT", malformed)
-    with pytest.raises(RuntimeError, match="adapter file set"):
-        handoff_module.librsi_adapter_contract()
-
 
 def test_runtime_manifest_adapter_root_validation_edges(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     import librsi.conformance.manifest as manifest_module
-    import librsi.conformance.shared_handoff as handoff_module
 
-    contract = handoff_module.librsi_adapter_contract()
-    missing = {**contract, "files": ("missing.py",)}
-    monkeypatch.setattr(manifest_module, "librsi_adapter_contract", lambda: missing)
     with pytest.raises(RuntimeError, match="adapter file is unavailable"):
-        manifest_module._adapter_root()
-    monkeypatch.undo()
-
-    stale = {**contract, "content_root_sha256": "0" * 64}
-    monkeypatch.setattr(manifest_module, "librsi_adapter_contract", lambda: stale)
-    with pytest.raises(RuntimeError, match="adapter root has drifted"):
-        manifest_module._adapter_root()
-    monkeypatch.undo()
+        manifest_module._content_root(tmp_path, ("missing.py",))
 
     monkeypatch.setattr(manifest_module, "__file__", str(tmp_path / "pkg" / "manifest.py"))
     with pytest.raises(RuntimeError, match="protocol schema is unavailable"):
-        manifest_module._adapter_root()
-    monkeypatch.undo()
-
-    schema_drift = {**contract, "protocol_schema_root_sha256": "0" * 64}
-    monkeypatch.setattr(manifest_module, "librsi_adapter_contract", lambda: schema_drift)
-    with pytest.raises(RuntimeError, match="protocol schema root has drifted"):
         manifest_module._adapter_root()

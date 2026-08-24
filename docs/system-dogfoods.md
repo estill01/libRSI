@@ -25,11 +25,14 @@ unlicensed and unpublished; this internal test handoff is not a claim of public
 installability, reuse rights, redistribution, or release authority.
 
 The libRSI adapter root is
-`170d5d377877b361d9699051f6ff21c97c185436d2fd24b2f030e1bf25b75a76`.
+`cd54bf6ffa4cd1d9ee450fb86a5f52f569c01571bed23adae5fd2b274fc5eae9`.
+Its file set is fixed in libRSI code and includes the utility handoff document;
+the exact root is independently frozen by this document and the system test,
+not supplied by the handoff document itself.
 The external-agent schema source root is
 `89edd647d75977f1b33dba9173118ae5490f1699a9e5725e28207961b8fd4e1a`.
 The canonical descriptive manifest SHA-256 is
-`ba4a9a51a85cd56fe50f3b47a9725128902ae75afadba3892e0e3d72f67253db`.
+`d2cd2b04c0549ae51ed48fd43b21ded14cc05882e2f7b1045a8285f2e4228cec`.
 
 The lifecycle package checks only host shape, process ownership, run references,
 status, ordered events, cancellation, and structural outcomes. libRSI continues
@@ -55,20 +58,20 @@ or release authority.
 | application disabled by default | `test_managed_rsi_stops_before_apply_then_verifies_and_rolls_back_when_authorized` | stop reason `application-authority`; no target effect |
 | apply, verify, and rollback | same managed RSI test and `test_rsi_schema_conforms_through_apply_verify_and_rollback` | explicit authority, currentness gate, verification, and exact rollback |
 | RSI/self-change | `test_activation_disabled_runs_every_gate_without_target_effect`, `test_accepted_self_change_uses_approval_bound_ordinary_application`, `test_failed_post_activation_verification_rolls_back_exactly` | historical, shadow, independent review, application, verification, and rollback remain separate |
-| Codex proposal fake | system improvement test and `test_codex_backend_is_equivalent_to_other_reasoning_backends` | typed proposal only; never Evidence or application authority |
-| injected provider/process ownership | lifecycle system test, `test_injected_codex_session_uses_typed_surface_without_process_ownership`, `test_process_owner_contract_rejects_two_owners_before_import` | embedded owner count 0 plus service owner count 1; two owners rejected |
+| Codex proposal fake | system improvement test and `test_codex_backend_is_equivalent_to_other_reasoning_backends` | the injected fake's typed proposal is converted into the exact initial hypotheses used by both canonical executions; it is never Evidence or application authority |
+| injected provider/process ownership | system improvement and lifecycle tests, `test_injected_codex_session_uses_typed_surface_without_process_ownership`, `test_process_owner_contract_rejects_two_owners_before_import` | the causally used injected Codex provider declares embedded owner count 0 alongside service owner count 1; two owners are rejected |
 | structural lifecycle equivalence | `test_real_embedded_and_service_hosts_pass_exact_structural_conformance` | both real host compositions pass the accepted three-scenario lifecycle contract |
 | descriptive runtime compatibility | `test_exact_qualified_shared_package_set_and_descriptive_manifest_are_consumed` | exact component, protocol, schema, dependency, and adapter roots; diagnostics only |
-| stale, mixed, copied, or missing utility | `test_shared_utility_substitutes_missing_lanes_and_manifest_authority_fail_closed`, `test_lifecycle_projection_rejects_implicit_or_malformed_semantics` | fail closed before mapped conformance or manifest projection |
+| stale, mixed, copied, shadowed, or missing utility | `test_shared_utility_substitutes_missing_lanes_and_manifest_authority_fail_closed`, `test_lifecycle_projection_rejects_implicit_or_malformed_semantics` | fail closed before mapped conformance or manifest projection; every operational root export remains object-identical to its exact hashed owner submodule |
 
 The deterministic system improvement output is frozen as:
 
-- action roots `7dea1ad37698dfb655a5f5d2c9ed6b6f4b829fe65a85508de440fee5f01f32fb`
-  and `8de64a259adca0c983df5e5a2f2b63397cbad4e39dcfac36c97343c3ad501ba2`;
-- result root `907ea507e742dfee6f4d2d9b561d55a3d32af9624ede9467ff002a9f56ed0d0b`;
-- outcome root `bb4ba179eb57f4d36e922f7f15a8567d0f70e46ca241768fe7d7bc5c920c09f8`;
+- action roots `7177156a4f6f7c829b3be17a8411b5003adaa0a66d0255681d74ca26e33b404d`
+  and `fae7619b63c69b98cca3590846b22e6c65d48ee71604ba404538ac0b105083ff`;
+- result root `aa061bc0d8c92e9f3cdd8f5311054d3ccca4eabfbb66b3af7aa537849b48b841`;
+- outcome root `25443d2238e70a2dc38ebf2ede9778318824cdda8e05d59909d9fa916baf5630`;
   and
-- projection root `b468cd5c638a360cc39ebb7558e56ef6fbbf4189ff24ea3c6d3c8fe730514fba`.
+- projection root `72ce0e66a9d6d53261e6e2ac049063533405c0202bde0a70927239f4af60124a`.
 
 External and managed execution must reproduce all five roots exactly. A change
 to any scenario input intentionally changes those roots and requires a reviewed
