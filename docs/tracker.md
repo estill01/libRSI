@@ -343,7 +343,7 @@ content with libRSI merely to save threads.
 | 21 | Managed service, HTTP, and MCP projections | 7, 8, 19, 20 | `completed` |
 | 22 | Required Codex app-server integration and optional provider/backend adapters | 9, 18–20 | `completed` |
 | 23 | Consumer integration contract and conformance kit | 5, 8, 12, 15–20 | `completed` |
-| 24 | End-to-end embedded/external/managed dogfoods | 10, 11, 15–23 | `in-progress` |
+| 24 | End-to-end embedded/external/managed dogfoods | 10, 11, 15–23 | `completed` |
 | 25 | Comprehensive cross-domain proof | 24 | `not-started` |
 | 26 | Public API, docs, packaging, migration, release gate | 21–25 | `not-started` |
 
@@ -3387,7 +3387,7 @@ consumer repository, or claiming the full architecture proof owned by Block 24.
 
 ## Block 24 — End-to-end embedded, external, and managed dogfoods
 
-Status: `in-progress`
+Status: `completed`
 
 ### Objective
 
@@ -3469,7 +3469,75 @@ Review scenario completeness, reuse, semantic equivalence, exact outcomes, failu
 
 ### Completion evidence
 
-Pending.
+- Accepted implementation revision:
+  `f3e61581c70d1bc705df3216b9540a5a380a1e36`, developed from Block start
+  `1fd1258475f59799002486d4b89001923572e6bb`. The candidate adds the maintained
+  external/managed system matrix, application-disabled and authorized
+  apply/verify/rollback paths, interruption/resume, parallel search, governed
+  self-change, a causally injected Codex-provider fake, structural lifecycle
+  projections, and descriptive runtime-manifest projection without adding an
+  alternate engine or semantic owner.
+- Exact producer binding: every mapped lane pins utils revision
+  `a5659745a7cbcbb002b5f06051f6ed9826f721a7`, qualification-matrix SHA-256
+  `0888bed363b63842c37baa8187c9883cdddff73d936596e497e4e013341cd849`,
+  technical qualification root
+  `9ab96149f63a45429a44ae07e309b68bb4204b4e2e6f4da6a7a93acbd5547068`,
+  and exact accepted wheel SHA-256 values
+  `1e9dc5b9c7f2edb9676b5a47eb2c9b96498f1b429acec474cd26702fe8e3fdb9`,
+  `2b36d7307c08cd6d7d95bfb86d4a240b6ab2a69de5b2c61bf75a54507c7ea18d`,
+  and `f2e601d542272187998296f09d33b2235002d108fe07c0b3c89a678ea1d010ac`.
+  The posture remains unpublished, exact-revision/internal, and
+  `no-license-selected`; no public installability, reuse, redistribution, or
+  release authority is claimed.
+- System/root proof: external and managed execution reproduced the exact action
+  roots `7177156a4f6f7c829b3be17a8411b5003adaa0a66d0255681d74ca26e33b404d`
+  and `fae7619b63c69b98cca3590846b22e6c65d48ee71604ba404538ac0b105083ff`,
+  result root `aa061bc0d8c92e9f3cdd8f5311054d3ccca4eabfbb66b3af7aa537849b48b841`,
+  outcome root `25443d2238e70a2dc38ebf2ede9778318824cdda8e05d59909d9fa916baf5630`,
+  and projection root
+  `72ce0e66a9d6d53261e6e2ac049063533405c0202bde0a70927239f4af60124a`.
+  The utility adapter root is
+  `e3fc5b398ae562ece1c2ff7a7dbb9cba12d5f29f8995f21eb890afa4b175b3e8`,
+  the external schema root is
+  `89edd647d75977f1b33dba9173118ae5490f1699a9e5725e28207961b8fd4e1a`,
+  and the descriptive runtime-manifest SHA-256 is
+  `8a38b964a39bd1d3563318c8e507bfecf6d5ec470e5e01b0ec1f6eddd4196ff7`.
+- Focused and full validation: the Block 23/24 suite passed `17` tests with
+  `93.02%` branch coverage; Ruff over all source/tests, Ruff format checking,
+  Mypy over all source, exact-root verification, and diff-integrity checks passed.
+  The frozen full suite passed `757` tests with `90.97%` branch coverage in
+  `1115.77s`; its `24` warnings are the retained v0.2 compatibility-wrapper
+  deprecations.
+- Distribution proof: an isolated source archive of exact revision `f3e6158`
+  built `librsi-0.2.0-py3-none-any.whl` with SHA-256
+  `a23668227b4a14e32d570c5ec47507398df27b6edd37fa52a61626ebc7e1ef28`
+  and `librsi-0.2.0.tar.gz` with SHA-256
+  `f484a502bee4684efedaae2024d22d7951e5ce795159da621a3ca5b0c2a0e9e7`.
+  Both archives contain the owned behavior-root/source-loader/qualified-metadata
+  files. A fresh Python 3.14 environment installed the libRSI wheel with
+  `--no-deps` and imported the lightweight public package; after installing only
+  the three exact accepted utility wheels, it loaded the private qualified source
+  modules, validated the Codex client, and reproduced the adapter, schema, and
+  runtime-manifest roots above.
+- Independent semantic review: Hubble rejected earlier candidates until behavior
+  roots covered the utility functions, classes, private helpers, and bindings used
+  during owned source execution. Hubble independently mutated
+  `compare_manifests.__code__` and `HostContract.__init__`, observed fail-closed
+  behavior-root drift, restored genuine operation, reran the focused suite under
+  coverage instrumentation, and accepted exact revision `f3e6158` with no
+  remaining finding.
+- Boundary and post-block audit: accepted. The Codex fake causally supplies the
+  exact hypotheses later consumed unchanged; embedded plus service composition has
+  exactly one process owner; manifests remain descriptive; and application,
+  evidence, selection, target, capability, and outcome authority remain libRSI
+  owned. No live provider, remote service, production target, copied utility
+  implementation, registry-name resolution, or external-consumer mutation was
+  used. The unrelated untracked `uv.lock` remained excluded and byte-identical at
+  SHA-256
+  `ea9a2eb3afc46401f2356ef098e005ec87ac33e27475e43bcd86eb4131ea960e`.
+- Git durability: all implementation and repair commits are pushed on
+  `codex/block-24-system-dogfoods`; this completion-evidence commit, PR, CI gate,
+  and merge are queued immediately after tracker verification.
 
 ### Stop
 
