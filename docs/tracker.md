@@ -342,7 +342,7 @@ content with libRSI merely to save threads.
 | 20 | CLI, target admission, and external-agent protocol | 7, 19 | `completed` |
 | 21 | Managed service, HTTP, and MCP projections | 7, 8, 19, 20 | `completed` |
 | 22 | Required Codex app-server integration and optional provider/backend adapters | 9, 18–20 | `completed` |
-| 23 | Consumer integration contract and conformance kit | 5, 8, 12, 15–20 | `not-started` |
+| 23 | Consumer integration contract and conformance kit | 5, 8, 12, 15–20 | `in-progress` |
 | 24 | End-to-end embedded/external/managed dogfoods | 10, 11, 15–23 | `not-started` |
 | 25 | Comprehensive cross-domain proof | 24 | `not-started` |
 | 26 | Public API, docs, packaging, migration, release gate | 21–25 | `not-started` |
@@ -3248,7 +3248,7 @@ Stop before adding ecosystem adapters without a named contract or dogfood need.
 
 ## Block 23 — Consumer integration contract and conformance kit
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 
