@@ -243,6 +243,16 @@ def test_exact_handoff_and_compatibility_manifest_are_frozen(tmp_path: Path) -> 
 
     client = importlib.import_module("codex_app_server_client")
     validate_codex_client(client)
+    shadow = ModuleType("codex_app_server_client")
+    shadow.__file__ = client.__file__
+    shadow.__version__ = client.__version__
+    shadow.__all__ = client.__all__
+    shadow.PINNED_PROTOCOL = client.PINNED_PROTOCOL
+    for name in client.__all__:
+        setattr(shadow, name, getattr(client, name))
+    shadow.AppServerSession = _FakeSession
+    with pytest.raises(RuntimeError, match="operational export"):
+        validate_codex_client(shadow)
 
 
 def test_base_import_does_not_import_provider_sdks() -> None:
@@ -433,6 +443,7 @@ def test_injected_session_shape_and_event_filtering_fail_closed(
     async def filtering_factory() -> object:
         return FilteringSession(module)
 
+    module.AppServerSession = FilteringSession
     filtered = CodexAppServerExecutor(
         CodexProcessPolicy(owner="embedding-host"), session_factory=filtering_factory
     )
@@ -445,6 +456,7 @@ def test_injected_session_shape_and_event_filtering_fail_closed(
     async def no_thread_factory() -> object:
         return NoThreadSession(module)
 
+    module.AppServerSession = NoThreadSession
     no_thread = CodexAppServerExecutor(
         CodexProcessPolicy(owner="embedding-host"), session_factory=no_thread_factory
     )
@@ -459,6 +471,7 @@ def test_injected_session_shape_and_event_filtering_fail_closed(
     async def failed_factory() -> object:
         return FailedSession(module)
 
+    module.AppServerSession = FailedSession
     failed = CodexAppServerExecutor(
         CodexProcessPolicy(owner="embedding-host"), session_factory=failed_factory
     )
@@ -472,8 +485,22 @@ def test_injected_session_shape_and_event_filtering_fail_closed(
     async def exhausted_factory() -> object:
         return ExhaustedSession(module)
 
+    module.AppServerSession = ExhaustedSession
     exhausted = CodexAppServerExecutor(
         CodexProcessPolicy(owner="embedding-host"), session_factory=exhausted_factory
     )
     with pytest.raises(RuntimeError, match="before exact turn"):
         asyncio.run(exhausted.complete_async(_request()))
+
+    class SessionSubclass(ExhaustedSession):
+        pass
+
+    async def subclass_factory() -> object:
+        return SessionSubclass(module)
+
+    module.AppServerSession = ExhaustedSession
+    subclassed = CodexAppServerExecutor(
+        CodexProcessPolicy(owner="embedding-host"), session_factory=subclass_factory
+    )
+    with pytest.raises(TypeError, match="accepted typed AppServerSession"):
+        asyncio.run(subclassed.complete_async(_request()))

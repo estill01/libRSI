@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import inspect
 import json
 from dataclasses import dataclass
 from pathlib import Path
@@ -119,6 +120,34 @@ def _runtime_content_root(module: ModuleType, protocol_root: Path) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
+def _validate_operational_exports(module: ModuleType) -> None:
+    origin = getattr(module, "__file__", None)
+    if not isinstance(origin, str):
+        raise RuntimeError("Codex client module has no stable filesystem origin")
+    package = Path(origin).resolve().parent
+    expected = {
+        "resolve_codex_binary": ("codex_app_server_client.compatibility", "compatibility.py"),
+        "inspect_compatibility": ("codex_app_server_client.compatibility", "compatibility.py"),
+        "AppServerClient": ("codex_app_server_client.session", "session.py"),
+        "AppServerSession": ("codex_app_server_client.session", "session.py"),
+        "StdioTransport": ("codex_app_server_client.transport", "transport.py"),
+        "ClientIdentity": ("codex_app_server_client.models", "models.py"),
+        "ThreadStartParams": ("codex_app_server_client.models", "models.py"),
+        "TurnStartParams": ("codex_app_server_client.models", "models.py"),
+        "AgentMessageDeltaNotification": ("codex_app_server_client.models", "models.py"),
+        "TurnCompletedNotification": ("codex_app_server_client.models", "models.py"),
+    }
+    for name, (owner, filename) in expected.items():
+        implementation = getattr(module, name, None)
+        source = inspect.getsourcefile(implementation) if implementation is not None else None
+        if (
+            getattr(implementation, "__module__", None) != owner
+            or not isinstance(source, str)
+            or Path(source).resolve() != package / filename
+        ):
+            raise RuntimeError(f"Codex client operational export is not exact: {name}")
+
+
 def validate_codex_client(module: ModuleType) -> None:
     """Fail closed unless the imported client matches the accepted protocol handoff."""
 
@@ -144,6 +173,7 @@ def validate_codex_client(module: ModuleType) -> None:
     root = _protocol_root(module)
     if _runtime_content_root(module, root) != CODEX_CLIENT_HANDOFF.runtime_content_root_sha256:
         raise RuntimeError("Codex client implementation root does not match the accepted handoff")
+    _validate_operational_exports(module)
     compatibility = root / "compatibility.json"
     public_api = root / "public-api.json"
     if (

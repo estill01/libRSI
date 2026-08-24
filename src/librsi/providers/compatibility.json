@@ -21,7 +21,7 @@
     "wheel_sha256": "1e9dc5b9c7f2edb9676b5a47eb2c9b96498f1b429acec474cd26702fe8e3fdb9"
   },
   "librsi_adapter": {
-    "content_root_sha256": "253724c8ac64b50b5923b88dafbc424ea41ad28fd9598bd9e912d4111f43320b",
+    "content_root_sha256": "a3d421e33cc96fecd08925462ca440622b2e9ce3a4669aa534c93e74e4feaac2",
     "package": "libRSI",
     "provider_authority": "proposal-only",
     "process_owners": ["standalone", "embedding-host", "software-factory"],
