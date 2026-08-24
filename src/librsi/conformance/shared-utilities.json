@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "qualified_set": {
+    "producer_revision": "a5659745a7cbcbb002b5f06051f6ed9826f721a7",
+    "qualification_matrix_sha256": "0888bed363b63842c37baa8187c9883cdddff73d936596e497e4e013341cd849",
+    "technical_qualification_root_sha256": "9ab96149f63a45429a44ae07e309b68bb4204b4e2e6f4da6a7a93acbd5547068",
+    "posture": "program-qualified/no-license-selected/unpublished"
+  },
+  "packages": {
+    "embedded-service-contract": {
+      "import_root": "embedded_service_contract",
+      "version": "0.1.0",
+      "producer_repository": "https://github.com/estill01/utils",
+      "producer_revision": "a5659745a7cbcbb002b5f06051f6ed9826f721a7",
+      "accepted_source_commit": "401f87a64349c636a66be2da656498e7d9cb58e3",
+      "package_tree_object": "203c809f3d1ab2588df5ed83c08affde99f8010c",
+      "wheel_sha256": "2b36d7307c08cd6d7d95bfb86d4a240b6ab2a69de5b2c61bf75a54507c7ea18d",
+      "wheel_content_root_sha256": "c53432ff83c6b80483a95384af3c9058a3cd82c56ac774126f123a93dbff7113",
+      "runtime_content_root_sha256": "e4299bab02ae9d5c622d74c947b523c0a291689d6db6a69374d015ac3f69d6ae",
+      "public_contracts": {
+        "conformance-fixtures.json": "31b33341b51c48b1e552f19600238b3dffd44c197cbfed5c1dd370e08de71ed4",
+        "structural-contract.json": "c59856708a4ac80a266a83c382e6541da2afc78a920379f654dd2af20211facd",
+        "supported-python.json": "ffd6652354d681053411ad82de6e7e8c8a687cdf873514c773fbad03ad834d73"
+      },
+      "runtime_files": [
+        "__init__.py",
+        "_contract/conformance-fixtures.json",
+        "_contract/structural-contract.json",
+        "_contract/supported-python.json",
+        "conformance.py",
+        "contract.py",
+        "testing.py"
+      ],
+      "posture": "no-license-selected/unpublished"
+    },
+    "runtime-manifest": {
+      "import_root": "runtime_manifest",
+      "version": "0.1.0",
+      "producer_repository": "https://github.com/estill01/utils",
+      "producer_revision": "a5659745a7cbcbb002b5f06051f6ed9826f721a7",
+      "accepted_source_commit": "6f7a7ea3c105c7461e6cb4c83944dd094883f187",
+      "package_tree_object": "42cb7171d3de021a99f75ac741ea0a0cf97c84ae",
+      "wheel_sha256": "f2e601d542272187998296f09d33b2235002d108fe07c0b3c89a678ea1d010ac",
+      "wheel_content_root_sha256": "db8f7f7d0b0105361f9b1380ff1d1cc432e720be02def65880a9ef484ad112a2",
+      "runtime_content_root_sha256": "dead269d125171677cda4c1c15b5ed37100e5f1198d8010650b407e4f4489a0b",
+      "public_contracts": {
+        "compatibility-fixtures.json": "326aa3d0b865f24c12b385c5a6ac8b161cd1fa0c984ac9f7dadd7c2b05b0c7f9",
+        "manifest-schema.json": "1f6a7c0a46e69600d0ec3ee0917da1be185fba0097e845e99f6152cd1a31ad18",
+        "public-api.json": "ab4c1d7fd98b6b405dc0a2f0fd2f31957dae8fb0872796f46ba4b448c34e0c37",
+        "supported-python.json": "ffd6652354d681053411ad82de6e7e8c8a687cdf873514c773fbad03ad834d73"
+      },
+      "runtime_files": [
+        "__init__.py",
+        "_contract/compatibility-fixtures.json",
+        "_contract/manifest-schema.json",
+        "_contract/public-api.json",
+        "_contract/supported-python.json",
+        "compatibility.py",
+        "model.py",
+        "serialization.py",
+        "testing.py"
+      ],
+      "posture": "no-license-selected/unpublished"
+    }
+  },
+  "librsi_adapter": {
+    "content_root_sha256": "170d5d377877b361d9699051f6ff21c97c185436d2fd24b2f030e1bf25b75a76",
+    "protocol_schema_root_sha256": "89edd647d75977f1b33dba9173118ae5490f1699a9e5725e28207961b8fd4e1a",
+    "files": [
+      "__init__.py",
+      "lifecycle.py",
+      "manifest.py",
+      "shared_handoff.py"
+    ]
+  }
+}

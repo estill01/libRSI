@@ -153,6 +153,12 @@ The current implementation owns portable primitives including:
   exact-byte persistence behind a replaceable protocol;
 - `conformance/mapping.py` — generic consumer-owned component state projection into
   canonical atomic composite targets and snapshots without currentness or effect authority;
+- `conformance/shared_handoff.py` — frozen qualified utils package identities and exact
+  installed-runtime/public-contract validation without a copied implementation;
+- `conformance/lifecycle.py` — optional structure-only lifecycle projection that leaves
+  every request, state, semantic outcome, and authority decision with libRSI and its host;
+- `conformance/manifest.py` — optional non-authoritative component/protocol/schema/root
+  description through the accepted `runtime-manifest` package;
 - `service/facade.py`, `service/managed.py`, and `service/records.py` — one durable
   transport-independent service facade, explicit managed bounds, and bounded dispatch
   over the external-agent controller without a second lifecycle, including mandatory

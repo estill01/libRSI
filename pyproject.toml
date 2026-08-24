@@ -83,7 +83,7 @@ where = ["src"]
 include = ["librsi*"]
 
 [tool.setuptools.package-data]
-librsi = ["README.md", "py.typed", "providers/*.json"]
+librsi = ["README.md", "py.typed", "conformance/*.json", "providers/*.json"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

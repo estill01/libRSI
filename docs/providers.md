@@ -32,3 +32,8 @@ Every Codex task starts an ephemeral, read-only thread with approval policy
 `never`, requests one JSON proposal, observes only typed app-server events, and
 projects the result through libRSI's existing schema validator. It exposes no
 raw RPC escape and cannot turn provider completion into evidence or authority.
+
+The maintained terminal composition matrix, including the exact accepted utils
+structural lifecycle and descriptive runtime-manifest handoffs, is recorded in
+[`system-dogfoods.md`](system-dogfoods.md). Those packages remain internal CI
+inputs rather than public libRSI runtime dependencies.

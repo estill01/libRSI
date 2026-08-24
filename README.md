@@ -93,6 +93,11 @@ python -m pip install -e '.[mcp]'     # stdio + Streamable HTTP MCP
 python -m pip install -e '.[service]' # both projections
 ```
 
+The maintained end-to-end control-plane, lifecycle, shared-utility, and RSI
+scenario matrix is documented in
+[`docs/system-dogfoods.md`](docs/system-dogfoods.md). The exact shared utility
+artifacts are internal CI inputs and are not public runtime dependencies.
+
 ## Quick start
 
 The facade can validate a typed claim with a small local setup while persisting the exact
