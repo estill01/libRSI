@@ -51,6 +51,9 @@ FORBIDDEN_ADAPTER_IMPORTS = (
     "git",
     "gitpython",
     "librsi.cli",
+    "librsi.conformance",
+    "librsi.expert",
+    "librsi.facade",
     "librsi.http",
     "librsi.local",
     "librsi.mcp",
@@ -143,7 +146,15 @@ def audit_source(source: str, *, module_name: str) -> tuple[DomainLeak, ...]:
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
-                if _forbidden_import(alias.name):
+                if alias.name == "librsi":
+                    leaks.add(
+                        DomainLeak(
+                            module_name,
+                            node.lineno,
+                            "forbidden package aggregation import: librsi",
+                        )
+                    )
+                elif _forbidden_import(alias.name):
                     leaks.add(
                         DomainLeak(
                             module_name,
@@ -151,8 +162,24 @@ def audit_source(source: str, *, module_name: str) -> tuple[DomainLeak, ...]:
                             f"forbidden adapter import: {alias.name}",
                         )
                     )
+                elif _software_identifier(alias.name):
+                    leaks.add(
+                        DomainLeak(
+                            module_name,
+                            node.lineno,
+                            f"software-specific dependency import: {alias.name}",
+                        )
+                    )
         elif isinstance(node, ast.ImportFrom):
             imported = _resolve_import(module_name, node)
+            if imported == "librsi":
+                leaks.add(
+                    DomainLeak(
+                        module_name,
+                        node.lineno,
+                        "forbidden package aggregation import: librsi",
+                    )
+                )
             candidates = (imported, *(f"{imported}.{alias.name}" for alias in node.names))
             for candidate in candidates:
                 if _forbidden_import(candidate):
@@ -161,6 +188,14 @@ def audit_source(source: str, *, module_name: str) -> tuple[DomainLeak, ...]:
                             module_name,
                             node.lineno,
                             f"forbidden adapter import: {candidate}",
+                        )
+                    )
+                elif _software_identifier(candidate):
+                    leaks.add(
+                        DomainLeak(
+                            module_name,
+                            node.lineno,
+                            f"software-specific dependency import: {candidate}",
                         )
                     )
         elif isinstance(node, (ast.Name, ast.Attribute, ast.arg, ast.keyword)):
@@ -191,6 +226,14 @@ def audit_source(source: str, *, module_name: str) -> tuple[DomainLeak, ...]:
                         module_name,
                         node.lineno,
                         f"software-only target branch: {value}",
+                    )
+                )
+            elif value == "librsi":
+                leaks.add(
+                    DomainLeak(
+                        module_name,
+                        node.lineno,
+                        "forbidden dynamic package aggregation import: librsi",
                     )
                 )
             elif _forbidden_import(value):

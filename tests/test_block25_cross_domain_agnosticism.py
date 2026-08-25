@@ -291,6 +291,38 @@ def test_generic_semantic_tree_has_no_software_types_or_adapter_dependencies() -
             "import importlib\nprovider = importlib.import_module('librsi.providers')\n",
             "forbidden dynamic adapter import: librsi.providers",
         ),
+        (
+            "from librsi.facade import LibRSI\n",
+            "forbidden adapter import: librsi.facade",
+        ),
+        (
+            "from librsi import facade\n",
+            "forbidden adapter import: librsi.facade",
+        ),
+        (
+            "import importlib\nfacade = importlib.import_module('librsi.facade')\n",
+            "forbidden dynamic adapter import: librsi.facade",
+        ),
+        (
+            "import github\n",
+            "software-specific dependency import: github",
+        ),
+        (
+            "from github import Github\n",
+            "software-specific dependency import: github",
+        ),
+        (
+            "import librsi\n",
+            "forbidden package aggregation import: librsi",
+        ),
+        (
+            "from librsi import TargetRef\n",
+            "forbidden package aggregation import: librsi",
+        ),
+        (
+            "import importlib\nroot = importlib.import_module('librsi')\n",
+            "forbidden dynamic package aggregation import: librsi",
+        ),
     ],
 )
 def test_domain_audit_rejects_repository_fields_software_branches_and_adapter_leaks(

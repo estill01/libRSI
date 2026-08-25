@@ -65,7 +65,9 @@ requirement of the generic engine. The audit rejects:
 - target-kind comparisons, set membership, or structural matches that create
   software-only branches; and
 - static or dynamic imports from host adapters, providers, CLI, HTTP, MCP, or
-  local-effect modules into generic semantic ownership.
+  local-effect modules into generic semantic ownership; software-shaped external
+  dependencies such as GitHub clients; and imports through the top-level package
+  aggregation surface rather than a lower-level generic owner.
 
 The exact accepted generic-source aggregate root is
 `913027cc09d5f976bbdffd8bd72a9e24da066f1cb39f3b67115f44539ebe8456`.
