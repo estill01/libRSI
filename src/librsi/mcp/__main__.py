@@ -89,8 +89,8 @@ def main(argv: list[str] | None = None) -> int:
         args.data_dir,
         limits=ServiceLimits(max_request_bytes=args.max_request_bytes),
     )
-    server = create_mcp_server(service, auth=auth, token_verifier=verifier)
     try:
+        server = create_mcp_server(service, auth=auth, token_verifier=verifier)
         if args.transport == "stdio":
             server.run("stdio")
         else:

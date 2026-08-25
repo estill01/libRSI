@@ -73,8 +73,8 @@ def main(argv: list[str] | None = None) -> int:
         args.data_dir,
         limits=ServiceLimits(max_request_bytes=args.max_request_bytes),
     )
-    app = create_http_app(service, token_policy=policy)
     try:
+        app = create_http_app(service, token_policy=policy)
         uvicorn.run(app, host=args.host, port=args.port)
     finally:
         service.close()

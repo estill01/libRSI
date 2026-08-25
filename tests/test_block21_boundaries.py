@@ -310,3 +310,28 @@ def test_http_entrypoint_closes_service_when_server_startup_fails(tmp_path, monk
     with pytest.raises(RuntimeError, match="startup failed"):
         http_main.main(["--data-dir", str(tmp_path)])
     assert closed == [True]
+
+
+@pytest.mark.parametrize("projection", ("http", "mcp"))
+def test_entrypoint_closes_service_when_projection_construction_fails(
+    projection, tmp_path, monkeypatch
+) -> None:
+    import librsi.http.__main__ as http_main
+    import librsi.mcp.__main__ as mcp_main
+
+    closed: list[bool] = []
+
+    class FakeService:
+        def close(self) -> None:
+            closed.append(True)
+
+    def fail(*args, **kwargs):
+        raise RuntimeError("factory failed")
+
+    module = http_main if projection == "http" else mcp_main
+    monkeypatch.setattr(module.LibRSIService, "local", lambda *args, **kwargs: FakeService())
+    factory_name = "create_http_app" if projection == "http" else "create_mcp_server"
+    monkeypatch.setattr(module, factory_name, fail)
+    with pytest.raises(RuntimeError, match="factory failed"):
+        module.main(["--data-dir", str(tmp_path)])
+    assert closed == [True]
