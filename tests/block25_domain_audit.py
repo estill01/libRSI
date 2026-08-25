@@ -7,10 +7,14 @@ from dataclasses import dataclass
 from pathlib import Path
 
 GENERIC_TOP_LEVEL_MODULES = (
+    "checkpoints.py",
     "epistemics.py",
+    "errors.py",
     "evaluation.py",
     "experiments.py",
     "hypotheses.py",
+    "identity.py",
+    "kernel.py",
     "knowledge.py",
     "models.py",
     "portfolios.py",
@@ -20,20 +24,26 @@ GENERIC_TOP_LEVEL_MODULES = (
     "reviews.py",
     "selections.py",
     "selector_policies.py",
+    "sqlite_knowledge.py",
+    "sqlite_schema.py",
+    "sqlite_support.py",
     "targets.py",
 )
 GENERIC_PACKAGES = (
     "application",
     "capabilities",
     "comparison",
+    "governance",
     "improvement",
     "intent",
     "interventions",
     "investigation",
     "projections",
+    "protocol",
     "reasoning",
     "rsi",
     "runtime",
+    "service",
     "validation",
 )
 FORBIDDEN_ADAPTER_IMPORTS = (
@@ -95,8 +105,10 @@ def _software_identifier(name: str) -> bool:
     words = tuple(item for item in re.split(r"[^a-z0-9]+", name.lower()) if item)
     tokens = set(words)
     return bool(
-        tokens & {"git", "github", "repository", "worktree"}
-        or {"commit", "sha"} <= tokens
+        tokens & {"git", "github", "patch", "repo", "repository", "worktree"}
+        or ({"build", "command"} <= tokens)
+        or ({"commit", "sha"} <= tokens)
+        or ({"pull", "request"} <= tokens)
         or {"source", "tree"} <= tokens
         or {"software", "repository"} <= tokens
     )
@@ -118,15 +130,17 @@ def audit_source(source: str, *, module_name: str) -> tuple[DomainLeak, ...]:
                     )
         elif isinstance(node, ast.ImportFrom):
             imported = _resolve_import(module_name, node)
-            if _forbidden_import(imported):
-                leaks.add(
-                    DomainLeak(
-                        module_name,
-                        node.lineno,
-                        f"forbidden adapter import: {imported}",
+            candidates = (imported, *(f"{imported}.{alias.name}" for alias in node.names))
+            for candidate in candidates:
+                if _forbidden_import(candidate):
+                    leaks.add(
+                        DomainLeak(
+                            module_name,
+                            node.lineno,
+                            f"forbidden adapter import: {candidate}",
+                        )
                     )
-                )
-        elif isinstance(node, (ast.Name, ast.Attribute, ast.arg)):
+        elif isinstance(node, (ast.Name, ast.Attribute, ast.arg, ast.keyword)):
             name = (
                 node.id
                 if isinstance(node, ast.Name)
@@ -134,6 +148,8 @@ def audit_source(source: str, *, module_name: str) -> tuple[DomainLeak, ...]:
                 if isinstance(node, ast.Attribute)
                 else node.arg
             )
+            if name is None:
+                continue
             if _software_identifier(name):
                 leaks.add(
                     DomainLeak(
@@ -142,19 +158,28 @@ def audit_source(source: str, *, module_name: str) -> tuple[DomainLeak, ...]:
                         f"software-specific generic identifier: {name}",
                     )
                 )
-        elif isinstance(node, ast.Compare):
-            values = (
-                item.value.lower()
-                for item in (node.left, *node.comparators)
-                if isinstance(item, ast.Constant) and isinstance(item.value, str)
-            )
-            for value in values:
-                if value in SOFTWARE_TARGET_KINDS:
+        elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+            value = node.value.lower()
+            if value in SOFTWARE_TARGET_KINDS:
+                leaks.add(
+                    DomainLeak(
+                        module_name,
+                        node.lineno,
+                        f"software-only target branch: {value}",
+                    )
+                )
+        elif isinstance(node, ast.Dict):
+            for key in node.keys:
+                if (
+                    isinstance(key, ast.Constant)
+                    and isinstance(key.value, str)
+                    and _software_identifier(key.value)
+                ):
                     leaks.add(
                         DomainLeak(
                             module_name,
-                            node.lineno,
-                            f"software-only target branch: {value}",
+                            key.lineno,
+                            f"software-specific generic field: {key.value}",
                         )
                     )
     return tuple(sorted(leaks))

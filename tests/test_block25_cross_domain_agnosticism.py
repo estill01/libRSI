@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 
 import pytest
@@ -10,18 +10,23 @@ import pytest
 from librsi import (
     Action,
     ActionResult,
+    ImprovementCycleProposal,
+    ImprovementProgress,
     ImprovementResult,
     ImprovementWorkflow,
     InvestigationRequest,
     InvestigationResult,
     InvestigationWorkflow,
     OutcomeProjection,
+    RuntimeEngine,
     ValidationRequest,
     ValidationResult,
     ValidationWorkflow,
     improvement_outcome,
     investigation_outcome,
+    make_cycle_result,
     project_result,
+    proposal_from_action_result,
     serialize_projection,
     validation_outcome,
 )
@@ -73,7 +78,7 @@ EXPECTED_ACTION_ROOTS = (
     "67e0951510ed281e291f88a77991bb6059c0f976526cc7d1e7c560e8ed8b5fd3",
     "30114d0c0aebbe4c9c059150f75aa34d2a0eb430a5701f93a7f80ef2834ecd93",
 )
-EXPECTED_GENERIC_SOURCE_ROOT = "80a595c8984c67afd510ecf44d70a7f3e537a3264c65c5be109829e717a417d9"
+EXPECTED_GENERIC_SOURCE_ROOT = "913027cc09d5f976bbdffd8bd72a9e24da066f1cb39f3b67115f44539ebe8456"
 
 
 def _run_fermenter_proof() -> CrossDomainProof:
@@ -210,7 +215,7 @@ def test_generic_semantic_tree_has_no_software_types_or_adapter_dependencies() -
     repository_root = Path(__file__).resolve().parents[1]
     audit = audit_generic_tree(repository_root / "src")
 
-    assert len(audit.paths) == 82
+    assert len(audit.paths) == 102
     assert audit.source_root == EXPECTED_GENERIC_SOURCE_ROOT
     assert audit.leaks == ()
 
@@ -223,11 +228,43 @@ def test_generic_semantic_tree_has_no_software_types_or_adapter_dependencies() -
             "software-specific generic identifier: repository_path",
         ),
         (
+            "def load(repo_path):\n    return repo_path\n",
+            "software-specific generic identifier: repo_path",
+        ),
+        (
+            "def propose(patch_path):\n    return patch_path\n",
+            "software-specific generic identifier: patch_path",
+        ),
+        (
+            "def execute(build_command):\n    return build_command\n",
+            "software-specific generic identifier: build_command",
+        ),
+        (
+            "def approve(pull_request):\n    return pull_request\n",
+            "software-specific generic identifier: pull_request",
+        ),
+        (
+            "payload = {'repo_path': '.'}\n",
+            "software-specific generic field: repo_path",
+        ),
+        (
             "def route(target):\n    if target.kind == 'software-repository':\n        return 1\n",
             "software-only target branch: software-repository",
         ),
         (
+            "def route(target):\n    if target.kind in {'physical-process', 'software-repository'}:\n        return 1\n",
+            "software-only target branch: software-repository",
+        ),
+        (
+            "def route(target):\n    match target.kind:\n        case 'software-repository':\n            return 1\n",
+            "software-only target branch: software-repository",
+        ),
+        (
             "from librsi.providers import CodexAppServerReasoner\n",
+            "forbidden adapter import: librsi.providers",
+        ),
+        (
+            "from librsi import providers\n",
             "forbidden adapter import: librsi.providers",
         ),
     ],
@@ -259,5 +296,101 @@ def test_adapter_cannot_replace_canonical_outcome_authority() -> None:
 
     with pytest.raises(ValueError, match="only its evidence batch"):
         workflow.submit(started.progress, leaked)
+    assert started.progress.state.results == ()
+    assert started.progress.state.outcome is None
+
+
+def test_adapter_cannot_substitute_comparative_evaluation_before_selection() -> None:
+    adapter = FermenterAdapter()
+    context = adapter.context
+    request = fermenter_improvement_request(context)
+    workflow = ImprovementWorkflow()
+    started = workflow.start(request, current_snapshot=context.baseline_snapshot)
+    action = started.progress.state.pending_actions[0]
+    proposal = proposal_from_action_result(adapter.improve_cycle(action))
+    batch = proposal.batches[0]
+    forged_evaluation = replace(
+        batch.evaluation,
+        disposition="passed",
+        findings={"adapter_assertion": "accept without canonical evaluation"},
+    )
+    forged_batch = replace(
+        batch,
+        evaluation=forged_evaluation,
+        lineage=(
+            batch.contract.ref,
+            batch.candidate.ref,
+            batch.experiment.ref,
+            *(item.ref for item in batch.results),
+            forged_evaluation.ref,
+            *(item.ref for item in batch.independent_reviews),
+        ),
+    )
+    forged_proposal = ImprovementCycleProposal.create(
+        request=proposal.request,
+        investigation=proposal.investigation,
+        batches=(forged_batch,),
+    )
+    forged_result = make_cycle_result(action=action, proposal=forged_proposal, resource_units=1)
+
+    with pytest.raises(ValueError, match="exact result of its TrialResults"):
+        workflow.submit(
+            started.progress,
+            forged_result,
+            current_snapshot=context.baseline_snapshot,
+        )
+    assert started.progress.state.results == ()
+    assert started.progress.state.outcome is None
+
+
+def test_noncanonical_runtime_frontier_is_rejected_before_adapter_execution() -> None:
+    adapter = FermenterAdapter()
+    context = adapter.context
+    request = fermenter_improvement_request(context)
+    workflow = ImprovementWorkflow()
+    started = workflow.start(request, current_snapshot=context.baseline_snapshot)
+    canonical_action = started.progress.state.pending_actions[0]
+    forged_action = replace(canonical_action, action_id="fermenter-adapter-shortcut")
+    active = RuntimeEngine.start(request.canonical_run()).state
+    forged_state = RuntimeEngine.request(active, forged_action).state
+    forged_progress = ImprovementProgress(
+        request=request,
+        current_snapshot=context.baseline_snapshot,
+        state=forged_state,
+    )
+
+    with pytest.raises(ValueError, match="exact policy-derived frontier"):
+        workflow.run_managed(
+            forged_progress,
+            provider=adapter,
+            current_snapshot=context.baseline_snapshot,
+        )
+    assert adapter.actions == []
+    assert forged_state.results == ()
+    assert forged_state.outcome is None
+
+
+def test_improvement_adapter_cannot_smuggle_application_authority() -> None:
+    adapter = FermenterAdapter()
+    context = adapter.context
+    request = fermenter_improvement_request(context)
+    workflow = ImprovementWorkflow()
+    started = workflow.start(request, current_snapshot=context.baseline_snapshot)
+    action = started.progress.state.pending_actions[0]
+    canonical = adapter.improve_cycle(action)
+    leaked = replace(
+        canonical,
+        payload={
+            **canonical.payload,
+            "application_authority": {"apply": True, "source": "adapter"},
+        },
+    )
+
+    with pytest.raises(ValueError, match="lost its proposal"):
+        workflow.submit(
+            started.progress,
+            leaked,
+            current_snapshot=context.baseline_snapshot,
+        )
     assert started.progress.state.results == ()
     assert started.progress.state.outcome is None

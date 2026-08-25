@@ -48,21 +48,32 @@ Two complete executions must be byte-identical. The frozen roots are:
 
 ## Generic-code dependency audit
 
-`tests/block25_domain_audit.py` parses the 82 generic semantic/runtime source
-modules. It rejects:
+`tests/block25_domain_audit.py` parses all 102 generic semantic, governance,
+runtime, external-agent protocol, and managed-service source modules. The roster
+includes identity, checkpoints, kernel, governance, protocol/controller, service,
+SQLite semantic stores, and every validation/investigation/improvement owner.
 
-- Git, repository, worktree, or source-tree identifiers in generic code;
-- target-kind comparisons that create software-only branches; and
+The excluded roots are the explicit host/adapter boundary: `facade` composition,
+`local` effects, providers, CLI/HTTP/MCP transports, shared-utility conformance,
+the empty expert extension namespace, and package entrypoint/aggregation modules.
+Those roots can describe software-shaped hosts without making that ontology a
+requirement of the generic engine. The audit rejects:
+
+- Git, repository/repo, worktree, patch, build-command, pull-request, commit-root,
+  or source-tree identifiers and fields in generic code;
+- target-kind comparisons, set membership, or structural matches that create
+  software-only branches; and
 - imports from host adapters, providers, CLI, HTTP, MCP, or local-effect modules
   into generic semantic ownership.
 
 The exact accepted generic-source aggregate root is
-`80a595c8984c67afd510ecf44d70a7f3e537a3264c65c5be109829e717a417d9`.
+`913027cc09d5f976bbdffd8bd72a9e24da066f1cb39f3b67115f44539ebe8456`.
 Any generic source change intentionally invalidates that root and requires the
 cross-domain proof to be reviewed again. Negative tests inject each prohibited
-leak class and prove the audit fails closed. A separate runtime negative test
-proves an adapter-supplied Outcome payload is rejected before any run-state
-mutation.
+leak class and prove the audit fails closed. Runtime negatives independently
+prove that an adapter-supplied Outcome, forged comparative `Evaluation`,
+noncanonical runtime frontier, and improvement application-authority payload are
+all rejected before selection or authoritative run-state mutation.
 
 The suite is part of the ordinary `tests/` discovery used by the maintained CI
 matrix. It uses no external process, provider, repository, or physical system.
