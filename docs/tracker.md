@@ -3765,9 +3765,58 @@ Independent review covers API/docs truthfulness, migration/compatibility, option
 
 Work began from exact accepted Block 25 merge
 `92f1d5a58796b62da3f1c51791d8456d24c0aea3` on
-`codex/block-26-public-release-gate`. License-independent implementation and
-validation proceed first; the direct-user license selection remains the only
-reserved acceptance subset.
+`codex/block-26-public-release-gate`. The accepted license-independent candidate
+is `0afbf40c3e65c3ca24cbf1ba3184415818097868`; the direct-user license
+selection remains the only reserved acceptance subset.
+
+- Product surface: the versioned candidate is `0.3.0`, with a facade-first API
+  guide, executable local validation/hypothesis examples, curated expert-surface
+  documentation, changelog, exact `0.2.x` migration guide, release gate, typed
+  package marker, and dependency-lazy CLI/HTTP/MCP help paths. The legacy
+  `0.2.0` public exports and rooted compatibility fixtures remain passing.
+- Public dependency boundary: the base wheel has zero dependencies. Public
+  extras contain only registry requirements; the former `codex` extra and every
+  utils Git/path requirement were removed. The Codex adapter remains an
+  interface-only internal lane. CI alone checks out exact utils revision
+  `a5659745a7cbcbb002b5f06051f6ed9826f721a7`, rebuilds all three wheels,
+  verifies client/structural/runtime SHA-256 values
+  `1e9dc5b9c7f2edb9676b5a47eb2c9b96498f1b429acec474cd26702fe8e3fdb9`,
+  `2b36d7307c08cd6d7d95bfb86d4a240b6ab2a69de5b2c61bf75a54507c7ea18d`,
+  and `f2e601d542272187998296f09d33b2235002d108fe07c0b3c89a678ea1d010ac`,
+  and installs them without dependencies for mapped internal tests.
+- Artifact proof: the pending-license candidate wheel and sdist passed exact
+  metadata/content audit at SHA-256
+  `bb5fb5ec4f7ff512c97fca570ff468a4654a27159167740f2bf2153c3c17d507`
+  and
+  `6d5d22bf1d909b1f525e6e8a6f023d9c56ebb21119bfee109fdbc4b54dc269a2`.
+  They contain no internal utility implementation/dependency, no Git/path
+  requirement, no unselected license grant, and no internal tracker/test corpus.
+  A clean isolated base-wheel environment passed `pip check`, both examples,
+  version import, and all three help entrypoints without source-tree imports or
+  optional service/provider stacks.
+- Test and quality evidence: Block 25 plus Block 26 passed `46` tests; the wider
+  compatibility/provider/system subset passed `74`; and the final invalidated
+  HTTP/MCP/packaging/release boundary passed `25`. One frozen full run exercised
+  all `804` tests at `90.79%` branch coverage: `802` passed and the two prior
+  module-level entrypoint injection seams failed. Exact fixes restored those
+  seams and added HTTP/MCP projection-factory leak regressions; the complete
+  invalidated boundary then passed as above. Ruff/format cover all `238`
+  source/test/example files, Mypy passes all `142` typed source/example files,
+  the source release audit passes, and the full tracker verifier passes all
+  `27` Blocks. Exact-head CI remains correctly deferred until the license choice
+  freezes final metadata/artifact bytes.
+- Independent review: Hubble rejected the first candidate for overstating the
+  `librsi.expert` namespace and the second for HTTP/MCP service leaks when
+  projection factories failed. Both findings were corrected and regression
+  tested. Hubble accepted exact candidate `0afbf40`, independently reproduced
+  `30` mapped tests, artifacts, installed examples, lazy entrypoints, public
+  metadata isolation, pending-license behavior, and the publication stop.
+- Reserved authority and durability: `docs/license-decision.md` records the MIT,
+  Apache-2.0, and explicit no-license choices using authoritative sources. No
+  `LICENSE`, classifier, license expression, reuse claim, tag, publication,
+  release, deployment, or announcement was inferred. The unrelated untracked
+  `uv.lock` remains excluded and byte-identical at SHA-256
+  `ea9a2eb3afc46401f2356ef098e005ec87ac33e27475e43bcd86eb4131ea960e`.
 
 ### Stop
 
