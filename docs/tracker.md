@@ -344,7 +344,7 @@ content with libRSI merely to save threads.
 | 22 | Required Codex app-server integration and optional provider/backend adapters | 9, 18–20 | `completed` |
 | 23 | Consumer integration contract and conformance kit | 5, 8, 12, 15–20 | `completed` |
 | 24 | End-to-end embedded/external/managed dogfoods | 10, 11, 15–23 | `completed` |
-| 25 | Comprehensive cross-domain proof | 24 | `not-started` |
+| 25 | Comprehensive cross-domain proof | 24 | `completed` |
 | 26 | Public API, docs, packaging, migration, release gate | 21–25 | `not-started` |
 
 Required execution order for this single-writer run:
@@ -3514,8 +3514,9 @@ Review scenario completeness, reuse, semantic equivalence, exact outcomes, failu
   deprecations. The source-only MCP remediation at revision `c5f89fb` was then
   bounded to its invalidated lane: all `7` MCP tests passed independently against
   both `mcp==2.0.0` and `mcp==2.1.0`, while the complete Ruff, format, Mypy,
-  tracker-verifier, and diff-integrity gates passed. Replacement CI is the
-  remaining exact-candidate gate.
+  tracker-verifier, and diff-integrity gates passed. Exact-head GitHub Actions run
+  `32788503827` then passed the complete matrix on Python 3.11 in `1h46m17s`,
+  Python 3.12 in `1h22m27s`, and Python 3.13 in `1h47m20s`.
 - Distribution proof: an isolated source archive of exact revision `c5f89fb`
   built `librsi-0.2.0-py3-none-any.whl` with SHA-256
   `f0899fb2cc918a7975b1297d66b7c21bfd8d5b895140d6c86ffe5d3219b36541`
@@ -3557,10 +3558,10 @@ Review scenario completeness, reuse, semantic equivalence, exact outcomes, failu
   used. The unrelated untracked `uv.lock` remained excluded and byte-identical at
   SHA-256
   `ea9a2eb3afc46401f2356ef098e005ec87ac33e27475e43bcd86eb4131ea960e`.
-- Git durability: the implementation, both CI repairs, and this exact-candidate
-  evidence are committed on `codex/block-24-system-dogfoods`; the evidence commit,
-  replacement PR CI gate, and merge are queued immediately after tracker
-  verification.
+- Git durability: the implementation, both CI repairs, and exact-candidate
+  evidence were pushed on `codex/block-24-system-dogfoods`, accepted through PR
+  `#37`, and merged to `main` as
+  `a26bc22abc349db5d7e7f23cbd33272ee0c3f4b9` after the terminal green CI gate.
 
 ### Stop
 
@@ -3568,7 +3569,7 @@ Stop before final cross-domain audit and public release cleanup.
 
 ## Block 25 — Comprehensive cross-domain agnosticism proof
 
-Status: `not-started`
+Status: `completed`
 
 ### Objective
 
@@ -3619,7 +3620,63 @@ Independent review compares generic versus adapter ownership and verifies the re
 
 ### Completion evidence
 
-Pending.
+- Accepted implementation revision:
+  `18a9e5fe38343c39b299d3c611f9dafe2bbe1441`, developed from exact Block
+  start `a26bc22abc349db5d7e7f23cbd33272ee0c3f4b9`. The maintained fixture is
+  split across a physical-process adapter, generic-source audit, focused
+  dogfoods/adversarial tests, and the ownership/evidence document; it adds no
+  production workflow, evaluator, target branch, or semantic owner.
+- Real-engine proof: one `FermenterAdapter` implements the existing reasoner,
+  experimenter, and improvement-cycle provider ports and drives the canonical
+  validation, competing-hypothesis investigation, comparative trial evaluation,
+  improvement selection, RuntimeEngine transitions, and Outcome projections.
+  Validation is supported, the oxygen-transfer hypothesis is rejected while the
+  thermal-transfer alternative is supported, and one bounded physical candidate
+  is selected with a proposal-only handoff and `apply=False`.
+- Exact outcomes: validation result/outcome/projection roots are
+  `321c6d8f8a6a4830ec2a596fa5590bf9f3e4e28b77a41a8d49e26b44124d094b`,
+  `87c0c16b1c7abc5a3f428c42ffde577c9af777d42bdf9eff0b5fc3ff8d01ea2e`,
+  and `c9ad9bc76522ed30bf38c1fe465c0cc7044a3378287c0e1368077eba10bf5e67`;
+  investigation roots are
+  `c27aced0b9da03ea80576360e70b9fc13f29096a7d80121b5e65cdec7e8c6d67`,
+  `158babfe98b35dadc2f21d4b015d0ae2d820efa2affe413add23976f3ea8b674`,
+  and `49abc7b406e7c6dde81c068a4559a086f1b39715137b05c4b221953812d04767`;
+  improvement roots are
+  `be4cb50aa60e6bc20298a43f528a7630d5f5814cb9152aae9a5e922f1dab20f9`,
+  `fef522467c64b3ca51fbeaada63d4d73f15fcab12c2649ea777ecbee2a827e3d`,
+  and `6d7d73c84e6a244125a612c5fbde6a6fca6b1a087fa24701a9924788fb5c72de`.
+  Two complete executions and all ten action roots reproduce exactly.
+- Generic dependency audit: all `102` generic semantic, governance, runtime,
+  protocol/controller, managed-service, and SQLite semantic-source modules are
+  covered under aggregate root
+  `913027cc09d5f976bbdffd8bd72a9e24da066f1cb39f3b67115f44539ebe8456`.
+  Explicit host/adapter roots are excluded and forbidden as dependencies. Static,
+  relative, re-exported, nested, and dynamic imports; snake/camel identifiers;
+  mapping/reflection fields; set/match software target branches; and GitHub-client
+  dependencies fail closed.
+- Negative and independent proof: adapters cannot inject Outcome authority,
+  replace the canonical comparative Evaluation, use a nonpolicy runtime frontier,
+  or smuggle application authority; each attempt is rejected before selection or
+  authoritative state mutation. Hubble accepted only after four rejection rounds
+  expanded the owner roster, closed repository/field/branch/dynamic-import forms,
+  and made every documented excluded dependency root executable. The accepted
+  independent review reproduced the focused matrix at exact revision `18a9e5f`.
+- Validation: all `33` Block 25 tests passed with `95.00%` branch coverage over
+  the adapter/audit support; Ruff and format checks over all `233` source/test
+  files, Mypy over all `139` source files, the full 27-Block tracker verifier,
+  and diff integrity passed. The one frozen full repository suite passed `791`
+  tests with `90.97%` branch coverage in `1862.28s`; its `24` warnings are the
+  retained v0.2 compatibility-wrapper deprecations.
+- Boundary and durability: target-specific measurements and physical proposal
+  data remain adapter-owned, while evidence, belief, lifecycle, evaluation,
+  selection, result, Outcome, and application authority remain libRSI-owned. No
+  external system, repository, provider, target effect, or test-only engine was
+  used. The unrelated untracked `uv.lock` remained excluded and byte-identical at
+  SHA-256
+  `ea9a2eb3afc46401f2356ef098e005ec87ac33e27475e43bcd86eb4131ea960e`.
+  Implementation and review repairs are pushed on
+  `codex/block-25-cross-domain-agnosticism`; this evidence commit, PR, exact-head
+  CI, and merge are queued immediately after tracker verification.
 
 ### Stop
 
