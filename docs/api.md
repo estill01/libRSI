@@ -58,11 +58,14 @@ unpublished and unlicensed. See [providers.md](providers.md).
 
 ## Expert surface and typing
 
-`librsi.expert` groups the low-level kernel, policies, typed semantic records, workflows,
-runtime engine, stores, capability protocols, and projection codecs. Top-level
-`librsi.__all__` retains every `0.2.0` compatibility export and the additive `0.3.0`
-surface. The distribution includes `py.typed`; public records, protocols, and facade
-methods are statically typed and checked on Python 3.11, 3.12, and 3.13.
+`librsi.expert` is a curated composition namespace for the kernel, selected workflow
+policies/workflows, capability dispatcher/registry, runtime engine, and SQLite stores.
+Typed records, capability protocols, and projection codecs remain in their owning
+modules and in the documented top-level exports; `librsi.expert` does not duplicate
+them. Top-level `librsi.__all__` retains every `0.2.0` compatibility export and the
+additive `0.3.0` surface. The distribution includes `py.typed`; public records,
+protocols, and facade methods are statically typed and checked on Python 3.11, 3.12,
+and 3.13.
 
 Canonical records are immutable and content-addressed. Hosts own filesystems,
 subprocesses, providers, credentials, deployment, authoritative target observation, and

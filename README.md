@@ -502,7 +502,9 @@ start no process, infer no storage location, and construct no capabilities. Loca
 exist only when a caller explicitly selects `LibRSI.local()`/`for_repo()` or supplies an
 adapter. The standard-library defaults are thin and independently replaceable; no worker,
 provider, transport, deployment, or generic repository-automation platform is included.
-Low-level APIs remain available from their original modules and from `librsi.expert`. See
+Low-level APIs remain available from their original owning modules and documented
+top-level exports. `librsi.expert` curates the kernel, selected workflows/policies,
+dispatcher/registry, runtime engine, and SQLite stores for sophisticated composition. See
 [`src/librsi/README.md`](src/librsi/README.md) for the module map and complete
 integration boundary. The maintained implementation plan evolves this deterministic
 core toward higher-level validation, investigation, improvement, and RSI workflows
