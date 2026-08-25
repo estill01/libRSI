@@ -343,7 +343,7 @@ content with libRSI merely to save threads.
 | 21 | Managed service, HTTP, and MCP projections | 7, 8, 19, 20 | `completed` |
 | 22 | Required Codex app-server integration and optional provider/backend adapters | 9, 18–20 | `completed` |
 | 23 | Consumer integration contract and conformance kit | 5, 8, 12, 15–20 | `completed` |
-| 24 | End-to-end embedded/external/managed dogfoods | 10, 11, 15–23 | `not-started` |
+| 24 | End-to-end embedded/external/managed dogfoods | 10, 11, 15–23 | `completed` |
 | 25 | Comprehensive cross-domain proof | 24 | `not-started` |
 | 26 | Public API, docs, packaging, migration, release gate | 21–25 | `not-started` |
 
@@ -3387,7 +3387,7 @@ consumer repository, or claiming the full architecture proof owned by Block 24.
 
 ## Block 24 — End-to-end embedded, external, and managed dogfoods
 
-Status: `not-started`
+Status: `completed`
 
 ### Objective
 
@@ -3469,7 +3469,98 @@ Review scenario completeness, reuse, semantic equivalence, exact outcomes, failu
 
 ### Completion evidence
 
-Pending.
+- Accepted implementation revision:
+  `c5f89fbaf126d4cadbed6319ec8221c60d387d9e`, developed from Block start
+  `1fd1258475f59799002486d4b89001923572e6bb`. The candidate adds the maintained
+  external/managed system matrix, application-disabled and authorized
+  apply/verify/rollback paths, interruption/resume, parallel search, governed
+  self-change, a causally injected Codex-provider fake, structural lifecycle
+  projections, and descriptive runtime-manifest projection without adding an
+  alternate engine or semantic owner. Its final MCP boundary uses exact-type,
+  instance-origin client-fault provenance so only locally projected client input
+  faults retain detail; every service/provider failure, including transport-native
+  error classes and forged/subclassed client-fault objects, remains sanitized.
+- Exact producer binding: every mapped lane pins utils revision
+  `a5659745a7cbcbb002b5f06051f6ed9826f721a7`, qualification-matrix SHA-256
+  `0888bed363b63842c37baa8187c9883cdddff73d936596e497e4e013341cd849`,
+  technical qualification root
+  `9ab96149f63a45429a44ae07e309b68bb4204b4e2e6f4da6a7a93acbd5547068`,
+  and exact accepted wheel SHA-256 values
+  `1e9dc5b9c7f2edb9676b5a47eb2c9b96498f1b429acec474cd26702fe8e3fdb9`,
+  `2b36d7307c08cd6d7d95bfb86d4a240b6ab2a69de5b2c61bf75a54507c7ea18d`,
+  and `f2e601d542272187998296f09d33b2235002d108fe07c0b3c89a678ea1d010ac`.
+  The posture remains unpublished, exact-revision/internal, and
+  `no-license-selected`; no public installability, reuse, redistribution, or
+  release authority is claimed.
+- System/root proof: external and managed execution reproduced the exact action
+  roots `7177156a4f6f7c829b3be17a8411b5003adaa0a66d0255681d74ca26e33b404d`
+  and `fae7619b63c69b98cca3590846b22e6c65d48ee71604ba404538ac0b105083ff`,
+  result root `aa061bc0d8c92e9f3cdd8f5311054d3ccca4eabfbb66b3af7aa537849b48b841`,
+  outcome root `25443d2238e70a2dc38ebf2ede9778318824cdda8e05d59909d9fa916baf5630`,
+  and projection root
+  `72ce0e66a9d6d53261e6e2ac049063533405c0202bde0a70927239f4af60124a`.
+  The utility adapter root is
+  `21db50bea1ffdbf1448d7e3f4c0318d5adca591fb1b6d7c927f66baed3150617`,
+  the external schema root is
+  `89edd647d75977f1b33dba9173118ae5490f1699a9e5725e28207961b8fd4e1a`,
+  and the descriptive runtime-manifest SHA-256 is
+  `b777c6691c0e9ad4b5aa965dbcbb6321abae3a83528470a7cade59f09105edc4`.
+- Focused and full validation: the Block 23/24 suite passed `17` tests with
+  `93.68%` branch coverage; Ruff over all source/tests, Ruff format checking,
+  Mypy over all source, exact-root verification, and diff-integrity checks passed.
+  The frozen full suite at revision `1d81f61` passed `757` tests with `90.97%`
+  branch coverage in
+  `3804.46s`; its `24` warnings are the retained v0.2 compatibility-wrapper
+  deprecations. The source-only MCP remediation at revision `c5f89fb` was then
+  bounded to its invalidated lane: all `7` MCP tests passed independently against
+  both `mcp==2.0.0` and `mcp==2.1.0`, while the complete Ruff, format, Mypy,
+  tracker-verifier, and diff-integrity gates passed. Replacement CI is the
+  remaining exact-candidate gate.
+- Distribution proof: an isolated source archive of exact revision `c5f89fb`
+  built `librsi-0.2.0-py3-none-any.whl` with SHA-256
+  `f0899fb2cc918a7975b1297d66b7c21bfd8d5b895140d6c86ffe5d3219b36541`
+  and `librsi-0.2.0.tar.gz` with SHA-256
+  `396e27a0bac079418f5e2a505a6d3be0d106bd31d661f5e11fa66094ac89453e`.
+  Both archives contain `py.typed`, the owned behavior-root/source-loader and
+  qualified-metadata resources, and the MCP server. A fresh Python 3.14
+  environment installed the libRSI wheel with
+  `--no-deps` and imported the lightweight public package; after installing only
+  the three exact accepted utility wheels, it loaded the private qualified source
+  modules, validated the Codex client, and reproduced the adapter, schema, and
+  runtime-manifest roots above. A separate clean Python 3.14 environment installed
+  `mcp==2.1.0` plus that exact wheel and imported the MCP server successfully.
+- Independent semantic review: Hubble rejected earlier candidates until behavior
+  roots covered the utility functions, classes, private helpers, and bindings used
+  during owned source execution. Hubble independently mutated
+  `compare_manifests.__code__` and `HostContract.__init__`, observed fail-closed
+  behavior-root drift, and restored genuine operation. GitHub Actions run
+  `32732242027` then exposed a Python 3.11-only runtime-Protocol cache transition:
+  `751` tests passed and `6` Block 24 tests failed because the first structural
+  instance check materialized a semantically empty annotation mapping. Revision
+  `1d81f61` normalizes only exact empty interpreter caches while retaining
+  nonempty annotations, non-null annotation functions, executable code, and class
+  fields. Hubble first rejected an equality-spoofable draft, independently
+  reproduced that attack, then accepted the exact-dict repair after Python
+  3.11/3.14 coverage checks and the function/class mutation attacks all passed.
+  Replacement GitHub Actions run `32778384086` proved all `10` Block 24 tests but
+  finished with `755` passes and `2` Block 21 MCP failures because `mcp==2.1.0`
+  newly wrapped anticipated client faults. Hubble rejected four successively
+  incomplete remediations that still exposed errors from another channel or
+  allowed forged provenance, then accepted revision `c5f89fb` after independently
+  confirming the exact-type, instance-token boundary and the focused spoof matrix.
+- Boundary and post-block audit: accepted. The Codex fake causally supplies the
+  exact hypotheses later consumed unchanged; embedded plus service composition has
+  exactly one process owner; manifests remain descriptive; and application,
+  evidence, selection, target, capability, and outcome authority remain libRSI
+  owned. No live provider, remote service, production target, copied utility
+  implementation, registry-name resolution, or external-consumer mutation was
+  used. The unrelated untracked `uv.lock` remained excluded and byte-identical at
+  SHA-256
+  `ea9a2eb3afc46401f2356ef098e005ec87ac33e27475e43bcd86eb4131ea960e`.
+- Git durability: the implementation, both CI repairs, and this exact-candidate
+  evidence are committed on `codex/block-24-system-dogfoods`; the evidence commit,
+  replacement PR CI gate, and merge are queued immediately after tracker
+  verification.
 
 ### Stop
 

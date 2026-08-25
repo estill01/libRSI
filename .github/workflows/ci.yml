@@ -28,6 +28,31 @@ jobs:
       - name: Install development dependencies
         run: python -m pip install -e '.[dev]'
 
+      - name: Install exact accepted shared utility artifacts
+        run: |
+          git clone --filter=blob:none --no-checkout https://github.com/estill01/utils.git "$RUNNER_TEMP/librsi-utils"
+          git -C "$RUNNER_TEMP/librsi-utils" fetch --depth=1 origin a5659745a7cbcbb002b5f06051f6ed9826f721a7
+          git -C "$RUNNER_TEMP/librsi-utils" checkout --detach a5659745a7cbcbb002b5f06051f6ed9826f721a7
+          test "$(git -C "$RUNNER_TEMP/librsi-utils" rev-parse HEAD)" = "a5659745a7cbcbb002b5f06051f6ed9826f721a7"
+          mkdir -p "$RUNNER_TEMP/librsi-utils-dist"
+          python -m build --wheel --outdir "$RUNNER_TEMP/librsi-utils-dist" "$RUNNER_TEMP/librsi-utils/packages/embedded-service-contract"
+          python -m build --wheel --outdir "$RUNNER_TEMP/librsi-utils-dist" "$RUNNER_TEMP/librsi-utils/packages/runtime-manifest"
+          python - <<'PY'
+          import hashlib
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ["RUNNER_TEMP"]) / "librsi-utils-dist"
+          expected = {
+              "embedded_service_contract-0.1.0-py3-none-any.whl": "2b36d7307c08cd6d7d95bfb86d4a240b6ab2a69de5b2c61bf75a54507c7ea18d",
+              "runtime_manifest-0.1.0-py3-none-any.whl": "f2e601d542272187998296f09d33b2235002d108fe07c0b3c89a678ea1d010ac",
+          }
+          observed = {path.name: hashlib.sha256(path.read_bytes()).hexdigest() for path in root.glob("*.whl")}
+          if observed != expected:
+              raise SystemExit(f"shared utility artifacts differ: {observed}")
+          PY
+          python -m pip install --no-deps "$RUNNER_TEMP/librsi-utils-dist"/*.whl
+
       - name: Lint
         run: python -m ruff check src tests
 
