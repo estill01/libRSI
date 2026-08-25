@@ -5,7 +5,8 @@
 - Repository: `https://github.com/estill01/libRSI`
 - Governing objective: evolve libRSI into a domain-neutral, evidence-driven validation, investigation, improvement, and governed recursive-self-improvement library.
 - Canonical status owner: this file.
-- First eligible Block: 21.
+- First eligible Block: 26 (license-dependent acceptance subset; waiting for
+  direct-user license selection after completion of the safe frontier).
 
 ## 1. Purpose and intended outcome
 
@@ -234,8 +235,8 @@ hardening without a reproduced in-scope failure is omitted.
 ## 6. Block execution contract
 
 1. The requested range is the complete current tracker, Blocks 0–26 and the
-   observable completion outcome. Blocks 0–20 are accepted or completed history;
-   implementation resumes at Block 21.
+   observable completion outcome. Blocks 0–25 are accepted or completed history;
+   implementation resumes at the license-dependent acceptance subset of Block 26.
 2. Execute one eligible Block at a time in dependency order. A Block Stop is an
    internal checkpoint and never contracts this full-tracker request.
 3. Before implementation-producing work, change the table row and Block status from
@@ -3817,6 +3818,13 @@ selection remains the only reserved acceptance subset.
   release, deployment, or announcement was inferred. The unrelated untracked
   `uv.lock` remains excluded and byte-identical at SHA-256
   `ea9a2eb3afc46401f2356ef098e005ec87ac33e27475e43bcd86eb4131ea960e`.
+- Decision/continuation posture: `waiting-for-input` is limited to the direct-user
+  choice of MIT, Apache-2.0, or explicit no-license posture. Its blocked subject
+  set is the license text/metadata/claims and terminal Block 26 acceptance; its
+  descendant closure is only the terminal program-completion gate. The safe
+  license-independent frontier is exhausted at accepted candidate `0afbf40`; the
+  authoritative revisit trigger is the exact direct-user license choice. Block 26
+  remains `in-progress` and no provisional license grant is accepted.
 
 ### Stop
 
