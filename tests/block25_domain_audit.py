@@ -101,13 +101,19 @@ def _forbidden_import(name: str) -> bool:
     )
 
 
+def _identifier_words(name: str) -> tuple[str, ...]:
+    separated = re.sub(r"([a-z0-9])([A-Z])", r"\1_\2", name)
+    separated = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", separated)
+    return tuple(item for item in re.split(r"[^a-z0-9]+", separated.lower()) if item)
+
+
 def _software_identifier(name: str) -> bool:
-    words = tuple(item for item in re.split(r"[^a-z0-9]+", name.lower()) if item)
+    words = _identifier_words(name)
     tokens = set(words)
     return bool(
         tokens & {"git", "github", "patch", "repo", "repository", "worktree"}
         or ({"build", "command"} <= tokens)
-        or ({"commit", "sha"} <= tokens)
+        or ("commit" in tokens and bool(tokens & {"hash", "id", "ref", "root", "sha"}))
         or ({"pull", "request"} <= tokens)
         or {"source", "tree"} <= tokens
         or {"software", "repository"} <= tokens
@@ -117,6 +123,23 @@ def _software_identifier(name: str) -> bool:
 def audit_source(source: str, *, module_name: str) -> tuple[DomainLeak, ...]:
     tree = ast.parse(source, filename=module_name)
     leaks: set[DomainLeak] = set()
+    docstrings: set[int] = set()
+    owners = (
+        tree,
+        *(
+            node
+            for node in ast.walk(tree)
+            if isinstance(node, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef))
+        ),
+    )
+    for owner in owners:
+        if (
+            owner.body
+            and isinstance(owner.body[0], ast.Expr)
+            and isinstance(owner.body[0].value, ast.Constant)
+            and isinstance(owner.body[0].value.value, str)
+        ):
+            docstrings.add(id(owner.body[0].value))
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
@@ -159,6 +182,8 @@ def audit_source(source: str, *, module_name: str) -> tuple[DomainLeak, ...]:
                     )
                 )
         elif isinstance(node, ast.Constant) and isinstance(node.value, str):
+            if id(node) in docstrings:
+                continue
             value = node.value.lower()
             if value in SOFTWARE_TARGET_KINDS:
                 leaks.add(
@@ -166,6 +191,22 @@ def audit_source(source: str, *, module_name: str) -> tuple[DomainLeak, ...]:
                         module_name,
                         node.lineno,
                         f"software-only target branch: {value}",
+                    )
+                )
+            elif _forbidden_import(value):
+                leaks.add(
+                    DomainLeak(
+                        module_name,
+                        node.lineno,
+                        f"forbidden dynamic adapter import: {value}",
+                    )
+                )
+            elif _software_identifier(node.value):
+                leaks.add(
+                    DomainLeak(
+                        module_name,
+                        node.lineno,
+                        f"software-specific generic string: {node.value}",
                     )
                 )
         elif isinstance(node, ast.Dict):

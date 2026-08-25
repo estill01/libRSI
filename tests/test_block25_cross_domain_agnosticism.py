@@ -232,6 +232,10 @@ def test_generic_semantic_tree_has_no_software_types_or_adapter_dependencies() -
             "software-specific generic identifier: repo_path",
         ),
         (
+            "def load(repoPath):\n    return repoPath\n",
+            "software-specific generic identifier: repoPath",
+        ),
+        (
             "def propose(patch_path):\n    return patch_path\n",
             "software-specific generic identifier: patch_path",
         ),
@@ -246,6 +250,22 @@ def test_generic_semantic_tree_has_no_software_types_or_adapter_dependencies() -
         (
             "payload = {'repo_path': '.'}\n",
             "software-specific generic field: repo_path",
+        ),
+        (
+            "class Snapshot:\n    commit_root: str\n",
+            "software-specific generic identifier: commit_root",
+        ),
+        (
+            "class Snapshot:\n    commit_id: str\n",
+            "software-specific generic identifier: commit_id",
+        ),
+        (
+            "def load(payload):\n    return payload['repo_path']\n",
+            "software-specific generic string: repo_path",
+        ),
+        (
+            "def load(payload):\n    return getattr(payload, 'repository_path')\n",
+            "software-specific generic string: repository_path",
         ),
         (
             "def route(target):\n    if target.kind == 'software-repository':\n        return 1\n",
@@ -266,6 +286,10 @@ def test_generic_semantic_tree_has_no_software_types_or_adapter_dependencies() -
         (
             "from librsi import providers\n",
             "forbidden adapter import: librsi.providers",
+        ),
+        (
+            "import importlib\nprovider = importlib.import_module('librsi.providers')\n",
+            "forbidden dynamic adapter import: librsi.providers",
         ),
     ],
 )

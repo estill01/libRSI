@@ -60,11 +60,12 @@ Those roots can describe software-shaped hosts without making that ontology a
 requirement of the generic engine. The audit rejects:
 
 - Git, repository/repo, worktree, patch, build-command, pull-request, commit-root,
-  or source-tree identifiers and fields in generic code;
+  commit-id, or source-tree identifiers and fields in generic code, including
+  camelCase names, string-indexed fields, and reflective field access;
 - target-kind comparisons, set membership, or structural matches that create
   software-only branches; and
-- imports from host adapters, providers, CLI, HTTP, MCP, or local-effect modules
-  into generic semantic ownership.
+- static or dynamic imports from host adapters, providers, CLI, HTTP, MCP, or
+  local-effect modules into generic semantic ownership.
 
 The exact accepted generic-source aggregate root is
 `913027cc09d5f976bbdffd8bd72a9e24da066f1cb39f3b67115f44539ebe8456`.
