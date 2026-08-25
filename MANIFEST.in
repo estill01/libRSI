@@ -1,0 +1,21 @@
+include CHANGELOG.md
+include README.md
+include pyproject.toml
+include docs/api.md
+include docs/consumer-integration.md
+include docs/cross-domain-agnosticism.md
+include docs/external-agent-protocol.md
+include docs/license-decision.md
+include docs/migration-0.2.md
+include docs/providers.md
+include docs/release-gate.md
+include docs/service-protocol.md
+include docs/system-dogfoods.md
+recursive-include docs/assets *.webp
+recursive-include examples *.py
+prune docs/implementation
+prune tests
+exclude docs/tracker.md
+global-exclude *.py[cod]
+global-exclude .DS_Store
+global-exclude __pycache__

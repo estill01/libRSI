@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import sys
+from tempfile import TemporaryDirectory
 
 from librsi import LibRSI
 
-with LibRSI.local(".") as lib:
+with TemporaryDirectory(prefix="librsi-hypothesis-") as workspace, LibRSI.local(workspace) as lib:
     result = lib.test_hypothesis(
         "The local command reports READY",
         command=(sys.executable, "-c", "print('READY')"),

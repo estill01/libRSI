@@ -15,17 +15,18 @@ and technical qualification root
 
 | Distribution | Accepted source | Exact wheel SHA-256 | Wheel content root |
 | --- | --- | --- | --- |
+| `codex-app-server-client` 0.1.0 | `08c416da4202b7036110e33e43d34ea590054e2e` | `1e9dc5b9c7f2edb9676b5a47eb2c9b96498f1b429acec474cd26702fe8e3fdb9` | `6ecc26e75197d06682fe9d8d0612edb1e56ead6d04c3a41cde1132e2618efd8f` |
 | `embedded-service-contract` 0.1.0 | `401f87a64349c636a66be2da656498e7d9cb58e3` | `2b36d7307c08cd6d7d95bfb86d4a240b6ab2a69de5b2c61bf75a54507c7ea18d` | `c53432ff83c6b80483a95384af3c9058a3cd82c56ac774126f123a93dbff7113` |
 | `runtime-manifest` 0.1.0 | `6f7a7ea3c105c7461e6cb4c83944dd094883f187` | `f2e601d542272187998296f09d33b2235002d108fe07c0b3c89a678ea1d010ac` | `db8f7f7d0b0105361f9b1380ff1d1cc432e720be02def65880a9ef484ad112a2` |
 
-CI checks out the trusted revision, independently rebuilds both wheels, verifies
+CI checks out the trusted revision, independently rebuilds all three wheels, verifies
 the exact accepted wheel hashes, and installs those artifacts without dependencies.
 No utility code or wheel is copied into libRSI. These upstream artifacts remain
 unlicensed and unpublished; this internal test handoff is not a claim of public
 installability, reuse rights, redistribution, or release authority.
 
 The libRSI adapter root is
-`21db50bea1ffdbf1448d7e3f4c0318d5adca591fb1b6d7c927f66baed3150617`.
+`b8bff636687b34fecb6a5fbea6cfda28c53e6866df8a1fa9264eb5b569a300bf`.
 Its file set is fixed in libRSI code and includes the utility handoff document;
 the exact root is independently frozen by this document and the system test,
 not supplied by the handoff document itself.
@@ -40,7 +41,8 @@ object also fails closed.
 The external-agent schema source root is
 `89edd647d75977f1b33dba9173118ae5490f1699a9e5725e28207961b8fd4e1a`.
 The canonical descriptive manifest SHA-256 is
-`b777c6691c0e9ad4b5aa965dbcbb6321abae3a83528470a7cade59f09105edc4`.
+`f826048537680971c04c596c996e84e6de4a2954ace84c36ff7cab0f4a860505`;
+its component version is the `0.3.0` release candidate.
 
 The lifecycle package checks only host shape, process ownership, run references,
 status, ordered events, cancellation, and structural outcomes. libRSI continues

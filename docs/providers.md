@@ -10,7 +10,7 @@ configuration. libRSI does not serialize credentials or provider response
 objects into canonical records. Deterministic fake clients are the ordinary
 test path; live calls require separate credential and spend authority.
 
-`libRSI[codex]` is pinned to terminal accepted utils revision
+The internal Codex adapter is pinned to terminal accepted utils revision
 `a5659745a7cbcbb002b5f06051f6ed9826f721a7` and its unchanged exact package
 source/artifact roots,
 not to the unrelated public registry package with the same name and version.
@@ -18,7 +18,11 @@ The exact producer, artifact, API, schema, surface, qualification, and adapter
 roots are recorded in `librsi/providers/compatibility.json`. The upstream
 package remains unlicensed and unpublished: this is an internal compatibility
 handoff, not a publication, redistribution, reuse-rights, or general public
-installability claim.
+installability claim. Consequently, public `libRSI` metadata exposes no `codex`
+extra, Git/path dependency, or bare registry requirement for that client. Authorized
+CI reconstructs the exact accepted wheel from the trusted producer revision, verifies
+SHA-256 `1e9dc5b9c7f2edb9676b5a47eb2c9b96498f1b429acec474cd26702fe8e3fdb9`,
+and installs it only for the mapped conformance lane.
 
 Process ownership is explicit:
 

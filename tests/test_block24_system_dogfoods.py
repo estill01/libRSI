@@ -67,16 +67,17 @@ def test_exact_qualified_shared_package_set_and_descriptive_manifest_are_consume
     document = runtime_manifest_document()
     adapter_root, protocol_schema_root = _adapter_root()
     assert "shared-utilities.json" in ADAPTER_RUNTIME_FILES
-    assert adapter_root == "21db50bea1ffdbf1448d7e3f4c0318d5adca591fb1b6d7c927f66baed3150617"
+    assert adapter_root == "b8bff636687b34fecb6a5fbea6cfda28c53e6866df8a1fa9264eb5b569a300bf"
     assert (
         protocol_schema_root == "89edd647d75977f1b33dba9173118ae5490f1699a9e5725e28207961b8fd4e1a"
     )
     assert (
         hashlib.sha256(document.encode()).hexdigest()
-        == "b777c6691c0e9ad4b5aa965dbcbb6321abae3a83528470a7cade59f09105edc4"
+        == "f826048537680971c04c596c996e84e6de4a2954ace84c36ff7cab0f4a860505"
     )
     assert manifest_api.parse_manifest(document) == manifest
     assert manifest.component.name == "librsi"
+    assert manifest.component.version == "0.3.0"
     assert {item.name for item in manifest.dependencies} == {
         "codex-app-server-client",
         "embedded-service-contract",
@@ -85,7 +86,7 @@ def test_exact_qualified_shared_package_set_and_descriptive_manifest_are_consume
     assert compare_runtime_description(manifest).compatible is True
 
     drifted = RuntimeManifest(
-        component=Component("librsi", "0.2.0", Sha256Root("0" * 64)),
+        component=Component("librsi", "0.3.0", Sha256Root("0" * 64)),
         protocols=manifest.protocols,
         capabilities=manifest.capabilities,
         dependencies=manifest.dependencies,

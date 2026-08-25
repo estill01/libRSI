@@ -6,12 +6,6 @@ import argparse
 import os
 from typing import NoReturn
 
-import uvicorn
-
-from ..service import LibRSIService, ServiceLimits
-from .app import create_http_app
-from .auth import HTTPTokenPolicy
-
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="librsi-http")
@@ -35,6 +29,12 @@ def main(argv: list[str] | None = None) -> int:
     protected = any(value is not None for value in tokens.values())
     if args.host not in {"127.0.0.1", "::1", "localhost"} and not protected:
         raise ValueError("non-loopback HTTP binding requires configured bearer tokens")
+    import uvicorn
+
+    from ..service import LibRSIService, ServiceLimits
+    from .app import create_http_app
+    from .auth import HTTPTokenPolicy
+
     policy = HTTPTokenPolicy.from_tokens(**tokens) if protected else None
     service = LibRSIService.local(
         args.data_dir,

@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal, Protocol, runtime_checkable
 
+from .._version import __version__
 from ..reasoning import ReasoningRequest, ReasoningResult
 from .handoff import validate_codex_client
 from .prompt import reasoning_prompt, reasoning_result_from_text
@@ -81,7 +82,7 @@ class CodexAppServerExecutor:
         compatibility = module.inspect_compatibility(binary)
         client = await module.AppServerClient.connect(module.StdioTransport(binary), compatibility)
         try:
-            session = await client.initialize(module.ClientIdentity("libRSI", "0.2.0"))
+            session = await client.initialize(module.ClientIdentity("libRSI", __version__))
             return await self._run_session(module, session, request)
         finally:
             await client.close()

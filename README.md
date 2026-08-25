@@ -4,9 +4,10 @@
 
 `libRSI` is a zero-dependency Python library of evidence-bound primitives for
 validation, investigation, improvement, and governed recursive self-improvement.
-Optional hosted-model and exact utils-backed Codex app-server integrations are
+Optional hosted-model and internal exact-utils Codex app-server integrations are
 documented in [docs/providers.md](docs/providers.md); both preserve the same
-proposal-only reasoning boundary.
+proposal-only reasoning boundary. The Codex lane is interface-only in public package
+metadata while its producer artifacts remain unpublished and unlicensed.
 The [consumer integration contract](docs/consumer-integration.md) documents dependency
 direction, generic multi-component mapping, evidence return, effect ownership, and the
 libRSI-owned conformance scenarios for downstream adopters.
@@ -70,10 +71,15 @@ runtime authority.
 
 ## Install
 
-From GitHub:
+`0.3.0` is a release candidate, not a published distribution. The repository is
+publicly visible, but no reuse license has been selected yet; source visibility alone
+does not grant permission to copy, modify, or redistribute it. The owner and otherwise
+authorized collaborators can build the exact candidate locally:
 
 ```bash
-python -m pip install "librsi @ git+https://github.com/estill01/libRSI.git@v0.2.0"
+python -m pip install build
+python -m build
+python -m pip install dist/librsi-0.3.0-py3-none-any.whl
 ```
 
 For development:
@@ -82,8 +88,13 @@ For development:
 git clone https://github.com/estill01/libRSI.git
 cd libRSI
 python -m pip install -e '.[dev]'
-python -m pytest
+python -m pytest --ignore=tests/test_block22_providers.py --ignore=tests/test_block24_system_dogfoods.py
 ```
+
+The omitted suites consume exact internal artifacts from `estill01/utils`; CI builds
+and hash-verifies those artifacts from their accepted producer revision without adding
+them to public dependency metadata. This repository does not grant public rights to
+install or redistribute those upstream artifacts.
 
 Optional service projections remain separate from the zero-dependency core:
 
@@ -97,6 +108,10 @@ The maintained end-to-end control-plane, lifecycle, shared-utility, and RSI
 scenario matrix is documented in
 [`docs/system-dogfoods.md`](docs/system-dogfoods.md). The exact shared utility
 artifacts are internal CI inputs and are not public runtime dependencies.
+
+See the [public API guide](docs/api.md), [migration guide](docs/migration-0.2.md),
+[release gate](docs/release-gate.md), and [license decision packet](docs/license-decision.md)
+for the complete candidate boundary.
 
 ## Quick start
 

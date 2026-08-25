@@ -2,9 +2,11 @@
 
 `librsi` is the reusable, host-agnostic semantic core extracted from Software
 Factory's recursive program evolution, hypothesis-testing, and selection-quality
-loops. The current package is still a low-level deterministic policy/record library;
-the maintained architecture expands it toward evidence-driven validation,
-investigation, improvement, and governed recursive self-improvement.
+loops. The `LibRSI` facade provides batteries-included local validation and hypothesis
+testing plus stepped or managed validation, investigation, improvement, and governed
+recursive self-improvement. The expert packages retain the same deterministic
+policies, records, workflows, and host-effect ports beneath that facade; there is no
+second lifecycle.
 
 The long-term product boundary is semantic rather than infrastructural: libRSI owns
 how targets, claims, evidence, experiments, interventions, candidates, decisions,

@@ -6,12 +6,6 @@ import argparse
 import os
 from typing import NoReturn
 
-from mcp.server.auth.settings import AuthSettings
-
-from ..service import LibRSIService, ServiceLimits
-from .auth import StaticTokenVerifier
-from .server import create_mcp_server
-
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="librsi-mcp")
@@ -41,6 +35,12 @@ def main(argv: list[str] | None = None) -> int:
         value is None for value in auth_values
     ):
         raise ValueError("MCP auth token, issuer URL, and resource URL must be configured together")
+    from mcp.server.auth.settings import AuthSettings
+
+    from ..service import LibRSIService, ServiceLimits
+    from .auth import StaticTokenVerifier
+    from .server import create_mcp_server
+
     auth = None
     verifier = None
     if token is not None:
