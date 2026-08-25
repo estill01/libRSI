@@ -344,7 +344,7 @@ content with libRSI merely to save threads.
 | 22 | Required Codex app-server integration and optional provider/backend adapters | 9, 18–20 | `completed` |
 | 23 | Consumer integration contract and conformance kit | 5, 8, 12, 15–20 | `completed` |
 | 24 | End-to-end embedded/external/managed dogfoods | 10, 11, 15–23 | `completed` |
-| 25 | Comprehensive cross-domain proof | 24 | `not-started` |
+| 25 | Comprehensive cross-domain proof | 24 | `in-progress` |
 | 26 | Public API, docs, packaging, migration, release gate | 21–25 | `not-started` |
 
 Required execution order for this single-writer run:
@@ -3514,8 +3514,9 @@ Review scenario completeness, reuse, semantic equivalence, exact outcomes, failu
   deprecations. The source-only MCP remediation at revision `c5f89fb` was then
   bounded to its invalidated lane: all `7` MCP tests passed independently against
   both `mcp==2.0.0` and `mcp==2.1.0`, while the complete Ruff, format, Mypy,
-  tracker-verifier, and diff-integrity gates passed. Replacement CI is the
-  remaining exact-candidate gate.
+  tracker-verifier, and diff-integrity gates passed. Exact-head GitHub Actions run
+  `32788503827` then passed the complete matrix on Python 3.11 in `1h46m17s`,
+  Python 3.12 in `1h22m27s`, and Python 3.13 in `1h47m20s`.
 - Distribution proof: an isolated source archive of exact revision `c5f89fb`
   built `librsi-0.2.0-py3-none-any.whl` with SHA-256
   `f0899fb2cc918a7975b1297d66b7c21bfd8d5b895140d6c86ffe5d3219b36541`
@@ -3557,10 +3558,10 @@ Review scenario completeness, reuse, semantic equivalence, exact outcomes, failu
   used. The unrelated untracked `uv.lock` remained excluded and byte-identical at
   SHA-256
   `ea9a2eb3afc46401f2356ef098e005ec87ac33e27475e43bcd86eb4131ea960e`.
-- Git durability: the implementation, both CI repairs, and this exact-candidate
-  evidence are committed on `codex/block-24-system-dogfoods`; the evidence commit,
-  replacement PR CI gate, and merge are queued immediately after tracker
-  verification.
+- Git durability: the implementation, both CI repairs, and exact-candidate
+  evidence were pushed on `codex/block-24-system-dogfoods`, accepted through PR
+  `#37`, and merged to `main` as
+  `a26bc22abc349db5d7e7f23cbd33272ee0c3f4b9` after the terminal green CI gate.
 
 ### Stop
 
@@ -3568,7 +3569,7 @@ Stop before final cross-domain audit and public release cleanup.
 
 ## Block 25 — Comprehensive cross-domain agnosticism proof
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 
@@ -3619,7 +3620,10 @@ Independent review compares generic versus adapter ownership and verifies the re
 
 ### Completion evidence
 
-Pending.
+In progress from exact Block start
+`a26bc22abc349db5d7e7f23cbd33272ee0c3f4b9` on branch
+`codex/block-25-cross-domain-agnosticism`. Block 24 terminal CI evidence was
+reconciled at this docs-only start boundary before implementation.
 
 ### Stop
 
