@@ -345,7 +345,7 @@ content with libRSI merely to save threads.
 | 23 | Consumer integration contract and conformance kit | 5, 8, 12, 15–20 | `completed` |
 | 24 | End-to-end embedded/external/managed dogfoods | 10, 11, 15–23 | `completed` |
 | 25 | Comprehensive cross-domain proof | 24 | `completed` |
-| 26 | Public API, docs, packaging, migration, release gate | 21–25 | `not-started` |
+| 26 | Public API, docs, packaging, migration, release gate | 21–25 | `in-progress` |
 
 Required execution order for this single-writer run:
 
@@ -3674,9 +3674,12 @@ Independent review compares generic versus adapter ownership and verifies the re
   used. The unrelated untracked `uv.lock` remained excluded and byte-identical at
   SHA-256
   `ea9a2eb3afc46401f2356ef098e005ec87ac33e27475e43bcd86eb4131ea960e`.
-  Implementation and review repairs are pushed on
-  `codex/block-25-cross-domain-agnosticism`; this evidence commit, PR, exact-head
-  CI, and merge are queued immediately after tracker verification.
+  Implementation and review repairs were pushed on
+  `codex/block-25-cross-domain-agnosticism`. PR #38 bound exact head
+  `11721217e7b47e558a37d0ea7db952b5700c499b`; Actions run `32801762986`
+  passed Python 3.11, 3.12, and 3.13 in `1h50m22s`, `1h52m06s`, and
+  `1h47m29s`, respectively. The accepted candidate merged to `main` as
+  `92f1d5a58796b62da3f1c51791d8456d24c0aea3`.
 
 ### Stop
 
@@ -3684,7 +3687,7 @@ Stop before release-facing API/version/docs changes.
 
 ## Block 26 — Public API, documentation, packaging, migration, and release gate
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 
@@ -3760,7 +3763,11 @@ Independent review covers API/docs truthfulness, migration/compatibility, option
 
 ### Completion evidence
 
-Pending.
+Work began from exact accepted Block 25 merge
+`92f1d5a58796b62da3f1c51791d8456d24c0aea3` on
+`codex/block-26-public-release-gate`. License-independent implementation and
+validation proceed first; the direct-user license selection remains the only
+reserved acceptance subset.
 
 ### Stop
 
