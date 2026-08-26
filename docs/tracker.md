@@ -234,8 +234,9 @@ hardening without a reproduced in-scope failure is omitted.
 ## 6. Block execution contract
 
 1. The requested range is the complete current tracker, Blocks 0–26 and the
-   observable completion outcome. Blocks 0–25 are accepted or completed history;
-   implementation resumes at the license-dependent acceptance subset of Block 26.
+   observable completion outcome. Blocks 0–26 are accepted or completed history;
+   the requested implementation program is closed at the exact Block 26 merge and
+   terminal evidence recorded below.
 2. Execute one eligible Block at a time in dependency order. A Block Stop is an
    internal checkpoint and never contracts this full-tracker request.
 3. Before implementation-producing work, change the table row and Block status from
@@ -277,8 +278,10 @@ hardening without a reproduced in-scope failure is omitted.
 - Forbidden effects remain forbidden regardless of the answer: no PyPI publication,
   GitHub Release, production deployment, or public announcement without separate
   current authority.
-- Continuation posture: the prior safe deferral is resolved and Block 26 resumes
-  automatically from accepted license-independent candidate `0afbf40`.
+- Continuation posture: the prior safe deferral was resolved, Block 26 resumed
+  automatically from accepted license-independent candidate `0afbf40`, and the
+  rejoined license-dependent subset is now accepted through PR #39 and merge
+  `fec8c519a4e20e293a70c5bae3fdfd6c436f143a`.
 
 ### Supervised execution and monitoring
 
@@ -341,7 +344,7 @@ content with libRSI merely to save threads.
 | 23 | Consumer integration contract and conformance kit | 5, 8, 12, 15–20 | `completed` |
 | 24 | End-to-end embedded/external/managed dogfoods | 10, 11, 15–23 | `completed` |
 | 25 | Comprehensive cross-domain proof | 24 | `completed` |
-| 26 | Public API, docs, packaging, migration, release gate | 21–25 | `completed` |
+| 26 | Public API, docs, packaging, migration, release gate | 21–25 | `accepted` |
 
 Required execution order for this single-writer run:
 
@@ -3683,7 +3686,7 @@ Stop before release-facing API/version/docs changes.
 
 ## Block 26 — Public API, documentation, packaging, migration, and release gate
 
-Status: `completed`
+Status: `accepted`
 
 ### Objective
 
@@ -3863,16 +3866,26 @@ on 2026-08-25 and rejoined the final acceptance subset.
   - Frozen-candidate proof: exact commit
     `ccd49df7e8c1e20a4e7b8a4fc38c104d68fadf53`, exact artifacts and installed
     smoke above, focused `14` tests, and independent `ACCEPT` with no findings.
+- Terminal PR/CI/merge proof: PR #39 bound exact head
+  `ca1be16c75357e6231983668483cbd460bc491a8`; Actions run `32931486625`
+  completed successfully. Python 3.11, 3.12, and 3.13 passed in `1h45m35s`,
+  `1h50m27s`, and `1h48m43s`, respectively. The Python 3.11 broad gate passed
+  all `807` tests with `90.99%` branch coverage, then rebuilt and audited the
+  distributions and smoke-tested the installed wheel/examples; the other two
+  interpreters passed the same required static/type/coverage matrix while the
+  single-version artifact lane remained intentionally skipped. PR #39 merged
+  cleanly to `main` as
+  `fec8c519a4e20e293a70c5bae3fdfd6c436f143a` on 2026-08-25 Pacific time.
 - Authority and durability: `docs/license-decision.md` records the direct MIT
   selection and preserves the Apache-2.0/no-license alternatives as unselected.
   No tag, publication, release, deployment, announcement, or license grant over
   separately owned utils material was inferred. The unrelated untracked
   `uv.lock` remains excluded and byte-identical at SHA-256
   `ea9a2eb3afc46401f2356ef098e005ec87ac33e27475e43bcd86eb4131ea960e`.
-- Decision/continuation posture: the MIT choice resolved the only waiting input,
-  and Block 26 implementation is `completed`. Exact-head PR CI, merge, and
-  terminal acceptance reconciliation remain required before the program is
-  closed; no publication-class effect is authorized by that workflow.
+- Decision/continuation posture: the MIT choice resolved the only waiting input;
+  exact-head PR CI, merge, and terminal reconciliation are complete; Block 26 is
+  `accepted`; and the requested Blocks 0–26 program is closed. No
+  publication-class effect was authorized or performed by that workflow.
 
 ### Stop
 
