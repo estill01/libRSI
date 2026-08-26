@@ -341,7 +341,7 @@ content with libRSI merely to save threads.
 | 23 | Consumer integration contract and conformance kit | 5, 8, 12, 15–20 | `completed` |
 | 24 | End-to-end embedded/external/managed dogfoods | 10, 11, 15–23 | `completed` |
 | 25 | Comprehensive cross-domain proof | 24 | `completed` |
-| 26 | Public API, docs, packaging, migration, release gate | 21–25 | `in-progress` |
+| 26 | Public API, docs, packaging, migration, release gate | 21–25 | `completed` |
 
 Required execution order for this single-writer run:
 
@@ -3683,7 +3683,7 @@ Stop before release-facing API/version/docs changes.
 
 ## Block 26 — Public API, documentation, packaging, migration, and release gate
 
-Status: `in-progress`
+Status: `completed`
 
 ### Objective
 
@@ -3780,15 +3780,20 @@ on 2026-08-25 and rejoined the final acceptance subset.
   `2b36d7307c08cd6d7d95bfb86d4a240b6ab2a69de5b2c61bf75a54507c7ea18d`,
   and `f2e601d542272187998296f09d33b2235002d108fe07c0b3c89a678ea1d010ac`,
   and installs them without dependencies for mapped internal tests.
-- Artifact proof: the pending-license candidate wheel and sdist passed exact
-  metadata/content audit at SHA-256
-  `bb5fb5ec4f7ff512c97fca570ff468a4654a27159167740f2bf2153c3c17d507`
+- Artifact proof: exact candidate
+  `ccd49df7e8c1e20a4e7b8a4fc38c104d68fadf53` produced a deterministically
+  rebuilt wheel and sdist that passed the MIT metadata/content audit at SHA-256
+  `7337181f24fb1377a67f85e964d6a6d6957dd4ce28b0b37202e3582f2c6c7875`
   and
-  `6d5d22bf1d909b1f525e6e8a6f023d9c56ebb21119bfee109fdbc4b54dc269a2`.
-  They contain no internal utility implementation/dependency, no Git/path
-  requirement, no unselected license grant, and no internal tracker/test corpus.
-  A clean isolated base-wheel environment passed `pip check`, both examples,
-  version import, and all three help entrypoints without source-tree imports or
+  `70b87ae6da39b715e0d977eb3d724f73327f9bf1451f9d6492ead28639794ddc`.
+  The wheel records `License-Expression: MIT`, contains the exact canonical
+  license under `.dist-info/licenses/LICENSE`, and has no deprecated license
+  classifier; the sdist contains the byte-identical root license and corrected
+  decision packet. Neither artifact contains an internal utility
+  implementation/dependency, Git/path requirement, unselected license grant,
+  or internal tracker/test corpus. A clean exact-wheel environment passed
+  `pip check`, both examples, version and metadata inspection, installed-license
+  inspection, and all three help entrypoints without source-tree imports or
   optional service/provider stacks.
 - Test and quality evidence: Block 25 plus Block 26 passed `46` tests; the wider
   compatibility/provider/system subset passed `74`; and the final invalidated
@@ -3796,26 +3801,78 @@ on 2026-08-25 and rejoined the final acceptance subset.
   all `804` tests at `90.79%` branch coverage: `802` passed and the two prior
   module-level entrypoint injection seams failed. Exact fixes restored those
   seams and added HTTP/MCP projection-factory leak regressions; the complete
-  invalidated boundary then passed as above. Ruff/format cover all `238`
-  source/test/example files, Mypy passes all `142` typed source/example files,
-  the source release audit passes, and the full tracker verifier passes all
-  `27` Blocks. Exact-head CI remains correctly deferred until the license choice
-  freezes final metadata/artifact bytes.
+  invalidated boundary then passed as above. The final MIT-only path mapping
+  passed all `14` focused release/license tests, source and artifact audits,
+  Ruff and format checks over the changed executable files, and the exact-wheel
+  installed smoke. The previously valid full-tree Ruff/format evidence covers
+  all `238` source/test/example files, Mypy passes all `142` typed
+  source/example files, and the full tracker verifier passes all `27` Blocks.
+- Validation-economy failure: starting a monolithic local 804-test
+  branch-coverage run for the license/metadata-only delta was an avoidable,
+  overbroad-validation process failure that wasted approximately 31 minutes.
+  The restarted process was interrupted after `434` passing tests in
+  `1864.58s`; that pytest result is interrupted, not a test failure, and it is
+  not acceptance evidence. An earlier attempt was separately interrupted at
+  the temporary single-writer boundary after `238` passing tests in `266.85s`.
+  Root cause was failing to derive invalidated proof from the changed paths:
+  no mapped semantic invalidation justified either full-suite attempt.
+  Recurrence rule: map changed paths first; for this Block run focused
+  license/package/artifact checks and rely on required exact-head PR CI for
+  broad confirmation. Do not restart the local full suite unless a focused
+  failure maps to broader semantics.
 - Independent review: Hubble rejected the first candidate for overstating the
   `librsi.expert` namespace and the second for HTTP/MCP service leaks when
   projection factories failed. Both findings were corrected and regression
   tested. Hubble accepted exact candidate `0afbf40`, independently reproduced
   `30` mapped tests, artifacts, installed examples, lazy entrypoints, public
   metadata isolation, pending-license behavior, and the publication stop.
+  Aristotle then rejected MIT candidate `3a39f2e` because the unselected Apache
+  guidance still prescribed a deprecated Trove classifier. Exact candidate
+  `ccd49df7e8c1e20a4e7b8a4fc38c104d68fadf53` corrected that guidance, added
+  source/sdist audit coverage and a regression, and received a fresh read-only
+  `ACCEPT` with no findings after independent reproduction of all `14` focused
+  tests, both exact artifacts, PEP 639 metadata, license/source byte identity,
+  dependency and content exclusions, the full tracker verifier, and diff
+  integrity.
+- Product-capability review:
+  - Trigger: Block 26's `consequential` posture.
+  - Frame identity: `docs/tracker.md`, Block 26, SHA-256
+    `6b6de1bf7c7b6fe03df4447c7924c8a489dbaf6025967911aef6b77bbed0b9f2`.
+  - Capability added or preserved: an accurately licensed, installable public
+    `0.3.0` package that documents and executes validation, hypothesis testing,
+    improvement, and governed recursion while preserving the zero-dependency
+    base API and separately owned utils boundary.
+  - Paths compared: smallest release-owner changes; a new bounded-general
+    licensing/packaging abstraction; existing semantic/runtime owners.
+  - Selected level and owner: the smallest local path through root `LICENSE`,
+    PEP 639 package metadata, release documentation, and exact artifact audits,
+    because it delivers the full Block capability without altering runtime
+    semantics or canonical state.
+  - Protected-capability result: `0.2.x` compatibility, facade behavior,
+    candidate/application separation, zero base dependencies, control-plane
+    neutrality, and consumer-to-libRSI dependency direction remain preserved by
+    the mapped tests, installed-wheel smoke, and artifact inspection.
+  - Rejected alternatives: a new reusable license subsystem would be
+    speculative; changing semantic/runtime owners would be lower-power scope
+    drift; retaining a deprecated classifier would contradict the selected PEP
+    639 representation.
+  - Tradeoffs and uncertainty: MIT applies only to libRSI-owned material;
+    separately owned utils remain exact-revision, unlicensed, unpublished,
+    CI-only inputs. Publication, release, deployment, and announcement remain
+    outside authority.
+  - Frozen-candidate proof: exact commit
+    `ccd49df7e8c1e20a4e7b8a4fc38c104d68fadf53`, exact artifacts and installed
+    smoke above, focused `14` tests, and independent `ACCEPT` with no findings.
 - Authority and durability: `docs/license-decision.md` records the direct MIT
   selection and preserves the Apache-2.0/no-license alternatives as unselected.
   No tag, publication, release, deployment, announcement, or license grant over
   separately owned utils material was inferred. The unrelated untracked
   `uv.lock` remains excluded and byte-identical at SHA-256
   `ea9a2eb3afc46401f2356ef098e005ec87ac33e27475e43bcd86eb4131ea960e`.
-- Decision/continuation posture: the MIT choice resolved the only waiting input.
-  Block 26 is `in-progress` through final artifact validation, exact-candidate
-  review, PR CI, merge, and terminal reconciliation.
+- Decision/continuation posture: the MIT choice resolved the only waiting input,
+  and Block 26 implementation is `completed`. Exact-head PR CI, merge, and
+  terminal acceptance reconciliation remain required before the program is
+  closed; no publication-class effect is authorized by that workflow.
 
 ### Stop
 
