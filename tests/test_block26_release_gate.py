@@ -107,6 +107,10 @@ def test_license_gate_rejects_unselected_grant_and_wrong_selected_classifier() -
             "dependency = 'git+https://github.com/estill01/utils.git@deadbeef'",
             "internal utility",
         ),
+        (
+            "Selected license metadata should use the matching Trove classifier.",
+            "license-classifier",
+        ),
     ),
 )
 def test_public_text_audit_rejects_stale_or_internal_install_claims(

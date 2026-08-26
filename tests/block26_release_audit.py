@@ -153,6 +153,8 @@ def validate_public_texts(texts: dict[str, str]) -> None:
             _fail(f"{label} presents the internal Codex lane as a public extra")
         if "git+https://github.com/estill01/utils" in lowered:
             _fail(f"{label} presents an internal utility Git dependency")
+        if "matching trove classifier" in lowered:
+            _fail(f"{label} contains superseded license-classifier guidance")
 
 
 def validate_source_tree(project_root: Path, license_choice: ReleaseLicense) -> None:
@@ -180,6 +182,7 @@ def validate_source_tree(project_root: Path, license_choice: ReleaseLicense) -> 
             for relative in (
                 "README.md",
                 "docs/api.md",
+                "docs/license-decision.md",
                 "docs/migration-0.2.md",
                 "examples/local_hypothesis.py",
                 "examples/local_validation.py",
@@ -334,6 +337,7 @@ def _validate_sdist(path: Path, license_choice: ReleaseLicense) -> None:
         for relative in (
             "README.md",
             "docs/api.md",
+            "docs/license-decision.md",
             "docs/migration-0.2.md",
             "examples/local_hypothesis.py",
             "examples/local_validation.py",

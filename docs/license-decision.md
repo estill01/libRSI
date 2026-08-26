@@ -28,7 +28,8 @@ Packaging authority: [PEP 639](https://peps.python.org/pep-0639/).
   attribution notices, and eligible `NOTICE` content when a NOTICE file exists.
 - Longer compliance surface than MIT; suitable when an explicit patent grant matters.
 - If selected, add the canonical Apache-2.0 text, `License-Expression: Apache-2.0`
-  metadata, the matching Trove classifier, and an accurate NOTICE determination.
+  metadata, omit the deprecated Trove classifier, and record an accurate NOTICE
+  determination.
 
 Authoritative text and application guidance:
 [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) and
