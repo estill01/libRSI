@@ -17,6 +17,8 @@ authorized.
   three console entrypoints;
 - sdist contains README, changelog, public docs, migration guide, decision packet, and
   executable examples;
+- source, wheel, and sdist contain the exact MIT text; project and wheel metadata use
+  `License-Expression: MIT` and omit the superseded license classifier;
 - both examples and all three entrypoint help paths execute through an isolated wheel
   installation with the checkout excluded from `sys.path`.
 

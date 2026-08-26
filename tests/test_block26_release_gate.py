@@ -93,8 +93,7 @@ def test_license_gate_rejects_unselected_grant_and_wrong_selected_classifier() -
 
     selected = copy.deepcopy(document)
     classifiers = selected["project"]["classifiers"]  # type: ignore[index]
-    classifiers.remove("License :: OSI Approved :: MIT License")
-    classifiers.append("License :: OSI Approved :: Apache Software License")
+    classifiers.append("License :: OSI Approved :: MIT License")
     with pytest.raises(ReleaseAuditError, match="classifier"):
         validate_project_document(selected, "MIT")
 

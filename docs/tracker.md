@@ -268,8 +268,10 @@ hardening without a reproduced in-scope failure is omitted.
 - Why it was non-delegable: choosing an open-source license grants legal rights to
   recipients and cannot be inferred from repository visibility or a request that the
   repository be public; distributed copies retain the grant after later changes.
-- Rejoined subset: add the canonical MIT text, exact package expression/classifier,
-  truthful libRSI-owned reuse claims, and complete Block 26 acceptance proof.
+- Rejoined subset: add the canonical MIT text, exact PEP 639 package expression and
+  license-file metadata, truthful libRSI-owned reuse claims, and complete Block 26
+  acceptance proof. The superseded Trove classifier is intentionally absent because
+  the current build backend rejects it when `License-Expression` is present.
 - Preserved dependency cut: MIT applies only to libRSI-owned material and does not
   license, publish, redistribute, or authorize reuse of separate utils artifacts.
 - Forbidden effects remain forbidden regardless of the answer: no PyPI publication,
@@ -3743,15 +3745,16 @@ Independent review covers API/docs truthfulness, migration/compatibility, option
   unlicensed/unpublished utility artifact; any public utility-backed extra binds a
   separately authorized current upstream license and published distribution.
 - License-dependent subset: a direct user selection is recorded, the selected
-  license text/classifier/reuse claims are exact, or an explicit no-license choice is
-  reflected without claiming open-source reuse. This subset alone may remain open
-  while every safe acceptance item above is completed.
+  license text/expression/license-file metadata/reuse claims are exact, or an explicit
+  no-license choice is reflected without claiming open-source reuse. This subset alone
+  may remain open while every safe acceptance item above is completed.
 
 ### Negative tests
 
 - Reject stale examples, missing/extra exports, base install pulling optional stacks,
   planned-only claims, unselected license grant, source-tree-only imports,
-  artifact/version mismatch, unpublished Git/path dependencies presented as public
+  artifact/version mismatch, a deprecated license classifier combined with a PEP 639
+  license expression, unpublished Git/path dependencies presented as public
   installation, or redistribution/reuse claims that exceed the utility posture.
 
 ### Completion evidence

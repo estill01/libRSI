@@ -38,10 +38,6 @@ REQUIRED_FACADE_EXPORTS = {
     "LibRSIRun",
     "WorkflowRequest",
 }
-LICENSE_CLASSIFIERS = {
-    "MIT": "License :: OSI Approved :: MIT License",
-    "Apache-2.0": "License :: OSI Approved :: Apache Software License",
-}
 MIT_LICENSE_TEXT = """MIT License
 
 Copyright (c) 2026 Ethan Stillman
@@ -138,14 +134,14 @@ def validate_project_document(document: dict[str, Any], license_choice: ReleaseL
         _fail("project classifiers are malformed")
     observed_classifier = _license_classifier(classifiers)
     observed_license = project.get("license")
+    if observed_classifier is not None:
+        _fail("project metadata contains a deprecated license classifier")
     if license_choice in {"pending", "no-license"}:
-        if observed_license is not None or observed_classifier is not None:
-            _fail("no-license posture contains a license grant or classifier")
+        if observed_license is not None:
+            _fail("no-license posture contains a license grant")
     else:
         if observed_license != license_choice:
             _fail("project license expression differs from the selected license")
-        if observed_classifier != LICENSE_CLASSIFIERS[license_choice]:
-            _fail("project license classifier differs from the selected license")
 
 
 def validate_public_texts(texts: dict[str, str]) -> None:
@@ -242,14 +238,14 @@ def _validate_wheel(path: Path, license_choice: ReleaseLicense) -> None:
         classifiers = metadata.get_all("Classifier", [])
         observed_classifier = _license_classifier(classifiers)
         observed_license = metadata.get("License-Expression")
+        if observed_classifier is not None:
+            _fail("wheel metadata contains a deprecated license classifier")
         if license_choice in {"pending", "no-license"}:
-            if observed_license or observed_classifier:
+            if observed_license:
                 _fail("wheel grants a license under a no-license posture")
         else:
             if observed_license != license_choice:
                 _fail("wheel license expression differs from the selection")
-            if observed_classifier != LICENSE_CLASSIFIERS[license_choice]:
-                _fail("wheel license classifier differs from the selection")
         license_files = metadata.get_all("License-File", [])
         embedded_license_names = sorted(
             name for name in names if name.endswith(".dist-info/licenses/LICENSE")

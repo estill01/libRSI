@@ -3,8 +3,10 @@
 Status: `selected-mit`.
 
 Direct user authority selected MIT for libRSI on 2026-08-25. The canonical root
-`LICENSE`, `License-Expression: MIT` package metadata, and matching Trove classifier
-implement that decision. This record is implementation guidance, not legal advice.
+`LICENSE` and `License-Expression: MIT` package metadata implement that decision.
+PEP 639 deprecates license classifiers when a license expression is present, so the
+release metadata intentionally contains no `License ::` classifier. This record is
+implementation guidance, not legal advice.
 
 ## MIT
 
@@ -12,10 +14,11 @@ implement that decision. This record is implementation guidance, not legal advic
   distribution, sublicensing, and sale.
 - Copies or substantial portions must retain the copyright and permission notice.
 - Includes a broad warranty/liability disclaimer but no express patent-license clause.
-- Applied to libRSI-owned material with the canonical owner/year text,
-  `License-Expression: MIT` metadata, and the matching Trove classifier.
+- Applied to libRSI-owned material with the canonical owner/year text and
+  `License-Expression: MIT` metadata. The deprecated Trove classifier is omitted.
 
 Authoritative text: [Open Source Initiative MIT License](https://opensource.org/license/mit).
+Packaging authority: [PEP 639](https://peps.python.org/pep-0639/).
 
 ## Apache License 2.0 — not selected
 
