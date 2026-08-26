@@ -4,13 +4,8 @@ from __future__ import annotations
 
 import argparse
 import os
-from typing import NoReturn
-
-import uvicorn
-
-from ..service import LibRSIService, ServiceLimits
-from .app import create_http_app
-from .auth import HTTPTokenPolicy
+import sys
+from typing import Any, NoReturn
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -25,6 +20,42 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
+def __getattr__(name: str) -> Any:
+    """Resolve optional runtime dependencies only when execution needs them."""
+
+    if name == "uvicorn":
+        import uvicorn
+
+        return uvicorn
+    if name in {"LibRSIService", "ServiceLimits"}:
+        from .. import service
+
+        return getattr(service, name)
+    if name == "create_http_app":
+        from .app import create_http_app
+
+        return create_http_app
+    if name == "HTTPTokenPolicy":
+        from .auth import HTTPTokenPolicy
+
+        return HTTPTokenPolicy
+    raise AttributeError(name)
+
+
+def _dependencies() -> tuple[Any, Any, Any, Any, Any]:
+    module = sys.modules[__name__]
+    return tuple(
+        getattr(module, name)
+        for name in (
+            "uvicorn",
+            "LibRSIService",
+            "ServiceLimits",
+            "create_http_app",
+            "HTTPTokenPolicy",
+        )
+    )
+
+
 def main(argv: list[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     tokens = {
@@ -35,13 +66,15 @@ def main(argv: list[str] | None = None) -> int:
     protected = any(value is not None for value in tokens.values())
     if args.host not in {"127.0.0.1", "::1", "localhost"} and not protected:
         raise ValueError("non-loopback HTTP binding requires configured bearer tokens")
+    uvicorn, LibRSIService, ServiceLimits, create_http_app, HTTPTokenPolicy = _dependencies()
+
     policy = HTTPTokenPolicy.from_tokens(**tokens) if protected else None
     service = LibRSIService.local(
         args.data_dir,
         limits=ServiceLimits(max_request_bytes=args.max_request_bytes),
     )
-    app = create_http_app(service, token_policy=policy)
     try:
+        app = create_http_app(service, token_policy=policy)
         uvicorn.run(app, host=args.host, port=args.port)
     finally:
         service.close()

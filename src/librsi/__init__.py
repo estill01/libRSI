@@ -5,6 +5,7 @@ surface while the package grows batteries-included validation, investigation,
 improvement, and RSI workflows around the same canonical records.
 """
 
+from ._version import __version__
 from .application import (
     APPLICATION_ACTION_KINDS,
     APPLICATION_RESULT_DISPOSITIONS,
@@ -460,6 +461,7 @@ from .validation import (
 )
 
 __all__ = [
+    "__version__",
     "ACTION_RESULT_DISPOSITIONS",
     "APPLICATION_ACTION_KINDS",
     "APPLICATION_RESULT_DISPOSITIONS",
@@ -876,5 +878,3 @@ __all__ = [
     "favorable_effect",
     "mean_interval",
 ]
-
-__version__ = "0.2.0"

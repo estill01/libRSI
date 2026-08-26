@@ -18,9 +18,9 @@ jobs:
         python-version: ["3.11", "3.12", "3.13"]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
@@ -35,6 +35,7 @@ jobs:
           git -C "$RUNNER_TEMP/librsi-utils" checkout --detach a5659745a7cbcbb002b5f06051f6ed9826f721a7
           test "$(git -C "$RUNNER_TEMP/librsi-utils" rev-parse HEAD)" = "a5659745a7cbcbb002b5f06051f6ed9826f721a7"
           mkdir -p "$RUNNER_TEMP/librsi-utils-dist"
+          python -m build --wheel --outdir "$RUNNER_TEMP/librsi-utils-dist" "$RUNNER_TEMP/librsi-utils/packages/codex-app-server-client"
           python -m build --wheel --outdir "$RUNNER_TEMP/librsi-utils-dist" "$RUNNER_TEMP/librsi-utils/packages/embedded-service-contract"
           python -m build --wheel --outdir "$RUNNER_TEMP/librsi-utils-dist" "$RUNNER_TEMP/librsi-utils/packages/runtime-manifest"
           python - <<'PY'
@@ -44,6 +45,7 @@ jobs:
 
           root = Path(os.environ["RUNNER_TEMP"]) / "librsi-utils-dist"
           expected = {
+              "codex_app_server_client-0.1.0-py3-none-any.whl": "1e9dc5b9c7f2edb9676b5a47eb2c9b96498f1b429acec474cd26702fe8e3fdb9",
               "embedded_service_contract-0.1.0-py3-none-any.whl": "2b36d7307c08cd6d7d95bfb86d4a240b6ab2a69de5b2c61bf75a54507c7ea18d",
               "runtime_manifest-0.1.0-py3-none-any.whl": "f2e601d542272187998296f09d33b2235002d108fe07c0b3c89a678ea1d010ac",
           }
@@ -54,23 +56,36 @@ jobs:
           python -m pip install --no-deps "$RUNNER_TEMP/librsi-utils-dist"/*.whl
 
       - name: Lint
-        run: python -m ruff check src tests
+        run: python -m ruff check src tests examples
 
       - name: Check formatting
-        run: python -m ruff format --check src tests
+        run: python -m ruff format --check src tests examples
 
       - name: Type-check
-        run: python -m mypy src
+        run: python -m mypy src examples
 
       - name: Test with branch coverage
         run: python -m pytest --cov=librsi --cov-branch --cov-report=term-missing
 
       - name: Build distributions
         if: matrix.python-version == '3.11'
-        run: python -m build
+        run: |
+          export SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)"
+          python -m build
 
-      - name: Smoke-test wheel
+      - name: Audit release artifacts
+        if: matrix.python-version == '3.11'
+        run: python -m tests.block26_release_audit dist --license MIT
+
+      - name: Smoke-test installed wheel and examples
         if: matrix.python-version == '3.11'
         run: |
-          python -m pip install --force-reinstall --no-deps dist/*.whl
-          python -c "import librsi; print(librsi.__version__)"
+          python -m venv "$RUNNER_TEMP/librsi-release-venv"
+          "$RUNNER_TEMP/librsi-release-venv/bin/python" -m pip install --no-deps dist/*.whl
+          "$RUNNER_TEMP/librsi-release-venv/bin/python" -m pip check
+          cd "$RUNNER_TEMP"
+          "$RUNNER_TEMP/librsi-release-venv/bin/python" -I "$GITHUB_WORKSPACE/examples/local_validation.py"
+          "$RUNNER_TEMP/librsi-release-venv/bin/python" -I "$GITHUB_WORKSPACE/examples/local_hypothesis.py"
+          "$RUNNER_TEMP/librsi-release-venv/bin/librsi" --help
+          "$RUNNER_TEMP/librsi-release-venv/bin/librsi-http" --help
+          "$RUNNER_TEMP/librsi-release-venv/bin/librsi-mcp" --help

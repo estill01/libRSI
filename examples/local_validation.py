@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+from tempfile import TemporaryDirectory
+
 from librsi import Evidence, LibRSI
 
-with LibRSI.for_repo(".") as lib:
+with TemporaryDirectory(prefix="librsi-validation-") as workspace, LibRSI.local(workspace) as lib:
     claim = lib.claim("The local package can be imported", kind="behavioral")
     snapshot = lib.snapshot()
     evidence = tuple(

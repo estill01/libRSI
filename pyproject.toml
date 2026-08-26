@@ -1,13 +1,14 @@
 [build-system]
-requires = ["setuptools>=69", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "libRSI"
-version = "0.2.0"
+version = "0.3.0"
 description = "Host-agnostic policies and ports for bounded recursive self-improvement"
 readme = "README.md"
 requires-python = ">=3.11"
+license = "MIT"
 dependencies = []
 authors = [{ name = "Ethan Stillman" }]
 keywords = [
@@ -29,6 +30,7 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://github.com/estill01/libRSI"
+Documentation = "https://github.com/estill01/libRSI/tree/main/docs"
 Repository = "https://github.com/estill01/libRSI.git"
 Issues = "https://github.com/estill01/libRSI/issues"
 
@@ -41,12 +43,8 @@ librsi-mcp = "librsi.mcp.__main__:entrypoint"
 openai = [
   "openai>=3,<4",
 ]
-codex = [
-  "codex-app-server-client @ git+https://github.com/estill01/utils.git@a5659745a7cbcbb002b5f06051f6ed9826f721a7#subdirectory=packages/codex-app-server-client",
-]
 providers = [
   "openai>=3,<4",
-  "codex-app-server-client @ git+https://github.com/estill01/utils.git@a5659745a7cbcbb002b5f06051f6ed9826f721a7#subdirectory=packages/codex-app-server-client",
 ]
 server = [
   "fastapi>=0.141,<1",
@@ -62,7 +60,6 @@ service = [
 ]
 dev = [
   "build>=1.2",
-  "codex-app-server-client @ git+https://github.com/estill01/utils.git@a5659745a7cbcbb002b5f06051f6ed9826f721a7#subdirectory=packages/codex-app-server-client",
   "fastapi>=0.141,<1",
   "httpx>=0.28,<1",
   "jsonschema>=4.23",

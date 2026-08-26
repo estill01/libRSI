@@ -4,9 +4,10 @@
 
 `libRSI` is a zero-dependency Python library of evidence-bound primitives for
 validation, investigation, improvement, and governed recursive self-improvement.
-Optional hosted-model and exact utils-backed Codex app-server integrations are
+Optional hosted-model and internal exact-utils Codex app-server integrations are
 documented in [docs/providers.md](docs/providers.md); both preserve the same
-proposal-only reasoning boundary.
+proposal-only reasoning boundary. The Codex lane is interface-only in public package
+metadata while its producer artifacts remain unpublished and unlicensed.
 The [consumer integration contract](docs/consumer-integration.md) documents dependency
 direction, generic multi-component mapping, evidence return, effect ownership, and the
 libRSI-owned conformance scenarios for downstream adopters.
@@ -70,10 +71,14 @@ runtime authority.
 
 ## Install
 
-From GitHub:
+`0.3.0` is a release candidate, not a published distribution. The libRSI-owned source
+is available under the [MIT License](LICENSE), and the exact candidate can be built
+locally:
 
 ```bash
-python -m pip install "librsi @ git+https://github.com/estill01/libRSI.git@v0.2.0"
+python -m pip install build
+python -m build
+python -m pip install dist/librsi-0.3.0-py3-none-any.whl
 ```
 
 For development:
@@ -82,8 +87,13 @@ For development:
 git clone https://github.com/estill01/libRSI.git
 cd libRSI
 python -m pip install -e '.[dev]'
-python -m pytest
+python -m pytest --ignore=tests/test_block22_providers.py --ignore=tests/test_block24_system_dogfoods.py
 ```
+
+The omitted suites consume exact internal artifacts from `estill01/utils`; CI builds
+and hash-verifies those artifacts from their accepted producer revision without adding
+them to public dependency metadata. The libRSI MIT license does not grant rights to
+install or redistribute those separate upstream artifacts.
 
 Optional service projections remain separate from the zero-dependency core:
 
@@ -97,6 +107,10 @@ The maintained end-to-end control-plane, lifecycle, shared-utility, and RSI
 scenario matrix is documented in
 [`docs/system-dogfoods.md`](docs/system-dogfoods.md). The exact shared utility
 artifacts are internal CI inputs and are not public runtime dependencies.
+
+See the [public API guide](docs/api.md), [migration guide](docs/migration-0.2.md),
+[release gate](docs/release-gate.md), and [license decision packet](docs/license-decision.md)
+for the complete candidate boundary.
 
 ## Quick start
 
@@ -487,7 +501,9 @@ start no process, infer no storage location, and construct no capabilities. Loca
 exist only when a caller explicitly selects `LibRSI.local()`/`for_repo()` or supplies an
 adapter. The standard-library defaults are thin and independently replaceable; no worker,
 provider, transport, deployment, or generic repository-automation platform is included.
-Low-level APIs remain available from their original modules and from `librsi.expert`. See
+Low-level APIs remain available from their original owning modules and documented
+top-level exports. `librsi.expert` curates the kernel, selected workflows/policies,
+dispatcher/registry, runtime engine, and SQLite stores for sophisticated composition. See
 [`src/librsi/README.md`](src/librsi/README.md) for the module map and complete
 integration boundary. The maintained implementation plan evolves this deterministic
 core toward higher-level validation, investigation, improvement, and RSI workflows

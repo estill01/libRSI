@@ -5,7 +5,8 @@
 - Repository: `https://github.com/estill01/libRSI`
 - Governing objective: evolve libRSI into a domain-neutral, evidence-driven validation, investigation, improvement, and governed recursive-self-improvement library.
 - Canonical status owner: this file.
-- First eligible Block: 21.
+- First eligible Block: 26 (MIT metadata, final artifact validation, review, CI,
+  merge, and terminal acceptance).
 
 ## 1. Purpose and intended outcome
 
@@ -81,9 +82,8 @@ Completion means:
 - Tradeoffs: batteries-included operation adds persistence and optional dependencies;
   strict identity/currentness increases schema discipline; staged compatibility
   delays interface stabilization but prevents premature public commitments.
-- Uncertainty: the final open-source license and any hosted provider chosen for a
-  separately activated adapter remain external decisions. The license blocks only the
-  license-dependent subset of Block 26; provider-independent work continues.
+- Uncertainty: MIT was selected by direct user authority on 2026-08-25. Any hosted
+  provider chosen for a separately activated adapter remains an external decision.
 
 ## 2. Target architecture and authority boundaries
 
@@ -234,8 +234,8 @@ hardening without a reproduced in-scope failure is omitted.
 ## 6. Block execution contract
 
 1. The requested range is the complete current tracker, Blocks 0–26 and the
-   observable completion outcome. Blocks 0–20 are accepted or completed history;
-   implementation resumes at Block 21.
+   observable completion outcome. Blocks 0–25 are accepted or completed history;
+   implementation resumes at the license-dependent acceptance subset of Block 26.
 2. Execute one eligible Block at a time in dependency order. A Block Stop is an
    internal checkpoint and never contracts this full-tracker request.
 3. Before implementation-producing work, change the table row and Block status from
@@ -261,28 +261,24 @@ hardening without a reproduced in-scope failure is omitted.
     Block records the exact producer and adapter roots and proves that no copied,
     vendored, reconstructed, or competing local owner remains.
 
-### Continuation-first license gate
+### Resolved continuation-first license gate
 
-- Decision needed: the user must select the exact public license grant (the planned
-  packet compares MIT and Apache-2.0) or explicitly select no license.
-- Why it is non-delegable: choosing an open-source license grants legal rights to
+- Decision resolved: direct user authority selected MIT on 2026-08-25 from the
+  packet comparing MIT, Apache-2.0, and explicit no-license posture.
+- Why it was non-delegable: choosing an open-source license grants legal rights to
   recipients and cannot be inferred from repository visibility or a request that the
   repository be public; distributed copies retain the grant after later changes.
-- Earliest decision packet: prepare it in Block 26 after the public API, artifact
-  contents, and compatibility/migration position are frozen.
-- Exact blocked subset: without that answer, do not add a `LICENSE`, license
-  classifier or reuse-right claim; do not accept the license-dependent Block 26
-  acceptance clause or declare the tracker complete.
-- Safe continuation: execute all work in Blocks 3–25 and all license-independent
-  Block 26 work, including API/docs/build/examples/migration validation, artifact
-  inspection, and preparation of the decision packet.
+- Rejoined subset: add the canonical MIT text, exact PEP 639 package expression and
+  license-file metadata, truthful libRSI-owned reuse claims, and complete Block 26
+  acceptance proof. The superseded Trove classifier is intentionally absent because
+  the current build backend rejects it when `License-Expression` is present.
+- Preserved dependency cut: MIT applies only to libRSI-owned material and does not
+  license, publish, redistribute, or authorize reuse of separate utils artifacts.
 - Forbidden effects remain forbidden regardless of the answer: no PyPI publication,
   GitHub Release, production deployment, or public announcement without separate
   current authority.
-- Authoritative revisit trigger: a direct user selection of the exact license or an
-  explicit no-license choice. Until then, Block 26 remains `in-progress` or
-  `completed-with-open-items`, and safe work continues rather than marking the whole
-  program blocked.
+- Continuation posture: the prior safe deferral is resolved and Block 26 resumes
+  automatically from accepted license-independent candidate `0afbf40`.
 
 ### Supervised execution and monitoring
 
@@ -345,7 +341,7 @@ content with libRSI merely to save threads.
 | 23 | Consumer integration contract and conformance kit | 5, 8, 12, 15–20 | `completed` |
 | 24 | End-to-end embedded/external/managed dogfoods | 10, 11, 15–23 | `completed` |
 | 25 | Comprehensive cross-domain proof | 24 | `completed` |
-| 26 | Public API, docs, packaging, migration, release gate | 21–25 | `not-started` |
+| 26 | Public API, docs, packaging, migration, release gate | 21–25 | `completed` |
 
 Required execution order for this single-writer run:
 
@@ -3674,9 +3670,12 @@ Independent review compares generic versus adapter ownership and verifies the re
   used. The unrelated untracked `uv.lock` remained excluded and byte-identical at
   SHA-256
   `ea9a2eb3afc46401f2356ef098e005ec87ac33e27475e43bcd86eb4131ea960e`.
-  Implementation and review repairs are pushed on
-  `codex/block-25-cross-domain-agnosticism`; this evidence commit, PR, exact-head
-  CI, and merge are queued immediately after tracker verification.
+  Implementation and review repairs were pushed on
+  `codex/block-25-cross-domain-agnosticism`. PR #38 bound exact head
+  `11721217e7b47e558a37d0ea7db952b5700c499b`; Actions run `32801762986`
+  passed Python 3.11, 3.12, and 3.13 in `1h50m22s`, `1h52m06s`, and
+  `1h47m29s`, respectively. The accepted candidate merged to `main` as
+  `92f1d5a58796b62da3f1c51791d8456d24c0aea3`.
 
 ### Stop
 
@@ -3684,7 +3683,7 @@ Stop before release-facing API/version/docs changes.
 
 ## Block 26 — Public API, documentation, packaging, migration, and release gate
 
-Status: `not-started`
+Status: `completed`
 
 ### Objective
 
@@ -3705,9 +3704,8 @@ Make the redesigned architecture the accurate, typed, installable, migration-rea
 - Current exact utils Block 16 terminal posture for every utility-backed integrated
   surface, plus separate license/publication evidence if public installation,
   redistribution, or third-party reuse is to be claimed.
-- Non-delegable legal input: the exact selection defined by the continuation-first
-  license gate; it blocks only the license-dependent acceptance subset after all
-  license-independent Block 26 work is complete.
+- Legal input: the resolved continuation-first gate selects MIT for libRSI-owned
+  material while preserving the separate utils license/publication boundary.
 
 ### Required work
 
@@ -3747,20 +3745,134 @@ Independent review covers API/docs truthfulness, migration/compatibility, option
   unlicensed/unpublished utility artifact; any public utility-backed extra binds a
   separately authorized current upstream license and published distribution.
 - License-dependent subset: a direct user selection is recorded, the selected
-  license text/classifier/reuse claims are exact, or an explicit no-license choice is
-  reflected without claiming open-source reuse. This subset alone may remain open
-  while every safe acceptance item above is completed.
+  license text/expression/license-file metadata/reuse claims are exact, or an explicit
+  no-license choice is reflected without claiming open-source reuse. This subset alone
+  may remain open while every safe acceptance item above is completed.
 
 ### Negative tests
 
 - Reject stale examples, missing/extra exports, base install pulling optional stacks,
   planned-only claims, unselected license grant, source-tree-only imports,
-  artifact/version mismatch, unpublished Git/path dependencies presented as public
+  artifact/version mismatch, a deprecated license classifier combined with a PEP 639
+  license expression, unpublished Git/path dependencies presented as public
   installation, or redistribution/reuse claims that exceed the utility posture.
 
 ### Completion evidence
 
-Pending.
+Work began from exact accepted Block 25 merge
+`92f1d5a58796b62da3f1c51791d8456d24c0aea3` on
+`codex/block-26-public-release-gate`. The accepted license-independent candidate
+is `0afbf40c3e65c3ca24cbf1ba3184415818097868`; direct user authority selected MIT
+on 2026-08-25 and rejoined the final acceptance subset.
+
+- Product surface: the versioned candidate is `0.3.0`, with a facade-first API
+  guide, executable local validation/hypothesis examples, curated expert-surface
+  documentation, changelog, exact `0.2.x` migration guide, release gate, typed
+  package marker, and dependency-lazy CLI/HTTP/MCP help paths. The legacy
+  `0.2.0` public exports and rooted compatibility fixtures remain passing.
+- Public dependency boundary: the base wheel has zero dependencies. Public
+  extras contain only registry requirements; the former `codex` extra and every
+  utils Git/path requirement were removed. The Codex adapter remains an
+  interface-only internal lane. CI alone checks out exact utils revision
+  `a5659745a7cbcbb002b5f06051f6ed9826f721a7`, rebuilds all three wheels,
+  verifies client/structural/runtime SHA-256 values
+  `1e9dc5b9c7f2edb9676b5a47eb2c9b96498f1b429acec474cd26702fe8e3fdb9`,
+  `2b36d7307c08cd6d7d95bfb86d4a240b6ab2a69de5b2c61bf75a54507c7ea18d`,
+  and `f2e601d542272187998296f09d33b2235002d108fe07c0b3c89a678ea1d010ac`,
+  and installs them without dependencies for mapped internal tests.
+- Artifact proof: exact candidate
+  `ccd49df7e8c1e20a4e7b8a4fc38c104d68fadf53` produced a deterministically
+  rebuilt wheel and sdist that passed the MIT metadata/content audit at SHA-256
+  `7337181f24fb1377a67f85e964d6a6d6957dd4ce28b0b37202e3582f2c6c7875`
+  and
+  `70b87ae6da39b715e0d977eb3d724f73327f9bf1451f9d6492ead28639794ddc`.
+  The wheel records `License-Expression: MIT`, contains the exact canonical
+  license under `.dist-info/licenses/LICENSE`, and has no deprecated license
+  classifier; the sdist contains the byte-identical root license and corrected
+  decision packet. Neither artifact contains an internal utility
+  implementation/dependency, Git/path requirement, unselected license grant,
+  or internal tracker/test corpus. A clean exact-wheel environment passed
+  `pip check`, both examples, version and metadata inspection, installed-license
+  inspection, and all three help entrypoints without source-tree imports or
+  optional service/provider stacks.
+- Test and quality evidence: Block 25 plus Block 26 passed `46` tests; the wider
+  compatibility/provider/system subset passed `74`; and the final invalidated
+  HTTP/MCP/packaging/release boundary passed `25`. One frozen full run exercised
+  all `804` tests at `90.79%` branch coverage: `802` passed and the two prior
+  module-level entrypoint injection seams failed. Exact fixes restored those
+  seams and added HTTP/MCP projection-factory leak regressions; the complete
+  invalidated boundary then passed as above. The final MIT-only path mapping
+  passed all `14` focused release/license tests, source and artifact audits,
+  Ruff and format checks over the changed executable files, and the exact-wheel
+  installed smoke. The previously valid full-tree Ruff/format evidence covers
+  all `238` source/test/example files, Mypy passes all `142` typed
+  source/example files, and the full tracker verifier passes all `27` Blocks.
+- Validation-economy failure: starting a monolithic local 804-test
+  branch-coverage run for the license/metadata-only delta was an avoidable,
+  overbroad-validation process failure that wasted approximately 31 minutes.
+  The restarted process was interrupted after `434` passing tests in
+  `1864.58s`; that pytest result is interrupted, not a test failure, and it is
+  not acceptance evidence. An earlier attempt was separately interrupted at
+  the temporary single-writer boundary after `238` passing tests in `266.85s`.
+  Root cause was failing to derive invalidated proof from the changed paths:
+  no mapped semantic invalidation justified either full-suite attempt.
+  Recurrence rule: map changed paths first; for this Block run focused
+  license/package/artifact checks and rely on required exact-head PR CI for
+  broad confirmation. Do not restart the local full suite unless a focused
+  failure maps to broader semantics.
+- Independent review: Hubble rejected the first candidate for overstating the
+  `librsi.expert` namespace and the second for HTTP/MCP service leaks when
+  projection factories failed. Both findings were corrected and regression
+  tested. Hubble accepted exact candidate `0afbf40`, independently reproduced
+  `30` mapped tests, artifacts, installed examples, lazy entrypoints, public
+  metadata isolation, pending-license behavior, and the publication stop.
+  Aristotle then rejected MIT candidate `3a39f2e` because the unselected Apache
+  guidance still prescribed a deprecated Trove classifier. Exact candidate
+  `ccd49df7e8c1e20a4e7b8a4fc38c104d68fadf53` corrected that guidance, added
+  source/sdist audit coverage and a regression, and received a fresh read-only
+  `ACCEPT` with no findings after independent reproduction of all `14` focused
+  tests, both exact artifacts, PEP 639 metadata, license/source byte identity,
+  dependency and content exclusions, the full tracker verifier, and diff
+  integrity.
+- Product-capability review:
+  - Trigger: Block 26's `consequential` posture.
+  - Frame identity: `docs/tracker.md`, Block 26, SHA-256
+    `6b6de1bf7c7b6fe03df4447c7924c8a489dbaf6025967911aef6b77bbed0b9f2`.
+  - Capability added or preserved: an accurately licensed, installable public
+    `0.3.0` package that documents and executes validation, hypothesis testing,
+    improvement, and governed recursion while preserving the zero-dependency
+    base API and separately owned utils boundary.
+  - Paths compared: smallest release-owner changes; a new bounded-general
+    licensing/packaging abstraction; existing semantic/runtime owners.
+  - Selected level and owner: the smallest local path through root `LICENSE`,
+    PEP 639 package metadata, release documentation, and exact artifact audits,
+    because it delivers the full Block capability without altering runtime
+    semantics or canonical state.
+  - Protected-capability result: `0.2.x` compatibility, facade behavior,
+    candidate/application separation, zero base dependencies, control-plane
+    neutrality, and consumer-to-libRSI dependency direction remain preserved by
+    the mapped tests, installed-wheel smoke, and artifact inspection.
+  - Rejected alternatives: a new reusable license subsystem would be
+    speculative; changing semantic/runtime owners would be lower-power scope
+    drift; retaining a deprecated classifier would contradict the selected PEP
+    639 representation.
+  - Tradeoffs and uncertainty: MIT applies only to libRSI-owned material;
+    separately owned utils remain exact-revision, unlicensed, unpublished,
+    CI-only inputs. Publication, release, deployment, and announcement remain
+    outside authority.
+  - Frozen-candidate proof: exact commit
+    `ccd49df7e8c1e20a4e7b8a4fc38c104d68fadf53`, exact artifacts and installed
+    smoke above, focused `14` tests, and independent `ACCEPT` with no findings.
+- Authority and durability: `docs/license-decision.md` records the direct MIT
+  selection and preserves the Apache-2.0/no-license alternatives as unselected.
+  No tag, publication, release, deployment, announcement, or license grant over
+  separately owned utils material was inferred. The unrelated untracked
+  `uv.lock` remains excluded and byte-identical at SHA-256
+  `ea9a2eb3afc46401f2356ef098e005ec87ac33e27475e43bcd86eb4131ea960e`.
+- Decision/continuation posture: the MIT choice resolved the only waiting input,
+  and Block 26 implementation is `completed`. Exact-head PR CI, merge, and
+  terminal acceptance reconciliation remain required before the program is
+  closed; no publication-class effect is authorized by that workflow.
 
 ### Stop
 
@@ -3839,6 +3951,6 @@ and the non-software target produce current observable outcomes through the same
 semantic engine; no transport, provider, optimizer, or host became a duplicate
 authority; every mapped utils package is consumed at its required Block with exact
 producer/adapter roots and no competing local owner; retained open work is genuinely
-reserved or excluded; and no publication,
-deployment, license, consumer-repository mutation, or authoritative external
-application crossed its declared boundary.
+reserved or excluded; and no publication, deployment, consumer-repository mutation,
+authoritative external application, or unauthorized license action crossed its
+declared boundary.

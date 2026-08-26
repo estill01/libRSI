@@ -9,6 +9,7 @@ from importlib import resources
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from .._version import __version__
 from ..providers import CODEX_CLIENT_HANDOFF, validate_codex_client
 from .shared_handoff import (
     EMBEDDED_SERVICE_HANDOFF,
@@ -81,7 +82,7 @@ def build_runtime_manifest() -> RuntimeManifest:
     validate_codex_client(client)
     adapter_root, protocol_schema_root = _adapter_root()
     return RuntimeManifest(
-        component=Component("librsi", "0.2.0", Sha256Root(adapter_root)),
+        component=Component("librsi", __version__, Sha256Root(adapter_root)),
         protocols=(
             Protocol(
                 "embedded-service-lifecycle",

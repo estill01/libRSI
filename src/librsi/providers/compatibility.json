@@ -21,11 +21,11 @@
     "wheel_sha256": "1e9dc5b9c7f2edb9676b5a47eb2c9b96498f1b429acec474cd26702fe8e3fdb9"
   },
   "librsi_adapter": {
-    "content_root_sha256": "673dd5bb2d5fd0dc473caa87ac8c6517a47fa8551f7d1f203e5d966d27a8b3fd",
+    "content_root_sha256": "ff24dfc57f16f3518f239509e4e7ce2f3a602f8244a4145fe967cce384561814",
     "package": "libRSI",
     "provider_authority": "proposal-only",
     "process_owners": ["standalone", "embedding-host", "software-factory"],
-    "version": "0.2.0"
+    "version": "0.3.0"
   },
   "posture": "no-license-selected/unpublished"
 }
