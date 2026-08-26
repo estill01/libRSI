@@ -42,6 +42,28 @@ LICENSE_CLASSIFIERS = {
     "MIT": "License :: OSI Approved :: MIT License",
     "Apache-2.0": "License :: OSI Approved :: Apache Software License",
 }
+MIT_LICENSE_TEXT = """MIT License
+
+Copyright (c) 2026 Ethan Stillman
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the \"Software\"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+"""
 
 
 class ReleaseAuditError(RuntimeError):
@@ -173,6 +195,11 @@ def validate_source_tree(project_root: Path, license_choice: ReleaseLicense) -> 
         _fail(f"no-license posture unexpectedly contains: {licenses}")
     if license_choice in {"MIT", "Apache-2.0"} and licenses != ["LICENSE"]:
         _fail("selected license requires exactly one root LICENSE file")
+    if (
+        license_choice == "MIT"
+        and (project_root / "LICENSE").read_text(encoding="utf-8") != MIT_LICENSE_TEXT
+    ):
+        _fail("root LICENSE differs from the selected canonical MIT text")
     compatibility = json.loads(
         (project_root / "src/librsi/providers/compatibility.json").read_text(encoding="utf-8")
     )
@@ -223,6 +250,20 @@ def _validate_wheel(path: Path, license_choice: ReleaseLicense) -> None:
                 _fail("wheel license expression differs from the selection")
             if observed_classifier != LICENSE_CLASSIFIERS[license_choice]:
                 _fail("wheel license classifier differs from the selection")
+        license_files = metadata.get_all("License-File", [])
+        embedded_license_names = sorted(
+            name for name in names if name.endswith(".dist-info/licenses/LICENSE")
+        )
+        if license_choice in {"pending", "no-license"}:
+            if license_files or embedded_license_names:
+                _fail("wheel embeds a license under a no-license posture")
+        elif license_files != ["LICENSE"] or len(embedded_license_names) != 1:
+            _fail("wheel does not declare and embed the selected root LICENSE")
+        if (
+            license_choice == "MIT"
+            and archive.read(embedded_license_names[0]).decode("utf-8") != MIT_LICENSE_TEXT
+        ):
+            _fail("wheel LICENSE differs from the selected canonical MIT text")
         required = {
             "librsi/README.md",
             "librsi/__init__.py",
@@ -315,6 +356,10 @@ def _validate_sdist(path: Path, license_choice: ReleaseLicense) -> None:
             _fail(f"sdist unexpectedly contains a license: {license_members}")
         if license_choice in {"MIT", "Apache-2.0"} and license_members != [f"{root}/LICENSE"]:
             _fail("sdist does not contain the selected root LICENSE")
+        if license_choice == "MIT":
+            license_file = archive.extractfile(f"{root}/LICENSE")
+            if license_file is None or license_file.read().decode("utf-8") != MIT_LICENSE_TEXT:
+                _fail("sdist LICENSE differs from the selected canonical MIT text")
 
 
 def audit_distributions(dist: Path, license_choice: ReleaseLicense) -> dict[str, str]:

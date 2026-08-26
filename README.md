@@ -71,10 +71,9 @@ runtime authority.
 
 ## Install
 
-`0.3.0` is a release candidate, not a published distribution. The repository is
-publicly visible, but no reuse license has been selected yet; source visibility alone
-does not grant permission to copy, modify, or redistribute it. The owner and otherwise
-authorized collaborators can build the exact candidate locally:
+`0.3.0` is a release candidate, not a published distribution. The libRSI-owned source
+is available under the [MIT License](LICENSE), and the exact candidate can be built
+locally:
 
 ```bash
 python -m pip install build
@@ -93,8 +92,8 @@ python -m pytest --ignore=tests/test_block22_providers.py --ignore=tests/test_bl
 
 The omitted suites consume exact internal artifacts from `estill01/utils`; CI builds
 and hash-verifies those artifacts from their accepted producer revision without adding
-them to public dependency metadata. This repository does not grant public rights to
-install or redistribute those upstream artifacts.
+them to public dependency metadata. The libRSI MIT license does not grant rights to
+install or redistribute those separate upstream artifacts.
 
 Optional service projections remain separate from the zero-dependency core:
 

@@ -8,6 +8,7 @@ version = "0.3.0"
 description = "Host-agnostic policies and ports for bounded recursive self-improvement"
 readme = "README.md"
 requires-python = ">=3.11"
+license = "MIT"
 dependencies = []
 authors = [{ name = "Ethan Stillman" }]
 keywords = [
@@ -19,6 +20,7 @@ keywords = [
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.11",

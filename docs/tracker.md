@@ -5,8 +5,8 @@
 - Repository: `https://github.com/estill01/libRSI`
 - Governing objective: evolve libRSI into a domain-neutral, evidence-driven validation, investigation, improvement, and governed recursive-self-improvement library.
 - Canonical status owner: this file.
-- First eligible Block: 26 (license-dependent acceptance subset; waiting for
-  direct-user license selection after completion of the safe frontier).
+- First eligible Block: 26 (MIT metadata, final artifact validation, review, CI,
+  merge, and terminal acceptance).
 
 ## 1. Purpose and intended outcome
 
@@ -82,9 +82,8 @@ Completion means:
 - Tradeoffs: batteries-included operation adds persistence and optional dependencies;
   strict identity/currentness increases schema discipline; staged compatibility
   delays interface stabilization but prevents premature public commitments.
-- Uncertainty: the final open-source license and any hosted provider chosen for a
-  separately activated adapter remain external decisions. The license blocks only the
-  license-dependent subset of Block 26; provider-independent work continues.
+- Uncertainty: MIT was selected by direct user authority on 2026-08-25. Any hosted
+  provider chosen for a separately activated adapter remains an external decision.
 
 ## 2. Target architecture and authority boundaries
 
@@ -262,28 +261,22 @@ hardening without a reproduced in-scope failure is omitted.
     Block records the exact producer and adapter roots and proves that no copied,
     vendored, reconstructed, or competing local owner remains.
 
-### Continuation-first license gate
+### Resolved continuation-first license gate
 
-- Decision needed: the user must select the exact public license grant (the planned
-  packet compares MIT and Apache-2.0) or explicitly select no license.
-- Why it is non-delegable: choosing an open-source license grants legal rights to
+- Decision resolved: direct user authority selected MIT on 2026-08-25 from the
+  packet comparing MIT, Apache-2.0, and explicit no-license posture.
+- Why it was non-delegable: choosing an open-source license grants legal rights to
   recipients and cannot be inferred from repository visibility or a request that the
   repository be public; distributed copies retain the grant after later changes.
-- Earliest decision packet: prepare it in Block 26 after the public API, artifact
-  contents, and compatibility/migration position are frozen.
-- Exact blocked subset: without that answer, do not add a `LICENSE`, license
-  classifier or reuse-right claim; do not accept the license-dependent Block 26
-  acceptance clause or declare the tracker complete.
-- Safe continuation: execute all work in Blocks 3–25 and all license-independent
-  Block 26 work, including API/docs/build/examples/migration validation, artifact
-  inspection, and preparation of the decision packet.
+- Rejoined subset: add the canonical MIT text, exact package expression/classifier,
+  truthful libRSI-owned reuse claims, and complete Block 26 acceptance proof.
+- Preserved dependency cut: MIT applies only to libRSI-owned material and does not
+  license, publish, redistribute, or authorize reuse of separate utils artifacts.
 - Forbidden effects remain forbidden regardless of the answer: no PyPI publication,
   GitHub Release, production deployment, or public announcement without separate
   current authority.
-- Authoritative revisit trigger: a direct user selection of the exact license or an
-  explicit no-license choice. Until then, Block 26 remains `in-progress` or
-  `completed-with-open-items`, and safe work continues rather than marking the whole
-  program blocked.
+- Continuation posture: the prior safe deferral is resolved and Block 26 resumes
+  automatically from accepted license-independent candidate `0afbf40`.
 
 ### Supervised execution and monitoring
 
@@ -3709,9 +3702,8 @@ Make the redesigned architecture the accurate, typed, installable, migration-rea
 - Current exact utils Block 16 terminal posture for every utility-backed integrated
   surface, plus separate license/publication evidence if public installation,
   redistribution, or third-party reuse is to be claimed.
-- Non-delegable legal input: the exact selection defined by the continuation-first
-  license gate; it blocks only the license-dependent acceptance subset after all
-  license-independent Block 26 work is complete.
+- Legal input: the resolved continuation-first gate selects MIT for libRSI-owned
+  material while preserving the separate utils license/publication boundary.
 
 ### Required work
 
@@ -3767,8 +3759,8 @@ Independent review covers API/docs truthfulness, migration/compatibility, option
 Work began from exact accepted Block 25 merge
 `92f1d5a58796b62da3f1c51791d8456d24c0aea3` on
 `codex/block-26-public-release-gate`. The accepted license-independent candidate
-is `0afbf40c3e65c3ca24cbf1ba3184415818097868`; the direct-user license
-selection remains the only reserved acceptance subset.
+is `0afbf40c3e65c3ca24cbf1ba3184415818097868`; direct user authority selected MIT
+on 2026-08-25 and rejoined the final acceptance subset.
 
 - Product surface: the versioned candidate is `0.3.0`, with a facade-first API
   guide, executable local validation/hypothesis examples, curated expert-surface
@@ -3812,19 +3804,15 @@ selection remains the only reserved acceptance subset.
   tested. Hubble accepted exact candidate `0afbf40`, independently reproduced
   `30` mapped tests, artifacts, installed examples, lazy entrypoints, public
   metadata isolation, pending-license behavior, and the publication stop.
-- Reserved authority and durability: `docs/license-decision.md` records the MIT,
-  Apache-2.0, and explicit no-license choices using authoritative sources. No
-  `LICENSE`, classifier, license expression, reuse claim, tag, publication,
-  release, deployment, or announcement was inferred. The unrelated untracked
+- Authority and durability: `docs/license-decision.md` records the direct MIT
+  selection and preserves the Apache-2.0/no-license alternatives as unselected.
+  No tag, publication, release, deployment, announcement, or license grant over
+  separately owned utils material was inferred. The unrelated untracked
   `uv.lock` remains excluded and byte-identical at SHA-256
   `ea9a2eb3afc46401f2356ef098e005ec87ac33e27475e43bcd86eb4131ea960e`.
-- Decision/continuation posture: `waiting-for-input` is limited to the direct-user
-  choice of MIT, Apache-2.0, or explicit no-license posture. Its blocked subject
-  set is the license text/metadata/claims and terminal Block 26 acceptance; its
-  descendant closure is only the terminal program-completion gate. The safe
-  license-independent frontier is exhausted at accepted candidate `0afbf40`; the
-  authoritative revisit trigger is the exact direct-user license choice. Block 26
-  remains `in-progress` and no provisional license grant is accepted.
+- Decision/continuation posture: the MIT choice resolved the only waiting input.
+  Block 26 is `in-progress` through final artifact validation, exact-candidate
+  review, PR CI, merge, and terminal reconciliation.
 
 ### Stop
 
@@ -3903,6 +3891,6 @@ and the non-software target produce current observable outcomes through the same
 semantic engine; no transport, provider, optimizer, or host became a duplicate
 authority; every mapped utils package is consumed at its required Block with exact
 producer/adapter roots and no competing local owner; retained open work is genuinely
-reserved or excluded; and no publication,
-deployment, license, consumer-repository mutation, or authoritative external
-application crossed its declared boundary.
+reserved or excluded; and no publication, deployment, consumer-repository mutation,
+authoritative external application, or unauthorized license action crossed its
+declared boundary.

@@ -75,7 +75,7 @@ jobs:
 
       - name: Audit release artifacts
         if: matrix.python-version == '3.11'
-        run: python -m tests.block26_release_audit dist --license pending
+        run: python -m tests.block26_release_audit dist --license MIT
 
       - name: Smoke-test installed wheel and examples
         if: matrix.python-version == '3.11'

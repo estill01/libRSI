@@ -28,6 +28,8 @@ not been published or tagged by this tracker run.
   dependency metadata.
 - Optional HTTP and MCP package exports and `--help` entrypoints load their third-party
   stacks lazily, so the base wheel remains zero-dependency.
+- libRSI-owned source and distribution artifacts now carry the MIT License; separately
+  owned unpublished utils artifacts remain excluded from the public distribution.
 
 ### Compatibility
 

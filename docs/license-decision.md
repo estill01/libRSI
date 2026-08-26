@@ -1,11 +1,10 @@
 # License decision packet
 
-Status: `pending-direct-user-selection`.
+Status: `selected-mit`.
 
-The repository is public, but no license grant has been selected. Until the owner makes
-a direct choice, libRSI does not claim open-source status or public rights to copy,
-modify, distribute, sublicense, or reuse the source. This packet is implementation
-guidance, not legal advice.
+Direct user authority selected MIT for libRSI on 2026-08-25. The canonical root
+`LICENSE`, `License-Expression: MIT` package metadata, and matching Trove classifier
+implement that decision. This record is implementation guidance, not legal advice.
 
 ## MIT
 
@@ -13,12 +12,12 @@ guidance, not legal advice.
   distribution, sublicensing, and sale.
 - Copies or substantial portions must retain the copyright and permission notice.
 - Includes a broad warranty/liability disclaimer but no express patent-license clause.
-- If selected, add the canonical MIT text with the owner/year, `License-Expression:
-  MIT` metadata, and the matching Trove classifier.
+- Applied to libRSI-owned material with the canonical owner/year text,
+  `License-Expression: MIT` metadata, and the matching Trove classifier.
 
 Authoritative text: [Open Source Initiative MIT License](https://opensource.org/license/mit).
 
-## Apache License 2.0
+## Apache License 2.0 — not selected
 
 - Permissive copyright grant plus an express contributor patent grant and patent
   termination terms.
@@ -32,7 +31,7 @@ Authoritative text and application guidance:
 [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) and
 [Applying Apache License 2.0](https://www.apache.org/legal/apply-license).
 
-## Explicit no-license choice
+## Explicit no-license choice — not selected
 
 - Keep the repository source-visible without granting general reuse or redistribution
   rights.

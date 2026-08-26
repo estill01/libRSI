@@ -13,6 +13,7 @@ import pytest
 
 import librsi
 from tests.block26_release_audit import (
+    MIT_LICENSE_TEXT,
     ReleaseAuditError,
     validate_project_document,
     validate_public_exports,
@@ -30,7 +31,7 @@ def _project_document() -> dict[str, object]:
 
 
 def test_source_tree_metadata_exports_and_license_gate_are_exact() -> None:
-    validate_source_tree(PROJECT, "pending")
+    validate_source_tree(PROJECT, "MIT")
     validate_public_exports(librsi)
 
     document = _project_document()
@@ -38,6 +39,8 @@ def test_source_tree_metadata_exports_and_license_gate_are_exact() -> None:
     assert isinstance(project, dict)
     assert project["version"] == librsi.__version__ == "0.3.0"
     assert project["dependencies"] == []
+    assert project["license"] == "MIT"
+    assert (PROJECT / "LICENSE").read_text(encoding="utf-8") == MIT_LICENSE_TEXT
     assert set(project["optional-dependencies"]) == {
         "dev",
         "mcp",
@@ -70,28 +73,28 @@ def test_project_audit_rejects_base_dependency_extra_and_version_drift() -> None
     with_base = copy.deepcopy(document)
     with_base["project"]["dependencies"] = ["requests>=2"]  # type: ignore[index]
     with pytest.raises(ReleaseAuditError, match="zero dependencies"):
-        validate_project_document(with_base, "pending")
+        validate_project_document(with_base, "MIT")
 
     with_codex = copy.deepcopy(document)
     with_codex["project"]["optional-dependencies"]["codex"] = []  # type: ignore[index]
     with pytest.raises(ReleaseAuditError, match="extras"):
-        validate_project_document(with_codex, "pending")
+        validate_project_document(with_codex, "MIT")
 
     stale = copy.deepcopy(document)
     stale["project"]["version"] = "0.2.0"  # type: ignore[index]
     with pytest.raises(ReleaseAuditError, match="name/version"):
-        validate_project_document(stale, "pending")
+        validate_project_document(stale, "MIT")
 
 
 def test_license_gate_rejects_unselected_grant_and_wrong_selected_classifier() -> None:
     document = _project_document()
-    unselected = copy.deepcopy(document)
-    unselected["project"]["license"] = "MIT"  # type: ignore[index]
     with pytest.raises(ReleaseAuditError, match="license grant"):
-        validate_project_document(unselected, "pending")
+        validate_project_document(document, "pending")
 
     selected = copy.deepcopy(document)
-    selected["project"]["license"] = "MIT"  # type: ignore[index]
+    classifiers = selected["project"]["classifiers"]  # type: ignore[index]
+    classifiers.remove("License :: OSI Approved :: MIT License")
+    classifiers.append("License :: OSI Approved :: Apache Software License")
     with pytest.raises(ReleaseAuditError, match="classifier"):
         validate_project_document(selected, "MIT")
 

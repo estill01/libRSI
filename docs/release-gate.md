@@ -1,6 +1,7 @@
 # 0.3.0 release gate
 
-Status: technical candidate in progress; publication is not authorized.
+Status: MIT selected; technical candidate validation in progress; publication is not
+authorized.
 
 ## Candidate invariants
 
