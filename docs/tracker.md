@@ -6,7 +6,7 @@
 - Repository: `https://github.com/estill01/libRSI`
 - Baseline: `545104792830369de6acbe8f305eb724a99cf950` on `main`.
 - Governing objective: the user's direct instruction to implement the proposed reusable improvement runner, versioned strategies, and consumer template fully, end to end.
-- Canonical owner: `docs/tracker.md`; first eligible Block: 0.
+- Canonical owner: `docs/tracker.md`; first eligible Block: 0 (in progress).
 - Direct range: the full program and its installed restart/adoption outcome. No authoring-only hold; implement immediately after authoring verification.
 
 ## 1. Purpose and intended outcome
@@ -107,7 +107,7 @@ installed artifact identity and actual reopened state separately from test succe
 
 | Block | Scope | Depends on | Status |
 |---:|---|---|---|
-| 0 | Persist strategy profiles and measured feedback | — | `not-started` |
+| 0 | Persist strategy profiles and measured feedback | — | `in-progress` |
 | 1 | Run bounded improvement and native self-change adoption | 0 | `not-started` |
 | 2 | Ship consumer template and prove installed next-task adoption | 1 | `not-started` |
 
@@ -115,7 +115,7 @@ Required order: `0 → 1 → 2`.
 
 ## Block 0 — Persist strategy profiles and measured feedback
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 
