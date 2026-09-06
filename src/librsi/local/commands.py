@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import os
+import signal
 import subprocess
 from collections.abc import Sequence
+from contextlib import suppress
 from pathlib import Path
 
 from ..models import CommandExperimentInput, CommandObservation
@@ -24,6 +27,41 @@ def _output(value: str | bytes | None) -> str:
     if value is None:
         return ""
     return value.decode("utf-8", errors="replace") if isinstance(value, bytes) else value
+
+
+def _signal_group(process: subprocess.Popen[str], signum: int) -> None:
+    with suppress(ProcessLookupError):
+        os.killpg(process.pid, signum)
+
+
+def _timeout_output(process: subprocess.Popen[str]) -> tuple[str, str]:
+    """Stop our POSIX group (only the direct child elsewhere) and drain briefly."""
+
+    if os.name == "posix":
+        _signal_group(process, signal.SIGTERM)
+    else:
+        process.terminate()
+    try:
+        return process.communicate(timeout=0.2)
+    except subprocess.TimeoutExpired:
+        pass
+    finally:
+        # The parent may exit before a descendant that ignores SIGTERM. Always
+        # signal the owned group, even when communicate has already returned.
+        if os.name == "posix":
+            _signal_group(process, signal.SIGKILL)
+        elif process.poll() is None:
+            process.kill()
+    try:
+        return process.communicate(timeout=0.5)
+    except subprocess.TimeoutExpired as error:
+        # A process outside our group may hold an inherited pipe. Do not wait
+        # indefinitely for it; group escape is outside this adapter's authority.
+        for stream in (process.stdout, process.stderr):
+            if stream is not None:
+                stream.close()
+        process.wait()
+        return _output(error.stdout), _output(error.stderr)
 
 
 class LocalCommandRunner:
@@ -54,24 +92,28 @@ class LocalCommandRunner:
         if not any(cwd == root or cwd.is_relative_to(root) for root in self._allowed_roots):
             raise PermissionError("command working directory is outside configured authority")
         try:
-            completed = subprocess.run(
+            with subprocess.Popen(
                 experiment.command,
                 cwd=cwd,
-                capture_output=True,
-                check=False,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
                 text=True,
                 encoding="utf-8",
                 errors="replace",
-                timeout=timeout_seconds,
-            )
-        except subprocess.TimeoutExpired as error:
-            return CommandObservation(
-                exit_code=None,
-                stdout=_output(error.stdout),
-                stderr=_output(error.stderr) or "command timed out",
-                invalid=True,
-                exact_input_root=experiment.exact_input_root,
-            )
+                start_new_session=os.name == "posix",
+            ) as process:
+                try:
+                    stdout, stderr = process.communicate(timeout=timeout_seconds)
+                except subprocess.TimeoutExpired:
+                    stdout, stderr = _timeout_output(process)
+                    return CommandObservation(
+                        exit_code=None,
+                        stdout=stdout,
+                        stderr=stderr or "command timed out",
+                        invalid=True,
+                        exact_input_root=experiment.exact_input_root,
+                    )
+                exit_code = process.returncode
         except OSError as error:
             return CommandObservation(
                 exit_code=None,
@@ -81,8 +123,8 @@ class LocalCommandRunner:
                 exact_input_root=experiment.exact_input_root,
             )
         return CommandObservation(
-            exit_code=completed.returncode,
-            stdout=completed.stdout,
-            stderr=completed.stderr,
+            exit_code=exit_code,
+            stdout=stdout,
+            stderr=stderr,
             exact_input_root=experiment.exact_input_root,
         )

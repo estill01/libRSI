@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import subprocess
 import sys
 from pathlib import Path
 
@@ -235,9 +234,7 @@ def test_local_filesystem_inspector_validates_configuration_and_inputs(tmp_path:
         inspector.snapshot(object())  # type: ignore[arg-type]
 
 
-def test_local_command_runner_validates_configuration_and_boundary_types(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_local_command_runner_validates_configuration_and_boundary_types(tmp_path: Path) -> None:
     with pytest.raises(TypeError, match="sequence"):
         LocalCommandRunner(allowed_roots=str(tmp_path))
     with pytest.raises(ValueError, match="allowed root"):
@@ -258,10 +255,16 @@ def test_local_command_runner_validates_configuration_and_boundary_types(
             timeout_seconds=1,
         )
 
-    def timeout(*args, **kwargs):
-        raise subprocess.TimeoutExpired("command", 1, output=b"partial", stderr=b"late")
-
-    monkeypatch.setattr("librsi.local.commands.subprocess.run", timeout)
+    experiment = CommandExperimentInput(
+        "partial-output",
+        (
+            sys.executable,
+            "-c",
+            "import sys,time; print('partial',end='',flush=True); "
+            "print('late',end='',file=sys.stderr,flush=True); time.sleep(5)",
+        ),
+        str(tmp_path),
+    )
     observation = runner.run(experiment, timeout_seconds=1)
     assert observation.stdout == "partial"
     assert observation.stderr == "late"

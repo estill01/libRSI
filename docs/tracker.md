@@ -7,7 +7,7 @@
 - Baseline: `21faded78bd1527881b93cffdef2c124d669bf9f` (2026-09-06).
 - Governing objective: the user's 2026-09-06 direction to make libRSI a lightweight, useful drop-in without prolonged engineering or token expenditure.
 - Canonical entry point and detailed status owner: `docs/tracker.md`.
-- First eligible Block: 1 (in progress).
+- First eligible Block: 2 (in progress).
 - Authoring-only hold: expired on the direct implement-tracker-blocks invocation, 2026-09-06. Full range 0–6 is authorized; no approval is required between Blocks (`carry-forward: false`).
 
 ## 1. Purpose and intended outcome
@@ -162,8 +162,8 @@ needed; this tracker owns the planning record.
 | Block | Scope | Depends on | Status |
 |---:|---|---|---|
 | 0 | Honest terminal status and failure retrieval | — | `accepted` |
-| 1 | Persist each completed embedded improvement step | 0 | `in-progress` |
-| 2 | Stop owned subprocess descendants on timeout | — | `not-started` |
+| 1 | Persist each completed embedded improvement step | 0 | `accepted` |
+| 2 | Stop owned subprocess descendants on timeout | — | `in-progress` |
 | 3 | Make optional provider requests self-contained | — | `not-started` |
 | 4 | Remove redundant runtime append work | 1 | `not-started` |
 | 5 | Detect executable-mode target changes | — | `not-started` |
@@ -241,7 +241,7 @@ Stop before changing the embedded persistence loop owned by Block 1.
 
 ## Block 1 — Persist each completed embedded improvement step
 
-Status: `in-progress`
+Status: `accepted`
 
 ### Objective
 
@@ -293,7 +293,10 @@ Focused mechanical proof plus a separate diff/self-review pass for the stated ac
 
 ### Completion evidence
 
-Pending.
+- Implementation commit: `e4bfe60`; candidate root `358a2ebb89cc24744a83193b084f54cb09d04fe1ae0a9b39920eacc8f81624ea`; pushed to the existing origin branch.
+- Changed owners: managed improvement callback and facade recorder; no lifecycle/record schema change. SQLite interruption/restart and failed-write regressions passed (2 tests, 47.11s); mapped facade success, resource admission, and canonical/currentness-before-effect checks passed (3 tests, 37.90s). Lint, formatting, and mypy passed. Logs: `block1-focused.log`, `block1-mapped.log`.
+- Product-capability review: consequential, frame hash reused. Compared duplicated facade dispatch, a general workflow driver, and a small update callback in the existing managed loop. Selected the callback to preserve one budget/validation owner; it commits before the next effect.
+- Self-review and observed outcome: reopening SQLite retained cycle one and dispatched only cycle two; store failure prevented another call. Successful canonical behavior remained unchanged. No independent review required; no open Block 1 items. Post-Block audit: accepted.
 
 ### Stop
 
@@ -301,7 +304,7 @@ Stop before process execution cleanup in Block 2.
 
 ## Block 2 — Stop owned subprocess descendants on timeout
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 

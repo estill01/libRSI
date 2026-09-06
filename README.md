@@ -140,8 +140,13 @@ assert result.disposition == "supported"
 ```
 
 Hypothesis testing remains a first-class, evidence-bound path. The local runner receives
-canonical argv/cwd input, never invokes a shell, rejects work outside its configured root,
+canonical argv/cwd input, never invokes a shell, rejects a working directory outside its configured root,
 and echoes the exact experiment root into the observation:
+
+On POSIX hosts, timeout cleanup terminates the owned process group, escalates after
+a short grace period, and reaps the direct child. Other hosts support direct-child
+cleanup only. The working-directory check is not a filesystem sandbox, and this
+adapter cannot contain descendants that deliberately leave its process group.
 
 ```python
 import sys
