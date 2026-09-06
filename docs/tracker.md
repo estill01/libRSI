@@ -7,7 +7,7 @@
 - Baseline: `21faded78bd1527881b93cffdef2c124d669bf9f` (2026-09-06).
 - Governing objective: the user's 2026-09-06 direction to make libRSI a lightweight, useful drop-in without prolonged engineering or token expenditure.
 - Canonical entry point and detailed status owner: `docs/tracker.md`.
-- First eligible Block: 5 (in progress).
+- First eligible Block: 6 (in progress).
 - Authoring-only hold: expired on the direct implement-tracker-blocks invocation, 2026-09-06. Full range 0–6 is authorized; no approval is required between Blocks (`carry-forward: false`).
 
 ## 1. Purpose and intended outcome
@@ -166,8 +166,8 @@ needed; this tracker owns the planning record.
 | 2 | Stop owned subprocess descendants on timeout | — | `accepted` |
 | 3 | Make optional provider requests self-contained | — | `accepted` |
 | 4 | Remove redundant runtime append work | 1 | `accepted` |
-| 5 | Detect executable-mode target changes | — | `in-progress` |
-| 6 | Ship the small embedded improvement example | 0, 1, 2, 3, 4, 5 | `not-started` |
+| 5 | Detect executable-mode target changes | — | `accepted` |
+| 6 | Ship the small embedded improvement example | 0, 1, 2, 3, 4, 5 | `in-progress` |
 
 Required order: `0 → 1 → 2 → 3 → 4 → 5 → 6`.
 Dependencies identify correctness prerequisites; independent work may continue
@@ -495,7 +495,7 @@ Stop before snapshot semantics in Block 5; do not expand into a persistence rede
 
 ## Block 5 — Detect executable-mode target changes
 
-Status: `in-progress`
+Status: `accepted`
 
 ### Objective
 
@@ -547,7 +547,11 @@ Focused mechanical proof plus a separate diff/self-review pass for the stated ac
 
 ### Completion evidence
 
-Pending.
+- Implementation commit: `e1c75d1`; candidate root `b235a5741758d415e2196dbef66c03d095089529eb6fb2a07e2713eeecf52540`; pushed to the existing origin branch.
+- Changed `local/filesystem.py`, `tests/test_lightweight_snapshots.py`, and `docs/api.md`. File entries capture the exact three executable bits; existing content, symlink, ignore, and incidental timestamp behavior is retained.
+- Focused mode/timestamp regression and three mapped filesystem/facade checks: 4 passed in 0.64s (`block5-tests.log`). Changed-file lint/format and mypy passed.
+- Product-capability review: consequential; frame hash reused. Selected mode bits in the existing inspector over timestamp tracking or a generalized metadata layer. Old snapshots intentionally compare stale; historical identities are never rewritten. POSIX mode behavior is the tested scope.
+- Self-review: implementation is local, stat metadata is reused, and documentation states the compatibility effect. No independent review required. Post-Block audit: accepted, no open Block 5 items. The optional range owner remains unavailable; local reconciliation leaves only Block 6 outstanding.
 
 ### Stop
 
@@ -555,7 +559,7 @@ Stop before the public example and final mapped validation in Block 6.
 
 ## Block 6 — Ship the small embedded improvement example
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 

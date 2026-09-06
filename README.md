@@ -4,6 +4,25 @@
 
 `libRSI` is a zero-dependency Python library of evidence-bound primitives for
 validation, investigation, improvement, and governed recursive self-improvement.
+
+For a small embedded starting point, install from this checkout and run:
+
+```bash
+python -m pip install .
+python examples/embedded_improvement.py --data-dir ./my-first-improvement
+```
+
+The [example](examples/embedded_improvement.py) measures a numeric function, rejects
+an insufficient first candidate, interrupts, reopens SQLite, and selects the second
+candidate without repeating the completed cycle. It uses two cycles and two candidate
+experiments (plus four small hypothesis experiments), with no network or application.
+The host supplies the goal, measurable criterion, hypotheses, candidate preparation,
+and experiment measurements. libRSI validates their lineage and derives acceptance;
+it does not invent evidence or provide an autonomous coding agent. Use a fresh data
+directory for each demonstration. See the [embedded guide](docs/api.md#small-embedded-improvement)
+for the restart path and operating limits, and [provider setup](docs/providers.md)
+when your host actually needs model-generated reasoning.
+
 Optional hosted-model and internal exact-utils Codex app-server integrations are
 documented in [docs/providers.md](docs/providers.md); both preserve the same
 proposal-only reasoning boundary. The Codex lane is interface-only in public package
