@@ -85,6 +85,9 @@ librsi = ["README.md", "py.typed", "conformance/*.json", "providers/*.json"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
+markers = [
+  "slow: workflow/integration scenarios reserved for the full validation suite",
+]
 
 [tool.ruff]
 target-version = "py311"

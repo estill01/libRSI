@@ -5,6 +5,8 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+  schedule:
+    - cron: "23 4 * * 1"
 
 permissions:
   contents: read
@@ -16,6 +18,13 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
+        include:
+          - python-version: "3.11"
+            coverage: true
+          - python-version: "3.12"
+            coverage: false
+          - python-version: "3.13"
+            coverage: false
 
     steps:
       - uses: actions/checkout@v7
@@ -64,8 +73,20 @@ jobs:
       - name: Type-check
         run: python -m mypy src examples
 
-      - name: Test with branch coverage
-        run: python -m pytest --cov=librsi --cov-branch --cov-report=term-missing
+      # PRs use the fast lane on every supported Python. Main gets the full
+      # coverage gate once; scheduled/manual runs also exercise the full suite
+      # on the other versions. Bare pytest still runs everything locally.
+      - name: Fast regression tests
+        if: github.event_name == 'pull_request' || (github.event_name == 'push' && !matrix.coverage)
+        run: python -m pytest -m "not slow" --durations=15
+
+      - name: Full regression tests with branch coverage
+        if: github.event_name != 'pull_request' && matrix.coverage
+        run: python -m pytest --cov=librsi --cov-branch --cov-report=term-missing --durations=25
+
+      - name: Full Python compatibility tests
+        if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && !matrix.coverage
+        run: python -m pytest --durations=25
 
       - name: Build distributions
         if: matrix.python-version == '3.11'

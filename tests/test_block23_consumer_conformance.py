@@ -50,6 +50,7 @@ def test_candidate_workspace_never_becomes_authoritative_target() -> None:
         TargetPolicy().require_current(run.mapped.snapshot, run.candidate.snapshot)
 
 
+@pytest.mark.slow
 def test_governed_self_target_run_is_application_disabled_and_effect_free() -> None:
     result = governed_application_disabled_run()
     assert result.disposition == "activation-disabled"

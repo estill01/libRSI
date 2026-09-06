@@ -78,7 +78,7 @@ EXPECTED_ACTION_ROOTS = (
     "67e0951510ed281e291f88a77991bb6059c0f976526cc7d1e7c560e8ed8b5fd3",
     "30114d0c0aebbe4c9c059150f75aa34d2a0eb430a5701f93a7f80ef2834ecd93",
 )
-EXPECTED_GENERIC_SOURCE_ROOT = "913027cc09d5f976bbdffd8bd72a9e24da066f1cb39f3b67115f44539ebe8456"
+EXPECTED_GENERIC_SOURCE_ROOT = "1bbd37e355a0d002d17e75b2022e020cbbf5ba0f679c09f44b51bbdd54949d6c"
 
 
 def _run_fermenter_proof() -> CrossDomainProof:
@@ -143,8 +143,17 @@ def _run_fermenter_proof() -> CrossDomainProof:
     )
 
 
-def test_one_physical_adapter_runs_every_canonical_workflow_and_outcome_family() -> None:
-    proof = _run_fermenter_proof()
+@pytest.fixture(scope="module")
+def fermenter_proof() -> CrossDomainProof:
+    # Read-only assertions share this immutable result. The determinism test
+    # below still makes a second independent run and compares every record.
+    return _run_fermenter_proof()
+
+
+def test_one_physical_adapter_runs_every_canonical_workflow_and_outcome_family(
+    fermenter_proof: CrossDomainProof,
+) -> None:
+    proof = fermenter_proof
 
     assert proof.validation.disposition == "supported"
     assert tuple(branch.status for branch in proof.investigation.branches) == (
@@ -180,8 +189,10 @@ def test_one_physical_adapter_runs_every_canonical_workflow_and_outcome_family()
     assert proof.improvement.handoff.apply is False
 
 
-def test_fermenter_runs_are_exactly_deterministic_and_project_without_semantic_drift() -> None:
-    first = _run_fermenter_proof()
+def test_fermenter_runs_are_exactly_deterministic_and_project_without_semantic_drift(
+    fermenter_proof: CrossDomainProof,
+) -> None:
+    first = fermenter_proof
     second = _run_fermenter_proof()
 
     assert first == second
@@ -201,8 +212,10 @@ def test_fermenter_runs_are_exactly_deterministic_and_project_without_semantic_d
     assert len({item.projection_root for item in first.projections}) == 3
 
 
-def test_fermenter_actions_do_not_gain_software_or_repository_ontology() -> None:
-    proof = _run_fermenter_proof()
+def test_fermenter_actions_do_not_gain_software_or_repository_ontology(
+    fermenter_proof: CrossDomainProof,
+) -> None:
+    proof = fermenter_proof
     forbidden = re.compile(
         r"(^|[^a-z0-9])(git|github|repository|software|worktree|commit[_-]?sha)([^a-z0-9]|$)"
     )
