@@ -1,12 +1,12 @@
 # libRSI Adaptive Operation Implementation Tracker
 
-- Tracker status: `in-progress`
+- Tracker status: `accepted`
 - Tracker sequence: Blocks 0–2
 - Program identity: `adaptive-operation`; qualify references as `adaptive-operation/Block N`.
 - Repository: `https://github.com/estill01/libRSI`
 - Baseline: `545104792830369de6acbe8f305eb724a99cf950` on `main`.
 - Governing objective: the user's direct instruction to implement the proposed reusable improvement runner, versioned strategies, and consumer template fully, end to end.
-- Canonical owner: `docs/tracker.md`; first eligible Block: 1 (in progress).
+- Canonical owner: `docs/tracker.md`; first eligible Block: none (Blocks 0–2 accepted).
 - Direct range: the full program and its installed restart/adoption outcome. No authoring-only hold; implement immediately after authoring verification.
 
 ## 1. Purpose and intended outcome
@@ -109,7 +109,7 @@ installed artifact identity and actual reopened state separately from test succe
 |---:|---|---|---|
 | 0 | Persist strategy profiles and measured feedback | — | `accepted` |
 | 1 | Run bounded improvement and native self-change adoption | 0 | `accepted` |
-| 2 | Ship consumer template and prove installed next-task adoption | 1 | `in-progress` |
+| 2 | Ship consumer template and prove installed next-task adoption | 1 | `accepted` |
 
 Required order: `0 → 1 → 2`.
 
@@ -250,7 +250,7 @@ Stop before the public template, installed example, and final program proof in B
 
 ## Block 2 — Ship consumer template and prove installed next-task adoption
 
-Status: `in-progress`
+Status: `accepted`
 
 ### Objective
 
@@ -304,14 +304,16 @@ Focused mechanical proof plus a separate capability/authority/self-review pass b
 
 ### Completion evidence
 
-Implementation and installed behavior are complete; final validation remains in progress.
+Implementation, installed behavior, and final validation are complete.
 
 - Public template/API/guide checkpoint: `0cb3db59e36f794bf9188dc2593f1406d91afd3b`, pushed. Public exports, separate consumer profiles, example/public-source and legacy compatibility checks: 4 passed in 0.48s (`block2-focused.log`). Native lint, formatting (254 files) and mypy (149 files) passed.
 - Initial fresh zero-dependency wheel SHA-256: `3affee4b9536505cfd85ebd68ade1022cbdda1828b9c231b346bff44eacb2586`. Actual installed example resumed a saved proposal action, adopted offsets `[3, 4]` from `[1]`, reopened, and produced ideas `[43, 44]` with measured next-task error 0. Native disposition `verified`, result root `c5c4b041788b581b672a2cb571a123f2d0ce6771d8f376f19c71ff6c435ee6e3`, active/next-task strategy root `57d8eb3cd3cbc72e9100c2c058c508aaf308f3afa74305907890064048589824`. `block2-installed-demo.json` and independent `block2-installed-state-audit.json` retain actual completed investigation/improvement/governance/application states and three feedback records.
 - Baseline main CI run `34051288258` exposed two stale fingerprint fixtures: 830 passed, 2 failed in 6231.26s. Reviewed the prior prompt guidance, terminal outcome, improvement callback, and scoped SQLite codec changes; no authority weakening or new domain leak was found. Commit `4230652` refreshes only the provider adapter's own source root and the generic-tree expected root; all upstream artifact pins, the 102-file generic scope, and leakage checks remain unchanged. Both exact tests pass (`block2-fingerprint-fixes.log`, 2 passed in 5.47s). Review detail: `source-fingerprint-review.json`.
-- Economy adjustment preserves the complete 849-node regression scope. The initial native branch-covered run was interrupted after 10 passing adaptive cases, with no test failures (`block2-full-suite.log`). Pytest did not flush that prefix's coverage file, so its pass evidence is retained and its coverage is conservatively excluded. `block2-shards.json` partitions the remaining **839** exact collected nodes into disjoint 444/395-node native pytest runs on the two available cores. Their command/result files retain exact selection and environment. Per-fragment coverage reporting is deferred; the **unchanged global 90% gate** must pass after combining saved coverage. Supplement only missing coverage if that gate fails; do not claim prefix coverage was saved or rerun a whole matrix without a new reason.
+- Economy adjustment preserves the complete 849-node regression scope. The initial native branch-covered run was interrupted after 10 passing adaptive cases, with no test failures (`block2-full-suite.log`). Pytest did not flush that prefix's coverage file, so its pass evidence is retained and its coverage is conservatively excluded. `block2-shards.json` partitions the remaining **839** exact collected nodes into disjoint 444/395-node native pytest runs on the two available cores. Both completed successfully: **444 passed in 8433.57s** and **395 passed in 8427.21s**, with existing deprecation warnings. Their command/result files retain exact selection and environment. `block2-regression-membership.json` verifies all **849 distinct cases** are accounted for. Combining the two saved coverage fragments with `--keep` and enforcing `coverage report --fail-under=90` passed at **90.218712%** combined line/branch coverage (`block2-coverage-report.log`, `block2-coverage.json`). No supplemental run or threshold reduction was needed.
 - Final wheel SHA-256: `8e54be371b3e23cecdb0f891dfcf7745e73d49f9038f2265c0fdedad696e749b` (`dist-final/librsi-0.3.0-py3-none-any.whl`). The archive comparison proves all Python members byte-identical to the original tested wheel; only `providers/compatibility.json` and wheel `RECORD` differ (`block2-wheel-byte-review-2.json`). A fresh `wheel-venv-final` contains only libRSI, validates the installed provider fingerprint, and reopens the actual accepted profile/native states (`block2-final-installed-demo-2.json`, `block2-final-installed-state-audit.json`). Its completed-pass reuse is reported honestly as `resumed_saved_pass: false`; the original actual interruption/adoption run remains the byte-identical functional proof. The initial rebuild invocation used the evidence cwd and failed before installation; corrected cwd execution and diagnostics are retained separately.
-- Remaining: complete both native shards, enforce the global coverage threshold, reconcile the final installed artifact and unchanged protected files, accept this Block, and commit/push the accepted tracker. No feature work, production consumer edits, model spend, deployment, release, or merge remains authorized inside this program.
+- Concurrent test-efficiency work was merged into this branch as `05eca0b`, followed by repository validation guidance at `e7d8848`. It changes selection, CI cadence, documentation, and immutable fixture reuse; runtime and example bytes are unchanged. The full shards collected the pre-efficiency tests; final collection confirms the same 849-node scope. The three modified fixture consumers passed separately in 203.85s (`/srv/patent-studio/private/librsi-test-efficiency-20260906/cross-domain-after.log`). Current source, examples, and changed test files match verified efficiency commit `3504432` byte-for-byte; their lint/format checks also pass. This reuses applicable proof as required by the merged `AGENTS.md`, without restarting the full suite. No merge to main was performed by this implementation run.
+- Final reconciliation at `e7d8848` is recorded in `block2-final-reconciliation.json`: all 149 installed package members match current source; the original installed interruption/adoption and independent reopen remain current functional evidence. The later README development link changes descriptive metadata only. Untracked `uv.lock` and the archived predecessor tracker retain their recorded hashes. The capability frame and native authority boundaries are unchanged; no required product effect remains.
+- The optional terminal range gate still reports `Governing outcome member directory is unavailable or unsafe` (`block2-terminal-range-gate.log`). Full direct scope and actual installed state were reconciled locally without inventing a supervision binding. Blocks 0–2 are accepted. The final scoped documentation checkpoint records this acceptance and is pushed to `codex/librsi-adaptive-operation`; production consumer wiring, live-model quality evaluation, publication, deployment, and a new merge remain separate outcomes.
 
 ### Stop
 
