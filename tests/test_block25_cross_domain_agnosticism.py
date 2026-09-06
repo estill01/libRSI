@@ -143,8 +143,17 @@ def _run_fermenter_proof() -> CrossDomainProof:
     )
 
 
-def test_one_physical_adapter_runs_every_canonical_workflow_and_outcome_family() -> None:
-    proof = _run_fermenter_proof()
+@pytest.fixture(scope="module")
+def fermenter_proof() -> CrossDomainProof:
+    # Read-only assertions share this immutable result. The determinism test
+    # below still makes a second independent run and compares every record.
+    return _run_fermenter_proof()
+
+
+def test_one_physical_adapter_runs_every_canonical_workflow_and_outcome_family(
+    fermenter_proof: CrossDomainProof,
+) -> None:
+    proof = fermenter_proof
 
     assert proof.validation.disposition == "supported"
     assert tuple(branch.status for branch in proof.investigation.branches) == (
@@ -180,8 +189,10 @@ def test_one_physical_adapter_runs_every_canonical_workflow_and_outcome_family()
     assert proof.improvement.handoff.apply is False
 
 
-def test_fermenter_runs_are_exactly_deterministic_and_project_without_semantic_drift() -> None:
-    first = _run_fermenter_proof()
+def test_fermenter_runs_are_exactly_deterministic_and_project_without_semantic_drift(
+    fermenter_proof: CrossDomainProof,
+) -> None:
+    first = fermenter_proof
     second = _run_fermenter_proof()
 
     assert first == second
@@ -201,8 +212,10 @@ def test_fermenter_runs_are_exactly_deterministic_and_project_without_semantic_d
     assert len({item.projection_root for item in first.projections}) == 3
 
 
-def test_fermenter_actions_do_not_gain_software_or_repository_ontology() -> None:
-    proof = _run_fermenter_proof()
+def test_fermenter_actions_do_not_gain_software_or_repository_ontology(
+    fermenter_proof: CrossDomainProof,
+) -> None:
+    proof = fermenter_proof
     forbidden = re.compile(
         r"(^|[^a-z0-9])(git|github|repository|software|worktree|commit[_-]?sha)([^a-z0-9]|$)"
     )

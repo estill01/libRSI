@@ -2,6 +2,8 @@
 
 # libRSI
 
+Development: [fast and full validation commands](docs/testing.md).
+
 `libRSI` is a zero-dependency Python library of evidence-bound primitives for
 validation, investigation, improvement, and governed recursive self-improvement.
 
