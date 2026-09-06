@@ -198,6 +198,8 @@ def test_invalid_proposals_fail_without_strategy_change(tmp_path, variant):
             engine.run_task(item)
         result = engine.learn("invalid", shadow_cases=SHADOW, activate=True)
         assert result.disposition == "failed"
+        failure = store.runtime.resume("invalid:ideas").failures[-1]
+        assert failure.classification == ("execution" if variant == "error" else "invalid-result")
         assert not result.adopted and store.active == baseline and store.pending_pass is None
         assert engine.learn("no-repeat", shadow_cases=SHADOW) is None
 

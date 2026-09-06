@@ -312,7 +312,9 @@ class AdaptiveLoop:
                         action=item,
                         resource_usage={"calls": 1},
                         failure=RuntimeFailure(
-                            classification="invalid-result",
+                            classification="invalid-result"
+                            if isinstance(error, (ValueError, TypeError, KeyError))
+                            else "execution",
                             message=str(error) or type(error).__name__,
                             retryable=False,
                         ),

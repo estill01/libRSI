@@ -108,8 +108,8 @@ installed artifact identity and actual reopened state separately from test succe
 | Block | Scope | Depends on | Status |
 |---:|---|---|---|
 | 0 | Persist strategy profiles and measured feedback | — | `accepted` |
-| 1 | Run bounded improvement and native self-change adoption | 0 | `in-progress` |
-| 2 | Ship consumer template and prove installed next-task adoption | 1 | `not-started` |
+| 1 | Run bounded improvement and native self-change adoption | 0 | `accepted` |
+| 2 | Ship consumer template and prove installed next-task adoption | 1 | `in-progress` |
 
 Required order: `0 → 1 → 2`.
 
@@ -168,7 +168,7 @@ Focused mechanical proof plus a separate capability/authority/self-review pass b
 
 ### Completion evidence
 
-- Changed `local/learning.py` (SHA-256 `5f529c690c6f9c24e0315a848bda016d08347c5a8d0819a82cc475a64ec98b21`) and `tests/test_learning_store.py` (`2c96a12016333a35de2e47bd10d632b1f363aa308626f674460563d679f6792f`); scoped implementation checkpoint recorded immediately before Block 1.
+- Changed `local/learning.py` (SHA-256 `5f529c690c6f9c24e0315a848bda016d08347c5a8d0819a82cc475a64ec98b21`) and `tests/test_learning_store.py` (`2c96a12016333a35de2e47bd10d632b1f363aa308626f674460563d679f6792f`); scoped implementation checkpoint `9bf3b79`, pushed before Block 1.
 - Focused store regressions: 4 passed in 1.34s (`block0-focused.log`). Mapped existing local artifact/authority checks: 3 passed in 0.69s (`block0-mapped.log`). Changed-file ruff lint/format and mypy passed.
 - Capability frame SHA-256: `760c3f7835b791e0356bd1d44bd7118e2187c193fd7fe846311cc00d402b79be`. Selected a local application binding plus existing immutable artifact/runtime owners over copying records into another database or keeping active strategy only in process memory. No new semantic record or runtime schema was added.
 - Self-review: profile IDs qualify target identity, feedback preserves producing snapshots and recorded order, pass/task conflicts reject, cached records are immutable, and strategy data/effect identity change atomically. Runtime/application authorization remains the native workflow/runner responsibility in Block 1; this lower-level host store does not derive acceptance.
@@ -180,7 +180,7 @@ Stop before proposal generation and learning orchestration in Block 1.
 
 ## Block 1 — Run bounded improvement and native self-change adoption
 
-Status: `in-progress`
+Status: `accepted`
 
 ### Objective
 
@@ -236,7 +236,13 @@ Focused mechanical proof plus a separate capability/authority/self-review pass b
 
 ### Completion evidence
 
-Pending.
+- Implementation checkpoint `18f55080aa1e675e3134cb93f919268499dd667b` is pushed. A scoped follow-up distinguishes provider execution failure from malformed proposals. Owners: `facade/learning.py`, `learning_records.py`, `learning_host.py`, `learning_workflows.py`, `local/learning.py`, and `tests/test_adaptive_loop.py`.
+- Focused adoption, interruption, review rejection, activation-disabled, rollback, invalid-input and store tests: 15 passed in 597.64s (`block1-focused.log`). Added final result/pass binding and insufficient-effect proof: 7 passed in 87.14s (`block1-final-delta.log`); final failure-classification delta: 5 passed in 2.51s (`block1-failure-classification.log`). Overlapping proof is intentional only for changed branches; 16 distinct tests are covered across the store and loop files.
+- Four mapped existing facade, self-change approval, and application-authority regressions passed in 82.22s (`block1-mapped.log`). Ruff lint/format, mypy and tracker verification passed. Logs are under `/srv/patent-studio/private/librsi-adaptive-20260906`.
+- Current result-binding audit independently loaded completed native outcomes and checked actual profile state (`block1-result-binding-audit.log`). Accepted native root `9f965e9629ebc7fe5a216d4e41ed450124ab481f8e18be9722633be2908c45dd` retains active strategy root `85e0aa15afe7ef7f18bb20d28c952976360399de92b2f08c6246089fcb3c1cdb`. The recovery test interrupts after local activation before receipt persistence, then again after terminal-result persistence, and proves the proposer/reviewer each ran once and only remaining verification measurements resumed.
+- Capability frame SHA-256 remains `760c3f7835b791e0356bd1d44bd7118e2187c193fd7fe846311cc00d402b79be`. Native InvestigationWorkflow, ComparativeSelectionPolicy, ImprovementWorkflow and RSIWorkflow derive all dispositions. One bounded generation supplies competing full configurations; native canonical rank breaks single-objective ties. Only the local strategy pointer is applied; native governance and verification/rollback remain authoritative.
+- Self-review closed exact metric/provider/reviewer bindings, immutable pass inputs, non-leaking holdout inputs, finite case/candidate allowances, failure versus evidence separation, and both activation/terminal crash windows. No independent agent is required. Retained limits: serialized local owner, small histories, host-bounded individual calls, and possible replay of an external effect interrupted before recording. Native audit replay is CPU-heavy; schedule learning outside ordinary request handling.
+- Optional canonical range gate still returns `Governing outcome member directory is unavailable or unsafe`; no binding or supervision ledger was fabricated. Local range reconciliation: Blocks 0–1 accepted; Block 2 remains the authorized frontier. No live provider, consumer production, release, deployment or merge effects occurred.
 
 ### Stop
 
@@ -244,7 +250,7 @@ Stop before the public template, installed example, and final program proof in B
 
 ## Block 2 — Ship consumer template and prove installed next-task adoption
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 
