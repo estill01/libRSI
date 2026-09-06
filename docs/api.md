@@ -11,6 +11,11 @@ inspection, immutable artifacts, and structured transition logging. `LibRSI.for_
 is the explicitly software-repository-shaped convenience; it does not change generic
 workflow records.
 
+Filesystem snapshots include file content, symlink targets, and executable mode
+bits. Incidental timestamp changes do not alter the revision. Snapshots produced
+before executable bits were included may compare stale after upgrading; recapture
+the target and re-evaluate affected evidence instead of rewriting historical roots.
+
 The facade owns these entry paths:
 
 | Method | Input | Result or frontier | Authority boundary |

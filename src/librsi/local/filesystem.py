@@ -101,11 +101,13 @@ class LocalFilesystemInspector:
                     {"path": relative, "type": "symlink", "target": path.readlink().as_posix()}
                 )
             elif path.is_file():
+                metadata = path.stat()
                 entries.append(
                     {
                         "path": relative,
                         "type": "file",
-                        "size": path.stat().st_size,
+                        "size": metadata.st_size,
+                        "executable_bits": metadata.st_mode & 0o111,
                         "digest": self._file_digest(path),
                     }
                 )

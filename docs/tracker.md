@@ -7,7 +7,7 @@
 - Baseline: `21faded78bd1527881b93cffdef2c124d669bf9f` (2026-09-06).
 - Governing objective: the user's 2026-09-06 direction to make libRSI a lightweight, useful drop-in without prolonged engineering or token expenditure.
 - Canonical entry point and detailed status owner: `docs/tracker.md`.
-- First eligible Block: 4 (in progress).
+- First eligible Block: 5 (in progress).
 - Authoring-only hold: expired on the direct implement-tracker-blocks invocation, 2026-09-06. Full range 0–6 is authorized; no approval is required between Blocks (`carry-forward: false`).
 
 ## 1. Purpose and intended outcome
@@ -145,7 +145,7 @@ Any unavoidable protocol projection adjustment stays additive and narrowly teste
 - Direct scope: the 2026-09-06 bare skill invocation authorizes the complete current lightweight-readiness program, Blocks 0–6 and its installed example/restart outcome.
 - Optional supervision owner: discovery returned bootstrap-needed; canonical range gate returned `Governing outcome member directory is unavailable or unsafe`. No supervision group or parallel ledger was created. Reconcile the full range locally at each boundary; retry the maintained gate without substituting fabricated authority.
 - Test invocation: repository cwd `/srv/patent-studio/workspaces/libRSI`; the CI-owned `python -m pytest` chain uses `/srv/patent-studio/private/librsi-gcp/venv/bin/python` (3.13.5), editable `src/librsi`, pytest 9.1.1, existing `pyproject.toml` options and explicit node selection. `TMPDIR=/srv/patent-studio/private/tmp`; Git environment has only `GIT_PAGER`, no worktree/index overrides. Logs reside under `/srv/patent-studio/private/librsi-implementation-20260906`.
-- Capability-frame SHA-256: `f7df78fc07b132d48c5d057f09268f96646a1777bd37c403a4892c256cb9e474`. This exact frame is reused per Block while unchanged.
+- Capability-frame SHA-256: `125dc4c7a5fb77c922143ea6dbc45e869ccf35a20dc1f025469a7ac507845c88` (complete section bytes including the trailing separator newline). The earlier `f7df78fc07b132d48c5d057f09268f96646a1777bd37c403a4892c256cb9e474` omitted that separator newline; the frame content is unchanged. Reuse this corrected exact-byte identity for all current capability reviews; no implementation proof changed.
 
 ### Completion-evidence template
 
@@ -165,8 +165,8 @@ needed; this tracker owns the planning record.
 | 1 | Persist each completed embedded improvement step | 0 | `accepted` |
 | 2 | Stop owned subprocess descendants on timeout | — | `accepted` |
 | 3 | Make optional provider requests self-contained | — | `accepted` |
-| 4 | Remove redundant runtime append work | 1 | `in-progress` |
-| 5 | Detect executable-mode target changes | — | `not-started` |
+| 4 | Remove redundant runtime append work | 1 | `accepted` |
+| 5 | Detect executable-mode target changes | — | `in-progress` |
 | 6 | Ship the small embedded improvement example | 0, 1, 2, 3, 4, 5 | `not-started` |
 
 Required order: `0 → 1 → 2 → 3 → 4 → 5 → 6`.
@@ -429,7 +429,7 @@ Stop before changing runtime append behavior in Block 4.
 
 ## Block 4 — Remove redundant runtime append work
 
-Status: `in-progress`
+Status: `accepted`
 
 ### Objective
 
@@ -482,7 +482,12 @@ Focused mechanical proof plus a separate diff/self-review pass for the stated ac
 
 ### Completion evidence
 
-Pending.
+- Implementation commit: `38e3ef4`; candidate root `cc9b3fd747f790e416819a3bf4e1d8e0e098b5cfa80953f40cdf8a04c0ba6974`; pushed to the existing origin branch.
+- One profiling pass identified canonical serialization/decoding as the dominant duplicate work. One selected optimization reused exact-byte decodes and object-identity encodings within a single operation; no corrective performance iteration was needed.
+- Matched ten-action median append CPU: 8.0378s baseline versus 5.0936s candidate (ratio 0.6337, 36.6% reduction; 3 samples each). Five-action unprofiled medians: 1.6053s versus 1.0859s. Profiling overhead sample excluded. Roots and database sizes agree; shared-host wall time is diagnostic. Both benchmark sets completed within the 120s bound. Evidence: `block4-profile.txt`, `block4-baseline.jsonl`, `block4-candidate.jsonl`, `block4-comparison.json`.
+- Focused prefix-trigger/inter-operation corruption checks: 2 passed in 0.65s. Mapped runtime-store/integrity checks: 17 passed in 5.23s. Lint/format and mypy passed.
+- Product-capability review: consequential; frame hash reused. Selected operation-local codec reuse over a weaker prefix shortcut or storage redesign. All row/chain/schema/replay checks still execute, including trigger-mutated old bytes. Encoding retains object references; no cache survives an operation. Tradeoff: temporary per-operation memory for lower CPU, with long-history scalability still deferred.
+- Self-review: no schema/version change, no cross-request trust, no engine bypass. No independent review required. Post-Block audit: accepted; no remaining Block 4 performance work.
 
 ### Stop
 
@@ -490,7 +495,7 @@ Stop before snapshot semantics in Block 5; do not expand into a persistence rede
 
 ## Block 5 — Detect executable-mode target changes
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 
