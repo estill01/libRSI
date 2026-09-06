@@ -7,6 +7,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from ..reasoning import ReasoningRequest, ReasoningResult
+from ..reasoning.schemas import REASONING_CONTENT_GUIDANCE
 
 _MAX_PROVIDER_RESPONSE_BYTES = 2 * 1024 * 1024
 
@@ -17,7 +18,13 @@ def reasoning_prompt(request: ReasoningRequest) -> str:
     envelope = {
         "task": request.to_dict(),
         "response_contract": {
-            "content": "exact libRSI structured content for task.kind",
+            "content": REASONING_CONTENT_GUIDANCE[request.kind],
+            "content_rules": (
+                "Fill the described fields with task-specific proposal values. All listed fields "
+                "are required; no extra fields in the described objects. Text must contain a "
+                "non-whitespace character. Arrays must be nonempty unless stated otherwise. "
+                "Free-form objects accept arbitrary string keys and JSON values, including {}."
+            ),
             "narration": "optional proposal-only explanation",
         },
         "authority": (

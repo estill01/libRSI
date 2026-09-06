@@ -7,7 +7,7 @@
 - Baseline: `21faded78bd1527881b93cffdef2c124d669bf9f` (2026-09-06).
 - Governing objective: the user's 2026-09-06 direction to make libRSI a lightweight, useful drop-in without prolonged engineering or token expenditure.
 - Canonical entry point and detailed status owner: `docs/tracker.md`.
-- First eligible Block: 2 (in progress).
+- First eligible Block: 3 (in progress).
 - Authoring-only hold: expired on the direct implement-tracker-blocks invocation, 2026-09-06. Full range 0–6 is authorized; no approval is required between Blocks (`carry-forward: false`).
 
 ## 1. Purpose and intended outcome
@@ -163,8 +163,8 @@ needed; this tracker owns the planning record.
 |---:|---|---|---|
 | 0 | Honest terminal status and failure retrieval | — | `accepted` |
 | 1 | Persist each completed embedded improvement step | 0 | `accepted` |
-| 2 | Stop owned subprocess descendants on timeout | — | `in-progress` |
-| 3 | Make optional provider requests self-contained | — | `not-started` |
+| 2 | Stop owned subprocess descendants on timeout | — | `accepted` |
+| 3 | Make optional provider requests self-contained | — | `in-progress` |
 | 4 | Remove redundant runtime append work | 1 | `not-started` |
 | 5 | Detect executable-mode target changes | — | `not-started` |
 | 6 | Ship the small embedded improvement example | 0, 1, 2, 3, 4, 5 | `not-started` |
@@ -304,7 +304,7 @@ Stop before process execution cleanup in Block 2.
 
 ## Block 2 — Stop owned subprocess descendants on timeout
 
-Status: `in-progress`
+Status: `accepted`
 
 ### Objective
 
@@ -356,7 +356,10 @@ Focused mechanical proof plus a separate diff/self-review pass for the stated ac
 
 ### Completion evidence
 
-Pending.
+- Implementation commit: `98104fa`; candidate root `72ca0c2013caeb5f25bd4595be23369f89ed38889b67cd77a2bf5f78f309ba32`; pushed to the existing origin branch.
+- Changed owner: local command process lifecycle, adapter regressions, and README authority/platform note. Six focused command cases passed in 8.04s, including SIGTERM-ignoring descendant, unrelated process survival, partial output, and nonzero exit; mapped hypothesis/facade integration passed in 0.98s. Lint/format and mypy passed. Logs: `block2-focused.log`, `block2-mapped.log`.
+- Product-capability review: consequential; frame hash reused. Selected standard-library owned process-group cleanup through LocalCommandRunner over direct-child-only cleanup or a container/resource-management backend. Invalid-execution neutrality and exact inputs are preserved.
+- Self-review: always escalate against the owned group even if the parent exits first; pipe drainage is bounded. POSIX groups are supported, deliberate group escape and non-POSIX descendant containment are excluded and documented. No independent review required. Post-Block audit: accepted.
 
 ### Stop
 
@@ -364,7 +367,7 @@ Stop before provider contract work in Block 3.
 
 ## Block 3 — Make optional provider requests self-contained
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 

@@ -19,6 +19,48 @@ REASONING_KINDS = frozenset(
     }
 )
 
+# Prompt guidance lives beside the authoritative validators. These descriptions
+# do not replace validation or introduce a second provider-specific schema.
+REASONING_CONTENT_GUIDANCE: Mapping[str, str] = MappingProxyType(
+    {
+        "reflection": (
+            'Object: "summary" (text), "observations" (array of text), '
+            '"open_questions" (array of text; may be empty).'
+        ),
+        "hypothesis-generation": (
+            'Object: "hypotheses" (array of objects). Each hypothesis has '
+            '"statement" (text), "causal_model" (free-form object), '
+            '"predictions" (array of free-form objects), "confidence" '
+            "(finite number from 0 to 1 inclusive; not a boolean)."
+        ),
+        "experiment-design": (
+            'Object: "experiments" (array of objects). Each experiment has '
+            '"objective" (text), "design" (free-form object), "criteria" '
+            '(free-form object), "requested_measurements" (array of text).'
+        ),
+        "explanation": (
+            'Object: "explanations" (array of objects). Each explanation has '
+            '"statement" (text) and "basis" (array of text).'
+        ),
+        "intervention-generation": (
+            'Object: "interventions" (array of objects). Each intervention has '
+            '"kind" (text), "specification" (free-form object), "rationale" '
+            '(free-form object), and "expected_effects" (free-form object).'
+        ),
+        "problem-decomposition": (
+            'Object: "parts" (array of objects). Each part has "part_id" (text), '
+            '"objective" (text), and "depends_on" (array of part_id text; may be empty). '
+            "Trimmed part_id values must be unique. Every dependency must name a known part; "
+            "no self-dependencies or dependency cycles."
+        ),
+        "approach-revision": (
+            'Object: "revisions" (array of objects). Each revision has "subject" '
+            '(text), "problem" (text), "proposed_change" (free-form object), '
+            'and "rationale" (text).'
+        ),
+    }
+)
+
 
 def _require_text(value: object, label: str) -> str:
     if not isinstance(value, str):

@@ -10,6 +10,13 @@ configuration. libRSI does not serialize credentials or provider response
 objects into canonical records. Deterministic fake clients are the ordinary
 test path; live calls require separate credential and spend authority.
 
+The shared prompt supplies the required content fields and value constraints for
+each reasoning kind, including nested proposals. Callers supply the task and its
+context; they do not need to repeat libRSI's response schema. This guidance is
+maintained beside the strict reasoning validators, which still reject missing or
+extra fields and invalid values. No provider-native structured-output option is
+required, and a well-shaped response remains a proposal rather than evidence.
+
 The internal Codex adapter is pinned to terminal accepted utils revision
 `a5659745a7cbcbb002b5f06051f6ed9826f721a7` and its unchanged exact package
 source/artifact roots,
