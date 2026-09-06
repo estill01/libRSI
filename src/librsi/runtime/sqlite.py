@@ -42,6 +42,41 @@ def _require_run_id(value: str) -> str:
     return normalized
 
 
+class _RecordCodec:
+    """Reuse immutable record work only within one store operation.
+
+    Decoding is keyed by exact bytes, never a claimed root. Encoding retains its
+    object alongside the identity key so garbage collection cannot recycle it.
+    Row/chain/schema validation and deterministic replay still run on every read.
+    """
+
+    def __init__(self) -> None:
+        self._decoded: dict[str, SemanticRecord] = {}
+        self._encoded: dict[int, tuple[SemanticRecord, str]] = {}
+
+    def decode(
+        self,
+        serialized: str,
+        expected_class: type[_RecordT],
+        *,
+        expected_root: str,
+    ) -> _RecordT:
+        record = self._decoded.get(serialized)
+        if record is None:
+            record = deserialize_record(serialized)
+            self._decoded[serialized] = record
+        if not isinstance(record, expected_class) or record.root != expected_root:
+            raise ValueError("stored runtime type/root does not match canonical bytes")
+        return record
+
+    def serialize(self, record: SemanticRecord) -> str:
+        cached = self._encoded.get(id(record))
+        if cached is None:
+            cached = (record, serialize_record(record))
+            self._encoded[id(record)] = cached
+        return cached[1]
+
+
 class SQLiteRuntimeStore:
     """Zero-service append-only runtime storage with replay-checked materialization."""
 
@@ -76,31 +111,19 @@ class SQLiteRuntimeStore:
         if self._closed:
             raise RuntimeError("SQLite runtime store is closed")
 
-    @staticmethod
-    def _decode(
-        serialized: str,
-        expected_class: type[_RecordT],
-        *,
-        expected_root: str,
-    ) -> _RecordT:
-        record = deserialize_record(serialized)
-        if not isinstance(record, expected_class) or record.root != expected_root:
-            raise ValueError("stored runtime type/root does not match canonical bytes")
-        return record
-
-    def _run_locked(self, run_id: str) -> Run | None:
+    def _run_locked(self, run_id: str, codec: _RecordCodec) -> Run | None:
         row = self._connection.execute(
             "SELECT run_id, run_root, serialized FROM runtime_runs WHERE run_id = ?",
             (run_id,),
         ).fetchone()
         if row is None:
             return None
-        run = self._decode(row["serialized"], Run, expected_root=row["run_root"])
+        run = codec.decode(row["serialized"], Run, expected_root=row["run_root"])
         if run.run_id != row["run_id"] or run.run_id != run_id:
             raise ValueError("stored runtime run identity diverges from canonical bytes")
         return run
 
-    def _events_locked(self, run: Run) -> tuple[Event, ...]:
+    def _events_locked(self, run: Run, codec: _RecordCodec) -> tuple[Event, ...]:
         rows = self._connection.execute(
             """
             SELECT run_id, sequence, event_root, serialized
@@ -110,7 +133,7 @@ class SQLiteRuntimeStore:
         ).fetchall()
         events: list[Event] = []
         for expected_sequence, row in enumerate(rows):
-            event = self._decode(row["serialized"], Event, expected_root=row["event_root"])
+            event = codec.decode(row["serialized"], Event, expected_root=row["event_root"])
             if (
                 row["run_id"] != run.run_id
                 or row["sequence"] != expected_sequence
@@ -121,7 +144,7 @@ class SQLiteRuntimeStore:
             events.append(event)
         return tuple(events)
 
-    def _states_locked(self, run: Run) -> tuple[RunState, ...]:
+    def _states_locked(self, run: Run, codec: _RecordCodec) -> tuple[RunState, ...]:
         rows = self._connection.execute(
             """
             SELECT state_root, run_id, sequence, serialized
@@ -131,18 +154,18 @@ class SQLiteRuntimeStore:
         ).fetchall()
         states: list[RunState] = []
         for expected_sequence, row in enumerate(rows):
-            state = self._decode(row["serialized"], RunState, expected_root=row["state_root"])
+            state = codec.decode(row["serialized"], RunState, expected_root=row["state_root"])
             if (
                 row["run_id"] != run.run_id
                 or row["sequence"] != expected_sequence
                 or state.sequence != expected_sequence
-                or serialize_record(state.run) != serialize_record(run)
+                or codec.serialize(state.run) != codec.serialize(run)
             ):
                 raise ValueError("stored runtime state history has a gap or identity drift")
             states.append(state)
         return tuple(states)
 
-    def _transitions_locked(self, run: Run) -> tuple[Transition, ...]:
+    def _transitions_locked(self, run: Run, codec: _RecordCodec) -> tuple[Transition, ...]:
         rows = self._connection.execute(
             """
             SELECT transition_root, run_id, sequence, event_root,
@@ -153,7 +176,7 @@ class SQLiteRuntimeStore:
         ).fetchall()
         transitions: list[Transition] = []
         for expected_sequence, row in enumerate(rows):
-            transition = self._decode(
+            transition = codec.decode(
                 row["serialized"],
                 Transition,
                 expected_root=row["transition_root"],
@@ -172,13 +195,16 @@ class SQLiteRuntimeStore:
             transitions.append(transition)
         return tuple(transitions)
 
-    def _history_locked(self, run_id: str) -> _RuntimeHistory | None:
-        run = self._run_locked(run_id)
+    def _history_locked(
+        self, run_id: str, codec: _RecordCodec | None = None
+    ) -> _RuntimeHistory | None:
+        codec = _RecordCodec() if codec is None else codec
+        run = self._run_locked(run_id, codec)
         if run is None:
             return None
-        events = self._events_locked(run)
-        states = self._states_locked(run)
-        transitions = self._transitions_locked(run)
+        events = self._events_locked(run, codec)
+        states = self._states_locked(run, codec)
+        transitions = self._transitions_locked(run, codec)
         if not events or len(events) != len(states) or len(events) != len(transitions):
             raise ValueError("stored runtime history is incomplete")
 
@@ -190,8 +216,8 @@ class SQLiteRuntimeStore:
             if (
                 transition.prior_state != expected_prior
                 or event.previous_event != expected_previous
-                or serialize_record(transition.event) != serialize_record(event)
-                or serialize_record(transition.next_state) != serialize_record(state)
+                or codec.serialize(transition.event) != codec.serialize(event)
+                or codec.serialize(transition.next_state) != codec.serialize(state)
             ):
                 raise ValueError("stored runtime transition chain is not exact")
 
@@ -212,7 +238,7 @@ class SQLiteRuntimeStore:
 
         replayed = RuntimeEngine.replay_trace(run, events)
         if len(replayed) != len(transitions) or any(
-            serialize_record(actual) != serialize_record(stored)
+            codec.serialize(actual) != codec.serialize(stored)
             for actual, stored in zip(replayed, transitions, strict=True)
         ):
             raise ValueError("stored runtime history diverges from deterministic replay")
@@ -224,15 +250,16 @@ class SQLiteRuntimeStore:
             raise TypeError("runtime append requires a Transition")
         run = transition.next_state.run
         run_id = run.run_id
-        transition_bytes = serialize_record(transition)
-        event_bytes = serialize_record(transition.event)
-        state_bytes = serialize_record(transition.next_state)
-        run_bytes = serialize_record(run)
+        codec = _RecordCodec()
+        transition_bytes = codec.serialize(transition)
+        event_bytes = codec.serialize(transition.event)
+        state_bytes = codec.serialize(transition.next_state)
+        run_bytes = codec.serialize(run)
 
         self._connection.execute("BEGIN IMMEDIATE")
         try:
             validate_runtime_schema(self._connection)
-            history = self._history_locked(run_id)
+            history = self._history_locked(run_id, codec)
             conflicts = self._connection.execute(
                 """
                 SELECT transition_root, run_id, sequence, serialized
@@ -264,7 +291,7 @@ class SQLiteRuntimeStore:
                 )
                 candidate_events = (transition.event,)
             else:
-                if serialize_record(history.run) != run_bytes:
+                if codec.serialize(history.run) != run_bytes:
                     raise ValueError("runtime transition run diverges from stored run bytes")
                 if transition.event.sequence != history.state.sequence + 1:
                     raise RSITransitionError("runtime transition sequence is not append-only")
@@ -275,7 +302,7 @@ class SQLiteRuntimeStore:
                 candidate_events = (*history.events, transition.event)
 
             expected = RuntimeEngine.replay_trace(run, candidate_events)[-1]
-            if serialize_record(expected) != transition_bytes:
+            if codec.serialize(expected) != transition_bytes:
                 raise RSITransitionError(
                     "runtime transition is not the deterministic result of its event history"
                 )
@@ -343,7 +370,7 @@ class SQLiteRuntimeStore:
                 if updated.rowcount != 1:
                     raise ValueError("runtime current state changed during append")
 
-            stored = self._history_locked(run_id)
+            stored = self._history_locked(run_id, codec)
             if stored is None:  # pragma: no cover - transaction insertion invariant
                 raise RuntimeError("runtime history disappeared during append")
             self._connection.commit()

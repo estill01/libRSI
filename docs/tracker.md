@@ -7,7 +7,7 @@
 - Baseline: `21faded78bd1527881b93cffdef2c124d669bf9f` (2026-09-06).
 - Governing objective: the user's 2026-09-06 direction to make libRSI a lightweight, useful drop-in without prolonged engineering or token expenditure.
 - Canonical entry point and detailed status owner: `docs/tracker.md`.
-- First eligible Block: 3 (in progress).
+- First eligible Block: 4 (in progress).
 - Authoring-only hold: expired on the direct implement-tracker-blocks invocation, 2026-09-06. Full range 0–6 is authorized; no approval is required between Blocks (`carry-forward: false`).
 
 ## 1. Purpose and intended outcome
@@ -164,8 +164,8 @@ needed; this tracker owns the planning record.
 | 0 | Honest terminal status and failure retrieval | — | `accepted` |
 | 1 | Persist each completed embedded improvement step | 0 | `accepted` |
 | 2 | Stop owned subprocess descendants on timeout | — | `accepted` |
-| 3 | Make optional provider requests self-contained | — | `in-progress` |
-| 4 | Remove redundant runtime append work | 1 | `not-started` |
+| 3 | Make optional provider requests self-contained | — | `accepted` |
+| 4 | Remove redundant runtime append work | 1 | `in-progress` |
 | 5 | Detect executable-mode target changes | — | `not-started` |
 | 6 | Ship the small embedded improvement example | 0, 1, 2, 3, 4, 5 | `not-started` |
 
@@ -367,7 +367,7 @@ Stop before provider contract work in Block 3.
 
 ## Block 3 — Make optional provider requests self-contained
 
-Status: `in-progress`
+Status: `accepted`
 
 ### Objective
 
@@ -418,7 +418,10 @@ Focused mechanical proof plus a separate diff/self-review pass for the stated ac
 
 ### Completion evidence
 
-Pending.
+- Implementation commit: `1eaf48c`; candidate root `a6e4a1373ff6f161152856857259746f112f08e3cf8930ecc5051d03a95ba0f4`; pushed to the existing origin branch.
+- Seven reasoning kinds receive field/type/value guidance through the existing prompt; strict validation and adapter invocation are unchanged. Reused the established request/lineage fixture after two diagnostic fixture-construction failures. Final focused/mapped proof: 25 passed in 1.40s (`block3-tests-final.log`); lint/format and mypy passed. No live provider calls.
+- Product-capability review: consequential, frame hash reused. Selected a small guidance mapping beside existing validators over caller-supplied hidden schemas or a schema/provider framework. Fake-client round trips, missing/extra-field rejection, adversarial validation, and SDK-free core import preserve the declared boundary.
+- Self-review: free-form fields remain explicitly distinct from closed proposal shapes; confidence and decomposition constraints are described. Client lifecycle remains deferred. No independent review required. Post-Block audit: accepted.
 
 ### Stop
 
@@ -426,7 +429,7 @@ Stop before changing runtime append behavior in Block 4.
 
 ## Block 4 — Remove redundant runtime append work
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 
