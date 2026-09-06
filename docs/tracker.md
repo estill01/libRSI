@@ -1,14 +1,14 @@
 # libRSI Lightweight Readiness Implementation Tracker
 
-- Tracker status: `planning`
+- Tracker status: `in-progress`
 - Tracker sequence: Blocks 0–6
 - Program identity: `lightweight-readiness`; qualify references as `lightweight-readiness/Block N`.
 - Repository: `https://github.com/estill01/libRSI`
 - Baseline: `21faded78bd1527881b93cffdef2c124d669bf9f` (2026-09-06).
 - Governing objective: the user's 2026-09-06 direction to make libRSI a lightweight, useful drop-in without prolonged engineering or token expenditure.
 - Canonical entry point and detailed status owner: `docs/tracker.md`.
-- First eligible Block: 0, after the user authorizes implementation.
-- Authoring-only hold: this program's implementation is not started. The hold expires on a subsequent direct kickoff instruction; it does not require approval between Blocks (`carry-forward: false`).
+- First eligible Block: 0 (in progress).
+- Authoring-only hold: expired on the direct implement-tracker-blocks invocation, 2026-09-06. Full range 0–6 is authorized; no approval is required between Blocks (`carry-forward: false`).
 
 ## 1. Purpose and intended outcome
 
@@ -81,8 +81,8 @@ Its SHA-256 is `d7f9068d73f3c513e888ff9fd208eea43e8b409da3f2963ef09e4193c6fd706b
 Its conflicting active header and terminal-completion prose remain historical
 claims; this planning change does not adjudicate them or reactivate old supervision.
 
-Exactly one current program is selected: `lightweight-readiness`, in planning.
-There is no required successor queue. The first eligible Block is 0 after kickoff;
+Exactly one current program is selected: `lightweight-readiness`, in progress.
+There is no required successor queue. The first eligible Block is 0;
 all existing architecture-program Block identities remain historical and unchanged.
 
 | Other planning document | Disposition |
@@ -140,6 +140,13 @@ Any unavoidable protocol projection adjustment stays additive and narrowly teste
 9. Record local scoped checkpoints. Remote publication/deployment is excluded. Ordinary implementation choices within this plan need no new user gate. A missing input blocks only its actual dependent work; preserve that boundary and continue unaffected work.
 10. Accept each Block only when its acceptance and mapped proof hold. After the final observable outcome, stop; exclusions do not become fresh tasks.
 
+### Current execution binding
+
+- Direct scope: the 2026-09-06 bare skill invocation authorizes the complete current lightweight-readiness program, Blocks 0–6 and its installed example/restart outcome.
+- Optional supervision owner: discovery returned bootstrap-needed; canonical range gate returned `Governing outcome member directory is unavailable or unsafe`. No supervision group or parallel ledger was created. Reconcile the full range locally at each boundary; retry the maintained gate without substituting fabricated authority.
+- Test invocation: repository cwd `/srv/patent-studio/workspaces/libRSI`; the CI-owned `python -m pytest` chain uses `/srv/patent-studio/private/librsi-gcp/venv/bin/python` (3.13.5), editable `src/librsi`, pytest 9.1.1, existing `pyproject.toml` options and explicit node selection. `TMPDIR=/srv/patent-studio/private/tmp`; Git environment has only `GIT_PAGER`, no worktree/index overrides. Logs reside under `/srv/patent-studio/private/librsi-implementation-20260906`.
+- Capability-frame SHA-256: `f7df78fc07b132d48c5d057f09268f96646a1777bd37c403a4892c256cb9e474`. This exact frame is reused per Block while unchanged.
+
 ### Completion-evidence template
 
 For each Block replace `Pending.` with: exact implementation commit/content root;
@@ -154,7 +161,7 @@ needed; this tracker owns the planning record.
 
 | Block | Scope | Depends on | Status |
 |---:|---|---|---|
-| 0 | Honest terminal status and failure retrieval | — | `not-started` |
+| 0 | Honest terminal status and failure retrieval | — | `in-progress` |
 | 1 | Persist each completed embedded improvement step | 0 | `not-started` |
 | 2 | Stop owned subprocess descendants on timeout | — | `not-started` |
 | 3 | Make optional provider requests self-contained | — | `not-started` |
@@ -169,7 +176,7 @@ while 4 is open, but terminal program acceptance still requires all seven Blocks
 
 ## Block 0 — Honest terminal status and failure retrieval
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 

@@ -30,6 +30,7 @@ from ..projections import project_result, projection_to_dict
 from ..records import EvidenceRef, TargetSnapshot
 from ..rsi import RSIProgress, RSIRequest, RSIUpdate, RSIWorkflow
 from ..runtime import (
+    TERMINAL_RUN_STATUSES,
     ActionResult,
     RunBudget,
     RunState,
@@ -330,10 +331,15 @@ class ExternalAgentController:
                 "workflow": binding.workflow,
                 "status": state.status,
                 "sequence": state.sequence,
-                "terminal": progress.result is not None,
+                "terminal": state.status in TERMINAL_RUN_STATUSES,
                 "pending_action_roots": [item.root for item in state.pending_actions],
                 "result_root": None if progress.result is None else progress.result.root,
                 "target_snapshot_root": binding.current_snapshot.root,
+                **(
+                    {"failures": [item.to_dict() for item in state.failures]}
+                    if state.failures
+                    else {}
+                ),
             },
         )
 
@@ -351,7 +357,7 @@ class ExternalAgentController:
         binding = self._binding(run_id)
         binding, progress = self._resume(binding)
         state = progress.state
-        if progress.result is not None:
+        if state.status in TERMINAL_RUN_STATUSES:
             raise ValueError("external run is terminal; use outcome")
         if len(state.pending_actions) != 1:
             raise ValueError("external run does not expose exactly one pending action")
@@ -390,7 +396,10 @@ class ExternalAgentController:
     ) -> dict[str, Any]:
         binding = self._binding(run_id)
         binding, progress = self._resume(binding)
-        if progress.result is not None or len(progress.state.pending_actions) != 1:
+        if (
+            progress.state.status in TERMINAL_RUN_STATUSES
+            or len(progress.state.pending_actions) != 1
+        ):
             raise ValueError("external run does not accept another result")
         action = progress.state.pending_actions[0]
         if type(result) is not ActionResult or result.action != action:
@@ -439,8 +448,24 @@ class ExternalAgentController:
     def outcome(self, run_id: str) -> dict[str, Any]:
         binding = self._binding(run_id)
         binding, progress = self._resume(binding)
-        if progress.result is None:
+        state = progress.state
+        if state.status not in TERMINAL_RUN_STATUSES:
             raise ValueError("external run has no terminal outcome")
+        if progress.result is None:
+            if state.status not in {"failed", "cancelled"} or state.outcome is None:
+                raise ValueError("external terminal run lost its outcome")
+            return response_document(
+                "outcome",
+                run_id=run_id,
+                state_root=state.root,
+                data={
+                    "projection": None,
+                    "workflow": binding.workflow,
+                    "status": state.status,
+                    "outcome": state.outcome.to_dict(),
+                    "failures": [item.to_dict() for item in state.failures],
+                },
+            )
         projection = project_result(progress.result)
         return response_document(
             "outcome",

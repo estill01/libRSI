@@ -24,6 +24,15 @@ shape. `status`, `next`, `resume`, and `outcome` accept the canonical run ID.
 Every successful command emits exactly one JSON object on stdout. Errors emit
 one `librsi.external-error/v1` object on stderr and exit with status 2.
 
+`data.terminal` follows the canonical run status, including failure and supported
+cancellation. Status responses include recorded `failures` when present. Successful
+workflow outcomes retain their existing `data.projection` shape. If a failed or
+cancelled workflow has no domain result, `outcome` instead returns
+`data.projection: null` together with `workflow`, `status`, the canonical runtime
+`outcome`, and recorded `failures`. This reports operational termination without
+inventing a successful improvement or evidence. Repeated managed execution of a
+terminal run performs no further actions.
+
 For example, a successful target submission uses the common envelope and does
 not claim a run or runtime state:
 
