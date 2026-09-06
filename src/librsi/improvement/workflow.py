@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Callable
 from dataclasses import dataclass
 
 from ..records import EvidenceRef, Outcome, TargetSnapshot
@@ -278,7 +279,12 @@ class ImprovementWorkflow:
         *,
         provider: ImprovementCycleProvider,
         current_snapshot: TargetSnapshot,
+        on_update: Callable[[ImprovementUpdate], None] | None = None,
     ) -> ImprovementUpdate:
+        """Run cycles, optionally recording each update before the next effect."""
+
+        if on_update is not None and not callable(on_update):
+            raise TypeError("managed improvement update callback must be callable")
         resumed = self.resume(
             progress.request,
             progress.state,
@@ -286,6 +292,8 @@ class ImprovementWorkflow:
         )
         if not resumed.transitions and resumed.progress != progress:
             raise ValueError("managed improvement progress is not canonical")
+        if on_update is not None:
+            on_update(resumed)
         transitions: list[Transition] = list(resumed.transitions)
         current = resumed.progress
         while not current.terminal:
@@ -307,6 +315,8 @@ class ImprovementWorkflow:
                 result,
                 current_snapshot=current_snapshot,
             )
+            if on_update is not None:
+                on_update(update)
             transitions.extend(update.transitions)
             current = update.progress
         return ImprovementUpdate(current, tuple(transitions))

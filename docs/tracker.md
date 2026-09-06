@@ -7,7 +7,7 @@
 - Baseline: `21faded78bd1527881b93cffdef2c124d669bf9f` (2026-09-06).
 - Governing objective: the user's 2026-09-06 direction to make libRSI a lightweight, useful drop-in without prolonged engineering or token expenditure.
 - Canonical entry point and detailed status owner: `docs/tracker.md`.
-- First eligible Block: 0 (in progress).
+- First eligible Block: 1 (in progress).
 - Authoring-only hold: expired on the direct implement-tracker-blocks invocation, 2026-09-06. Full range 0–6 is authorized; no approval is required between Blocks (`carry-forward: false`).
 
 ## 1. Purpose and intended outcome
@@ -161,8 +161,8 @@ needed; this tracker owns the planning record.
 
 | Block | Scope | Depends on | Status |
 |---:|---|---|---|
-| 0 | Honest terminal status and failure retrieval | — | `in-progress` |
-| 1 | Persist each completed embedded improvement step | 0 | `not-started` |
+| 0 | Honest terminal status and failure retrieval | — | `accepted` |
+| 1 | Persist each completed embedded improvement step | 0 | `in-progress` |
 | 2 | Stop owned subprocess descendants on timeout | — | `not-started` |
 | 3 | Make optional provider requests self-contained | — | `not-started` |
 | 4 | Remove redundant runtime append work | 1 | `not-started` |
@@ -176,7 +176,7 @@ while 4 is open, but terminal program acceptance still requires all seven Blocks
 
 ## Block 0 — Honest terminal status and failure retrieval
 
-Status: `in-progress`
+Status: `accepted`
 
 ### Objective
 
@@ -228,7 +228,12 @@ Focused mechanical proof plus a separate diff/self-review pass for the stated ac
 
 ### Completion evidence
 
-Pending.
+- Implementation commit: `1e8bd71` (pushed to `origin/codex/librsi-lightweight-readiness-plan`).
+- Frozen candidate root: `9a57766d0209ed9d33734750713cbdddb7ead12c5c49e4dc6026a39543574a08`; controller, new terminal regressions, and protocol documentation.
+- Validation: 8 initial focused cases passed; the RSI fixture needed its existing external capability routes and then passed with 5 mapped compatibility cases (6 passed in 40.38s). Initial fixture failure is diagnostic, not an implementation failure. Lint, formatting, and controller mypy passed. Logs: `block0-focused.log`, `block0-mapped.log` in the execution directory.
+- Product-capability review: consequential; frame hash in current execution binding. Selected direct controller projection through runtime terminal statuses. A new failure-result domain record or workflow superclass adds cost without necessary capability. Successful projections, explicit RSI authority, retry waiting, and supported cancellation preserved by current behavioral checks.
+- Self-review: no fabricated successful result, unchanged success envelope, additive failure data. No independent reviewer required. Post-Block audit: accepted; no open Block 0 items.
+- Canonical supervision gate unavailable as recorded above; local range remains all seven Blocks, with Blocks 1–6 pending.
 
 ### Stop
 
@@ -236,7 +241,7 @@ Stop before changing the embedded persistence loop owned by Block 1.
 
 ## Block 1 — Persist each completed embedded improvement step
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 

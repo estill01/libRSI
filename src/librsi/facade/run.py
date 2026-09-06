@@ -199,12 +199,12 @@ class LibRSIRun:
             if self._current_snapshot is None:
                 raise ValueError("managed improvement requires a current snapshot")
             assert isinstance(self._workflow, ImprovementWorkflow)
-            update = self._workflow.run_managed(
+            self._workflow.run_managed(
                 self._progress,
                 provider=self._improvement_provider,
                 current_snapshot=self._current_snapshot,
+                on_update=self._accept,
             )
-            self._accept(update)
             return self
         if isinstance(self._progress, RSIProgress):
             if self._current_snapshot is None:
