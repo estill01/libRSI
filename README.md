@@ -88,6 +88,8 @@ decoder, and keeps transport metadata outside semantic identity. A minimal repla
 `ProjectionStore` persists metadata-free canonical documents without becoming another
 runtime authority.
 
+`AdaptiveLoop` adds a reusable feedback-to-strategy cycle: ordinary tasks record measured outcomes, bounded passes propose and evaluate revisions, and native self-change governance verifies adoption before the next task uses the new strategy. Start with the [adaptive operation guide](docs/adaptive-operation.md) and [runnable consumer template](examples/adaptive_strategy.py).
+
 ## Install
 
 `0.3.0` is a release candidate, not a published distribution. The libRSI-owned source

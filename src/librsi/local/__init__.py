@@ -4,6 +4,7 @@ from .artifacts import LocalArtifactStore
 from .commands import LocalCommandRunner
 from .filesystem import LocalFilesystemInspector
 from .layout import LocalLayout
+from .learning import LocalLearningStore
 from .logging import LoggingTransitionSink
 from .protocols import ArtifactStore, TransitionSink, WorkspaceInspector, emit_transitions
 
@@ -13,6 +14,7 @@ __all__ = [
     "LocalCommandRunner",
     "LocalFilesystemInspector",
     "LocalLayout",
+    "LocalLearningStore",
     "LoggingTransitionSink",
     "TransitionSink",
     "WorkspaceInspector",

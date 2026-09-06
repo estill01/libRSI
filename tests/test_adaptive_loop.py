@@ -2,10 +2,8 @@ from __future__ import annotations
 
 import pytest
 
+from librsi import AdaptiveLoop, LearningCase, LearningPolicy, LocalLearningStore, TaskMeasurement
 from librsi.comparison import CandidateReview
-from librsi.facade.learning import AdaptiveLoop
-from librsi.facade.learning_records import LearningCase, LearningPolicy, TaskMeasurement
-from librsi.local.learning import LocalLearningStore
 from librsi.reasoning import ReasoningResult
 from librsi.records import Metric
 from librsi.rsi import make_review_result, review_command_from_action
@@ -308,3 +306,32 @@ def test_supported_but_insufficient_effect_is_not_adopted(tmp_path):
         assert result.native.handoff is None
         assert result.native.iterations
         assert not result.adopted and store.active == baseline and store.pending_pass is None
+
+
+def test_public_consumer_profiles_keep_feedback_and_strategy_separate(tmp_path):
+    import librsi
+
+    public = {
+        "AdaptiveLoop",
+        "LearningAdapter",
+        "LearningCase",
+        "LearningPolicy",
+        "LearningResult",
+        "LocalLearningStore",
+        "TaskMeasurement",
+    }
+    assert public <= set(librsi.__all__)
+    with (
+        LocalLearningStore(
+            tmp_path / "a", profile_id="consumer-a", initial_configuration={"offsets": [1]}
+        ) as a,
+        LocalLearningStore(
+            tmp_path / "b", profile_id="consumer-b", initial_configuration={"offsets": [1]}
+        ) as b,
+    ):
+        first = loop(a).run_task(TRAIN[0])
+        second = loop(b).run_task(TRAIN[1])
+        assert first.target_snapshot != second.target_snapshot
+        assert a.feedback() == (first,) and b.feedback() == (second,)
+        assert loop(a).learn("a", shadow_cases=SHADOW) is None
+        assert loop(b).learn("b", shadow_cases=SHADOW) is None

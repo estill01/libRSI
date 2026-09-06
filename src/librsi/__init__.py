@@ -105,12 +105,18 @@ from .evaluation import (
 )
 from .experiments import ExperimentPolicy
 from .facade import (
+    AdaptiveLoop,
     FacadeProgress,
     FacadeResult,
     FacadeUpdate,
     HypothesisTestResult,
+    LearningAdapter,
+    LearningCase,
+    LearningPolicy,
+    LearningResult,
     LibRSI,
     LibRSIRun,
+    TaskMeasurement,
     WorkflowRequest,
 )
 from .governance import ApplicationGovernanceAuthority, ApplicationGovernanceRequirement
@@ -247,6 +253,7 @@ from .local import (
     LocalCommandRunner,
     LocalFilesystemInspector,
     LocalLayout,
+    LocalLearningStore,
     LoggingTransitionSink,
     TransitionSink,
     WorkspaceInspector,
@@ -461,6 +468,13 @@ from .validation import (
 )
 
 __all__ = [
+    "AdaptiveLoop",
+    "LearningAdapter",
+    "LearningCase",
+    "LearningPolicy",
+    "LearningResult",
+    "LocalLearningStore",
+    "TaskMeasurement",
     "__version__",
     "ACTION_RESULT_DISPOSITIONS",
     "APPLICATION_ACTION_KINDS",

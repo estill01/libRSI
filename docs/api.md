@@ -116,3 +116,7 @@ Canonical records are immutable and content-addressed. Hosts own filesystems,
 subprocesses, providers, credentials, deployment, authoritative target observation, and
 application effects. Successful dispatch or implementation is never evidence of
 improvement; verification evaluates the actual host-observed state.
+
+## Adaptive operation through consumer use
+
+`AdaptiveLoop`, `LearningPolicy`, `LearningCase`, `LearningAdapter`, `TaskMeasurement`, `LearningResult`, and `LocalLearningStore` provide the public opt-in composition for measured feedback, bounded strategy revisions, durable restart and governed next-task adoption. See the [adapter contract and scheduling guide](adaptive-operation.md) and [executable template](../examples/adaptive_strategy.py). Core dependencies remain empty.

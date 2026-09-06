@@ -400,3 +400,7 @@ Other hosts may provide local processes, containers, remote jobs, simulators,
 physical-system adapters, numerical optimizers, LLM-program optimizers, or other
 capabilities while libRSI retains the semantic/evidence/selection authority defined by
 its contracts.
+
+## Adaptive strategy composition
+
+`facade/learning.py` exposes `AdaptiveLoop`; `learning_records.py` defines consumer inputs and limits, `learning_host.py` translates actual measurements, and `learning_workflows.py` persists native workflow transitions. `local/learning.py` binds each consumer profile to immutable strategy, feedback and pass artifacts and its native SQLite runtime. Acceptance remains owned by investigation, comparison, improvement, RSI and application policies. See `docs/adaptive-operation.md` and `examples/adaptive_strategy.py` in the repository.

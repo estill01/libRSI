@@ -175,7 +175,12 @@ print(json.dumps(sorted({'fastapi', 'mcp', 'uvicorn'} & set(sys.modules))))
 
 
 def test_examples_are_syntax_valid_and_use_only_public_core_imports() -> None:
-    for relative in ("examples/local_validation.py", "examples/local_hypothesis.py"):
+    for relative in (
+        "examples/local_validation.py",
+        "examples/local_hypothesis.py",
+        "examples/embedded_improvement.py",
+        "examples/adaptive_strategy.py",
+    ):
         source = (PROJECT / relative).read_text(encoding="utf-8")
         compile(source, relative, "exec")
         assert "from librsi import" in source

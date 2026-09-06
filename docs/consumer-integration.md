@@ -48,3 +48,7 @@ A consumer repository should:
 uses only public libRSI imports for an ordinary two-component target and an
 application-disabled governed self-target-shaped run. It creates no external
 checkout, process, provider call, or production effect.
+
+## Reusable adaptive strategy loop
+
+For a consumer whose change target is a strategy configuration or prompt, use `AdaptiveLoop` with `LocalLearningStore`. The [adaptive operation contract](adaptive-operation.md) defines the executor/scorer, proposer, independent reviewer, profile isolation and caller scheduling hooks. The [public template](../examples/adaptive_strategy.py) demonstrates measured proposals, interruption/reopen, native acceptance and use of the accepted revision by the next ordinary task. This library support is available without deploying either consumer integration.
