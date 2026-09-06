@@ -6,7 +6,7 @@
 - Repository: `https://github.com/estill01/libRSI`
 - Baseline: `545104792830369de6acbe8f305eb724a99cf950` on `main`.
 - Governing objective: the user's direct instruction to implement the proposed reusable improvement runner, versioned strategies, and consumer template fully, end to end.
-- Canonical owner: `docs/tracker.md`; first eligible Block: 0 (in progress).
+- Canonical owner: `docs/tracker.md`; first eligible Block: 1 (in progress).
 - Direct range: the full program and its installed restart/adoption outcome. No authoring-only hold; implement immediately after authoring verification.
 
 ## 1. Purpose and intended outcome
@@ -107,15 +107,15 @@ installed artifact identity and actual reopened state separately from test succe
 
 | Block | Scope | Depends on | Status |
 |---:|---|---|---|
-| 0 | Persist strategy profiles and measured feedback | — | `in-progress` |
-| 1 | Run bounded improvement and native self-change adoption | 0 | `not-started` |
+| 0 | Persist strategy profiles and measured feedback | — | `accepted` |
+| 1 | Run bounded improvement and native self-change adoption | 0 | `in-progress` |
 | 2 | Ship consumer template and prove installed next-task adoption | 1 | `not-started` |
 
 Required order: `0 → 1 → 2`.
 
 ## Block 0 — Persist strategy profiles and measured feedback
 
-Status: `in-progress`
+Status: `accepted`
 
 ### Objective
 
@@ -168,7 +168,11 @@ Focused mechanical proof plus a separate capability/authority/self-review pass b
 
 ### Completion evidence
 
-Pending.
+- Changed `local/learning.py` (SHA-256 `5f529c690c6f9c24e0315a848bda016d08347c5a8d0819a82cc475a64ec98b21`) and `tests/test_learning_store.py` (`2c96a12016333a35de2e47bd10d632b1f363aa308626f674460563d679f6792f`); scoped implementation checkpoint recorded immediately before Block 1.
+- Focused store regressions: 4 passed in 1.34s (`block0-focused.log`). Mapped existing local artifact/authority checks: 3 passed in 0.69s (`block0-mapped.log`). Changed-file ruff lint/format and mypy passed.
+- Capability frame SHA-256: `760c3f7835b791e0356bd1d44bd7118e2187c193fd7fe846311cc00d402b79be`. Selected a local application binding plus existing immutable artifact/runtime owners over copying records into another database or keeping active strategy only in process memory. No new semantic record or runtime schema was added.
+- Self-review: profile IDs qualify target identity, feedback preserves producing snapshots and recorded order, pass/task conflicts reject, cached records are immutable, and strategy data/effect identity change atomically. Runtime/application authorization remains the native workflow/runner responsibility in Block 1; this lower-level host store does not derive acceptance.
+- Limits: one serialized owner and small histories; arbitrary external effects interrupted before recording may repeat. No independent reviewer required. Post-Block audit: accepted; no open Block 0 items. Optional canonical range gate remains unavailable; full range is reconciled locally.
 
 ### Stop
 
@@ -176,7 +180,7 @@ Stop before proposal generation and learning orchestration in Block 1.
 
 ## Block 1 — Run bounded improvement and native self-change adoption
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 

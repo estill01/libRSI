@@ -155,6 +155,10 @@ class LocalLearningStore:
     def pending_pass(self) -> str | None:
         return self._read()["pending_pass"]
 
+    @property
+    def pass_ids(self) -> tuple[str, ...]:
+        return tuple(self._read()["passes"])
+
     def feedback(self, task_id: str | None = None) -> tuple[Observation, ...]:
         entries = self._read()["feedback"]
         result = []
