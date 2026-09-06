@@ -1,13 +1,13 @@
 # libRSI Lightweight Readiness Implementation Tracker
 
-- Tracker status: `in-progress`
+- Tracker status: `accepted`
 - Tracker sequence: Blocks 0–6
 - Program identity: `lightweight-readiness`; qualify references as `lightweight-readiness/Block N`.
 - Repository: `https://github.com/estill01/libRSI`
 - Baseline: `21faded78bd1527881b93cffdef2c124d669bf9f` (2026-09-06).
 - Governing objective: the user's 2026-09-06 direction to make libRSI a lightweight, useful drop-in without prolonged engineering or token expenditure.
 - Canonical entry point and detailed status owner: `docs/tracker.md`.
-- First eligible Block: 6 (in progress).
+- First eligible Block: none; Blocks 0–6 and the installed restart outcome are complete.
 - Authoring-only hold: expired on the direct implement-tracker-blocks invocation, 2026-09-06. Full range 0–6 is authorized; no approval is required between Blocks (`carry-forward: false`).
 
 ## 1. Purpose and intended outcome
@@ -25,8 +25,8 @@ production service qualification, arbitrary-scale performance, or a new release.
 
 - Primary outcome: a useful lightweight library with reliable small-run behavior.
 - Observable completion: one public embedded example plus exact regression evidence for terminal reporting, saved progress, command cleanup, provider contracts, cheaper appends, and executable-mode currentness.
-- Ordinary effect classes needed: after kickoff, narrow library fixes, regression tests, example/documentation edits, local package validation, and scoped Git checkpoints. This turn authorizes tracker documents and a planning commit only.
-- Hard direct authority or safety boundaries: the user explicitly requires reporting the plan before kickoff. Preserve proposal/evidence/application separation and explicit application authority. No live provider spend, external target mutation, publication, deployment, upstream utils changes, or new credentials are required.
+- Ordinary effect classes needed: narrow library fixes, regression tests, example/documentation edits, local package validation, and scoped Git checkpoints/pushes, authorized by the subsequent direct implementation kickoff.
+- Hard direct authority or safety boundaries: the plan-before-kickoff checkpoint was fulfilled before the direct implementation invocation. Preserve proposal/evidence/application separation and explicit application authority. No live provider spend, external target mutation, release publication, deployment, upstream utils changes, or new credentials are required.
 - Material goal alteration or reversal: distributed workers, a storage-format migration, a new workflow framework, breaking public API cleanup, or mandatory hosted infrastructure exceeds this plan.
 
 ### Target-product capability frame
@@ -81,8 +81,8 @@ Its SHA-256 is `d7f9068d73f3c513e888ff9fd208eea43e8b409da3f2963ef09e4193c6fd706b
 Its conflicting active header and terminal-completion prose remain historical
 claims; this planning change does not adjudicate them or reactivate old supervision.
 
-Exactly one current program is selected: `lightweight-readiness`, in progress.
-There is no required successor queue. The first eligible Block is 0;
+Exactly one current program is selected: `lightweight-readiness`, accepted.
+There is no required successor queue or remaining eligible Block;
 all existing architecture-program Block identities remain historical and unchanged.
 
 | Other planning document | Disposition |
@@ -129,7 +129,7 @@ Any unavoidable protocol projection adjustment stays additive and narrowly teste
 
 ## 6. Block execution contract
 
-1. This authoring turn stops after a validated planning commit and report. After direct kickoff, execute the full selected program in order; internal Block Stops delimit edits and do not require repeated user approval.
+1. The authoring checkpoint stopped after a validated planning commit and report. After direct kickoff, execute the full selected program in order; internal Block Stops delimit edits and do not require repeated user approval.
 2. Re-read only the selected Block, touched owners, and mapped tests. Preserve unrelated work, including the existing untracked `uv.lock`. Follow the host storage preflight and keep artifacts under `/srv/patent-studio`.
 3. Use `not-started`, `in-progress`, `completed-with-open-items`, `accepted`, `reopened`, or `blocked`. Update the table and Block together when implementation begins; read-only planning is not implementation.
 4. Use the smallest existing mechanism. Review the diff for correctness and scope before final mapped validation. No standing supervisor or independent-agent fleet is required by this program; a focused self-review is not labeled independent review.
@@ -137,7 +137,7 @@ Any unavoidable protocol projection adjustment stays additive and narrowly teste
 6. Run focused regression first, affected integration tests next, then changed-file lint/types. At terminal validation, run the union of mapped tests once, static checks once, and one wheel/example smoke check. Do not run the entire 807-test suite after every Block or manually dispatch duplicate CI matrices. Widen only for a mapped failure, changed shared serialization semantics, or an actual existing required gate.
 7. No live model calls. Reuse installed dependencies and audit fixtures. For Block 4 allow one profiling pass, one selected optimization, and one corrective iteration; benchmarks use only 5 and 10 actions with at most three samples per size/revision and a 120-second wall bound per set. No automatic larger sweep.
 8. If the bounded performance approach cannot meet acceptance, record it as an open item and continue independent safe work in Blocks 5 and 6; do not introduce a storage migration or claim full completion. Return the concrete result before proposing a materially larger performance project.
-9. Record local scoped checkpoints. Remote publication/deployment is excluded. Ordinary implementation choices within this plan need no new user gate. A missing input blocks only its actual dependent work; preserve that boundary and continue unaffected work.
+9. Record scoped checkpoints and branch pushes through the invoked implementation skill. Release publication/deployment is excluded. Ordinary implementation choices within this plan need no new user gate. A missing input blocks only its actual dependent work; preserve that boundary and continue unaffected work.
 10. Accept each Block only when its acceptance and mapped proof hold. After the final observable outcome, stop; exclusions do not become fresh tasks.
 
 ### Current execution binding
@@ -167,7 +167,7 @@ needed; this tracker owns the planning record.
 | 3 | Make optional provider requests self-contained | — | `accepted` |
 | 4 | Remove redundant runtime append work | 1 | `accepted` |
 | 5 | Detect executable-mode target changes | — | `accepted` |
-| 6 | Ship the small embedded improvement example | 0, 1, 2, 3, 4, 5 | `in-progress` |
+| 6 | Ship the small embedded improvement example | 0, 1, 2, 3, 4, 5 | `accepted` |
 
 Required order: `0 → 1 → 2 → 3 → 4 → 5 → 6`.
 Dependencies identify correctness prerequisites; independent work may continue
@@ -559,7 +559,7 @@ Stop before the public example and final mapped validation in Block 6.
 
 ## Block 6 — Ship the small embedded improvement example
 
-Status: `in-progress`
+Status: `accepted`
 
 ### Objective
 
@@ -614,7 +614,14 @@ Focused mechanical proof plus a separate diff/self-review pass for the stated ac
 
 ### Completion evidence
 
-Pending.
+- Implementation commit: `b90d382`; candidate root `4fb90d3a46ee0fe687f887257611ccf0f7c77cdd88fd04129d6c333539a58188`; pushed to the existing origin branch. Root algorithm: SHA-256 of compact, sorted JSON mapping the four product paths to their SHA-256 values; exact manifest in `block6-candidate.json` under the execution log directory.
+- Changed `examples/embedded_improvement.py`, `tests/test_lightweight_example.py`, `README.md`, and `docs/api.md`. The example measures `abs(4-x)`, requires a decrease of 2, rejects x=1, interrupts before cycle 2, resumes the persisted frontier, and selects x=3. Exactly two completed cycles and two candidate comparisons; no completed cycle repeats. Hypothesis experiments are also explicit and bounded. Application is never invoked.
+- Focused example/restart/history-preservation regression: 1 passed in 77.38s (`block6-focused.log`). Terminal mapped union: 76 passed in 277.73s (`terminal-tests.log`); exact unchanged native invocation and node selection are in `terminal-tests-command.txt`. This includes all seven new regression files plus the mapped terminal/service, improvement/resource, provider/schema, runtime/integrity, command/filesystem, and missing-capability nodes. No full release matrix or live provider evaluation was run.
+- Terminal static commands: `python -m ruff check src tests examples`, `python -m ruff format --check src tests examples`, and `python -m mypy src examples`: passed; 246 formatted files and 143 typed source files. Logs: `terminal-lint.log`, `terminal-format.log`, `terminal-mypy.log`. The example's four initial typing diagnostics were corrected before focused execution and the frozen candidate; no mapped proof needed repetition.
+- One wheel built with `python -m build --no-isolation --wheel --outdir /srv/patent-studio/private/librsi-implementation-20260906/wheel`. Build tools `setuptools==84.0.0` and `wheel==0.48.0` were added only to the private validation environment. The fresh `wheel-venv` contains libRSI alone, installed with `uv pip install --python <wheel-venv>/bin/python --no-deps <wheel>`. Core imports resolved to that environment's site-packages. Wheel SHA-256: `d5d2dee23295ef0100b8a4ab20503afd6cb7fe42f12f65899fe55373180beffc` (`wheel-install-proof.json`).
+- Installed invocation: `<wheel-venv>/bin/python -I /srv/patent-studio/workspaces/libRSI/examples/embedded_improvement.py --data-dir /srv/patent-studio/private/librsi-implementation-20260906/installed-demo`, from the private evidence directory: passed, with errors 4 → 3 → 1, completed cycles [1, 2], disposition `improved`, and application false (`wheel-example.json`, empty `wheel-example.stderr`). A separate installed process reopened the actual database through `SQLiteRuntimeStore.resume`: completed, two results, no pending actions, conclusion `accepted candidate selected`; state root `1e4edd827e92a0952ad49e476ed5da9448e8670512dcd09db9e3058014afcbc6` (`outcome-rehydrated.json`).
+- Product-capability review: consequential; unchanged frame hash `125dc4c7a5fb77c922143ea6dbc45e869ccf35a20dc1f025469a7ac507845c88`. Selected one explicit host example through the existing facade/workflow/store owners over canned acceptance or a new convenience framework. Preserved zero required dependencies, exact validation, resource admission, restart, and separate application authority. Tradeoff: explicit typed host setup and workflow-level resume remain visible; general facade resume and service scaling are deferred.
+- Self-review: measured values feed canonical comparison; no test imports, private path assumptions, SDKs, or credentials in the example. Fresh-directory guard preserves old history. Documentation states actual host responsibilities, immutable demo target, single-owner/small-history limits, cwd-only command authority, and deferred audit findings. No independent reviewer or external approval is required. Post-Block audit: accepted; no open required items.
 
 ### Stop
 
@@ -646,7 +653,11 @@ A commit, handoff, exhausted investigation allowance, or passing structural
 verifier is not implementation completion. Historical architecture-program status
 is preserved separately and does not govern this program's completion.
 
-After authoring, report this path, the qualified range
-`lightweight-readiness/Block 0` through `lightweight-readiness/Block 6`, the selected
-small-run/single-owner assumption, verification result, and first eligible Block.
-Do not begin implementation until the user's subsequent kickoff instruction.
+### Final outcome reconciliation — 2026-09-06
+
+- Direct requested range: all of `lightweight-readiness/Block 0` through `lightweight-readiness/Block 6`. All seven are accepted; no requested Block, required producer effect, successor queue, or safe implementation frontier remains.
+- `created-current`: six implementation fixes at the recorded checkpoints, rechecked together at `b90d382`; the example and onboarding at the frozen Block 6 root; the locally installed wheel at its exact hash; and the independently reopened completed SQLite run above. Tracker-only acceptance updates do not change these tested product bytes.
+- `reused-current`: unchanged capability frame; accepted matched append benchmark (36.6% lower median ten-action CPU, identical roots); preserved predecessor archive hash `d7f9068d73f3c513e888ff9fd208eea43e8b409da3f2963ef09e4193c6fd706b`. Existing untracked `uv.lock` remains unchanged at `ea9a2eb3afc46401f2356ef098e005ec87ac33e27475e43bcd86eb4131ea960e`.
+- No stale, missing, or open required deliverable. Excluded work remains excluded: multi-owner coordination, long-history/storage redesign, corpus query scaling, responsive concurrent service operation, general API cleanup, live model evaluation, release publication, deployment, and upstream utility work. Validation is the mapped Python 3.13/Linux program proof, not full multi-version release qualification.
+- Scoped implementation checkpoints through `b90d382` are pushed to `origin/codex/librsi-lightweight-readiness-plan`; this final evidence-only checkpoint records acceptance on the same branch. No merge, PR, publication, or deployment is part of this run.
+- The optional canonical supervision gate remains unavailable (`Governing outcome member directory is unavailable or unsafe`); it is not reported as passed. The complete range and actual required effects were reconciled locally against this canonical tracker, with no fabricated supervision binding or alternate authority ledger. The structural full-profile verifier and final Git/currentness checks validate the acceptance document separately.
