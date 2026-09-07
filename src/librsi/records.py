@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import string
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field, fields
 from typing import Any, ClassVar, TypeVar
 
@@ -223,10 +224,10 @@ def _identity_value(value: Any) -> Any:
     raise TypeError(f"unsupported identity value type: {type(value).__name__}")
 
 
-def _serialize_map(value: FrozenMap) -> dict[str, Any]:
+def _serialize_map(value: FrozenMap, convert: Callable[[Any], Any]) -> dict[str, Any]:
     return {
         "$schema": _MAP_SCHEMA,
-        "items": {key: _serialize_value(item) for key, item in value.items()},
+        "items": {key: convert(item) for key, item in value.items()},
     }
 
 
@@ -236,7 +237,7 @@ def _serialize_value(value: Any) -> Any:
     if isinstance(value, RecordRef):
         return value.to_dict()
     if isinstance(value, FrozenMap):
-        return _serialize_map(value)
+        return _serialize_map(value, _serialize_value)
     if isinstance(value, tuple):
         return [_serialize_value(item) for item in value]
     if value is None or isinstance(value, (bool, int, float, str)):
@@ -244,15 +245,30 @@ def _serialize_value(value: Any) -> Any:
     raise TypeError(f"unsupported record value type: {type(value).__name__}")
 
 
-def _decode_value(value: Any) -> Any:
+def _record_document(record: SemanticRecord, convert: Callable[[Any], Any]) -> dict[str, Any]:
+    return {
+        "$schema": _RECORD_SCHEMA,
+        "record_type": record.record_type,
+        "schema_version": record.schema_version,
+        "root": record.root,
+        "data": {
+            item.name: convert(getattr(record, item.name))
+            for item in fields(record)
+            if item.name not in {"metadata", "root"}
+        },
+        "metadata": thaw(_freeze_map(record.metadata)),
+    }
+
+
+def _decode_value(value: Any, cache: _DecodeCache) -> Any:
     if isinstance(value, list):
-        return tuple(_decode_value(item) for item in value)
+        return tuple(_decode_value(item, cache) for item in value)
     if not isinstance(value, Mapping):
         return value
 
     schema = value.get("$schema")
     if schema == _RECORD_SCHEMA:
-        return record_from_dict(value)
+        return _record_from_dict(value, cache)
     if schema == _REF_SCHEMA:
         record_type = value.get("record_type")
         root = value.get("root")
@@ -263,8 +279,8 @@ def _decode_value(value: Any) -> Any:
         items = value.get("items")
         if not isinstance(items, Mapping):
             raise ValueError("serialized immutable mapping is incomplete")
-        return {str(key): _decode_value(item) for key, item in items.items()}
-    return {str(key): _decode_value(item) for key, item in value.items()}
+        return {str(key): _decode_value(item, cache) for key, item in items.items()}
+    return {str(key): _decode_value(item, cache) for key, item in value.items()}
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -319,19 +335,7 @@ class SemanticRecord:
         }
 
     def to_dict(self) -> dict[str, Any]:
-        data = {
-            item.name: _serialize_value(getattr(self, item.name))
-            for item in fields(self)
-            if item.name not in {"metadata", "root"}
-        }
-        return {
-            "$schema": _RECORD_SCHEMA,
-            "record_type": self.record_type,
-            "schema_version": self.schema_version,
-            "root": self.root,
-            "data": data,
-            "metadata": thaw(_freeze_map(self.metadata)),
-        }
+        return _record_document(self, _serialize_value)
 
 
 RecordT = TypeVar("RecordT", bound=SemanticRecord)
@@ -1250,6 +1254,68 @@ class Outcome(SemanticRecord):
 def record_from_dict(payload: Mapping[str, Any]) -> SemanticRecord:
     """Reconstruct and integrity-check a record from durable data."""
 
+    return _DecodeCache().decode(payload)
+
+
+class _DecodeCache:
+    """Reuse exact subdocuments within a public decode or one store operation."""
+
+    def __init__(self) -> None:
+        self.records: dict[bytes, SemanticRecord] = {}
+        self.fingerprints: dict[int, tuple[Any, bytes]] = {}
+        self.scalars: dict[tuple[type, Any], bytes] = {}
+
+    def decode(self, payload: Mapping[str, Any]) -> SemanticRecord:
+        try:
+            return _record_from_dict(payload, self)
+        finally:
+            # Input-container identities are useful only for this document.
+            # Keep only bounded, content-keyed validated records between rows.
+            self.fingerprints.clear()
+
+    def deserialize(self, serialized: str) -> SemanticRecord:
+        if not isinstance(serialized, str):
+            raise TypeError("serialized semantic record must be text")
+        payload = json.loads(serialized)
+        if not isinstance(payload, Mapping):
+            raise ValueError("serialized semantic record must contain a JSON object")
+        return self.decode(payload)
+
+    def fingerprint(self, value: Any) -> bytes:
+        value_type = type(value)
+        if value_type in (dict, list):
+            cached = self.fingerprints.get(id(value))
+            if cached is not None:
+                return cached[1]
+            digest = hashlib.sha256(b"map" if value_type is dict else b"list")
+            if value_type is dict:
+                if any(type(key) is not str for key in value):
+                    raise TypeError("uncacheable mapping keys")
+                for key in sorted(value):
+                    digest.update(self.fingerprint(key))
+                    digest.update(self.fingerprint(value[key]))
+            else:
+                for item in value:
+                    digest.update(self.fingerprint(item))
+            result = digest.digest()
+            self.fingerprints[id(value)] = (value, result)
+            return result
+        if value_type not in (type(None), bool, int, float, str):
+            raise TypeError("uncacheable record input")
+        key = (value_type, value.hex() if value_type is float else value)
+        cached_scalar = self.scalars.get(key)
+        if cached_scalar is not None:
+            return cached_scalar
+        # Fixed-size child hashes and separate container tags prevent ambiguous
+        # concatenation. JSON distinguishes booleans, integers, floats, and -0.0.
+        scalar = json.dumps(value, allow_nan=False, ensure_ascii=True).encode("ascii")
+        result = hashlib.sha256(b"scalar" + scalar).digest()
+        if len(self.scalars) < 512 and len(scalar) <= 256:
+            self.scalars[key] = result
+        return result
+
+
+def _record_from_dict(payload: Mapping[str, Any], cache: _DecodeCache) -> SemanticRecord:
     if not isinstance(payload, Mapping):
         raise TypeError("record payload must be a mapping")
     if payload.get("$schema") != _RECORD_SCHEMA:
@@ -1272,29 +1338,76 @@ def record_from_dict(payload: Mapping[str, Any]) -> SemanticRecord:
     if not isinstance(metadata, Mapping):
         raise ValueError("serialized semantic record metadata must be a mapping")
 
-    decoded = _decode_value(data)
+    # Composed workflows embed the same claim, snapshot, experiment, and evidence
+    # records many times. Reconstruct an exact envelope once per outer decode.
+    # Include metadata and all input data, never trust a claimed root as a key.
+    # Public calls use fresh caches. Stores share one only inside a single
+    # operation, before any decoded records are returned to callers.
+    cache_key = None
+    try:
+        cache_key = cache.fingerprint(payload)
+    except (TypeError, ValueError):
+        # Preserve the decoder's handling of input mappings that are not
+        # themselves canonical JSON; ordinary construction still validates.
+        pass
+    else:
+        cached = cache.records.get(cache_key)
+        if cached is not None and type(cached) is record_cls:
+            return cached
+
+    decoded = _decode_value(data, cache)
     if not isinstance(decoded, Mapping):
         raise ValueError("serialized semantic record data must be a mapping")
     record = record_cls(**dict(decoded), metadata=dict(metadata))
     if record.root != expected_root:
         raise ValueError("serialized semantic record root does not match its identity-bearing data")
+    if cache_key is not None and len(cache.records) < 256:
+        cache.records[cache_key] = record
     return record
 
 
 def serialize_record(record: SemanticRecord) -> str:
     """Serialize a canonical record deterministically to JSON text."""
 
-    if not isinstance(record, SemanticRecord):
-        raise TypeError("serialize_record requires a SemanticRecord")
-    return canonical_json(record.to_dict())
+    return _RecordEncoder().serialize(record)
+
+
+class _RecordEncoder:
+    """Build shared immutable subrecords once within a serialization operation."""
+
+    def __init__(self) -> None:
+        self.documents: dict[int, tuple[Any, Any]] = {}
+
+    def serialize(self, record: SemanticRecord) -> str:
+        if not isinstance(record, SemanticRecord):
+            raise TypeError("serialize_record requires a SemanticRecord")
+        return canonical_json(self.value(record))
+
+    def value(self, value: Any) -> Any:
+        if isinstance(value, (SemanticRecord, FrozenMap, tuple)):
+            cached = self.documents.get(id(value))
+            if cached is not None:
+                return cached[1]
+            document: Any
+            if isinstance(value, SemanticRecord):
+                if type(value).to_dict is not SemanticRecord.to_dict:
+                    document = value.to_dict()
+                else:
+                    document = _record_document(value, self.value)
+            elif isinstance(value, FrozenMap):
+                document = _serialize_map(value, self.value)
+            else:
+                document = [self.value(item) for item in value]
+            self.documents[id(value)] = (value, document)
+            return document
+        if isinstance(value, RecordRef):
+            return value.to_dict()
+        if value is None or isinstance(value, (bool, int, float, str)):
+            return value
+        raise TypeError(f"unsupported record value type: {type(value).__name__}")
 
 
 def deserialize_record(serialized: str) -> SemanticRecord:
     """Deserialize and integrity-check deterministic record JSON."""
 
-    if not isinstance(serialized, str):
-        raise TypeError("serialized semantic record must be text")
-    payload = json.loads(serialized)
-    if not isinstance(payload, Mapping):
-        raise ValueError("serialized semantic record must contain a JSON object")
-    return record_from_dict(payload)
+    return _DecodeCache().deserialize(serialized)

@@ -9,6 +9,8 @@ Do not repeat the full suite merely because a commit, documentation update, or
 implementation-block boundary was reached. Reuse passing evidence when its code
 and test inputs are unchanged. Full regression with the unchanged 90% coverage
 gate remains appropriate for broad runtime changes and release validation.
+Use the two-worker full command in `docs/testing.md` on the GCP environment;
+keep each test in one worker and combine coverage before enforcing the gate.
 
 When bringing these test-efficiency changes into an active run, preserve ongoing
 validation and its evidence. A test-selection or documentation change alone does

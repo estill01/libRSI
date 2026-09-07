@@ -82,11 +82,11 @@ jobs:
 
       - name: Full regression tests with branch coverage
         if: github.event_name != 'pull_request' && matrix.coverage
-        run: python -m pytest --cov=librsi --cov-branch --cov-report=term-missing --durations=25
+        run: python -m pytest -n 2 --dist=loadfile --cov=librsi --cov-branch --cov-report=term-missing --durations=25
 
       - name: Full Python compatibility tests
         if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && !matrix.coverage
-        run: python -m pytest --durations=25
+        run: python -m pytest -n 2 --dist=loadfile --durations=25
 
       - name: Build distributions
         if: matrix.python-version == '3.11'

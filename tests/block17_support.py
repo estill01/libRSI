@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from dataclasses import fields
+from functools import lru_cache
+
 from librsi import (
     FORWARD_SHADOW_ACTION_KIND,
     HISTORICAL_EVALUATION_ACTION_KIND,
@@ -12,10 +15,12 @@ from librsi import (
     MetaTargetDeclaration,
     RSIRequest,
     SelfChangeGovernancePolicy,
+    deserialize_record,
     evaluation_command_from_action,
     make_evaluation_result,
     make_review_result,
     review_command_from_action,
+    serialize_record,
 )
 from tests.block14_support import ComparisonContext, trial_batch
 from tests.block15_support import DeterministicCycleProvider, improvement_request
@@ -93,8 +98,6 @@ def self_change_request(
     change_classes: tuple[str, ...] = ("selection-policy",),
     candidate_author_id: str = "candidate-author",
 ) -> RSIRequest:
-    from librsi import improve
-
     declaration = MetaTargetDeclaration.create(
         declaration_id="selector-self-change",
         target_snapshot=context.baseline_snapshot,
@@ -106,10 +109,11 @@ def self_change_request(
     from librsi import SelfChangePolicy
 
     requirement = SelfChangePolicy.requirement(declaration, governance)
-    improvement = improve(
-        improvement_request(context, governance_requirement=requirement),
-        provider=DeterministicCycleProvider(context, (True,)),
-        current_snapshot=context.baseline_snapshot,
+    improvement = deserialize_record(
+        _prepared_improvement(
+            tuple(serialize_record(getattr(context, item.name)) for item in fields(context)),
+            serialize_record(requirement),
+        )
     )
     return RSIRequest.create(
         rsi_id="bounded-rsi",
@@ -119,6 +123,22 @@ def self_change_request(
         requested_by="system-owner",
         activate=activate,
     )
+
+
+@lru_cache(maxsize=16)
+def _prepared_improvement(context_records: tuple[str, ...], requirement_record: str) -> str:
+    # Different workflow tests share this prerequisite, not the behavior under
+    # test. Exact serialized inputs include metadata; immutable output bytes are
+    # decoded afresh by each caller, so adversarial mutations cannot leak.
+    from librsi import improve
+
+    context = ComparisonContext(*(deserialize_record(item) for item in context_records))
+    improvement = improve(
+        improvement_request(context, governance_requirement=deserialize_record(requirement_record)),
+        provider=DeterministicCycleProvider(context, (True,)),
+        current_snapshot=context.baseline_snapshot,
+    )
+    return serialize_record(improvement)
 
 
 def self_change_registry(

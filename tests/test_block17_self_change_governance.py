@@ -34,9 +34,26 @@ from tests.block14_support import ComparisonContext, comparison_context
 from tests.block16_support import DeterministicApplicationTarget
 from tests.block17_support import (
     DeterministicGovernanceProvider,
+    _prepared_improvement,
     self_change_registry,
     self_change_request,
 )
+
+
+def test_shared_preparation_keeps_each_workflow_request_isolated():
+    context = comparison_context(target_kind="shared-preparation-test")
+    before = _prepared_improvement.cache_info()
+    disabled = self_change_request(context)
+    enabled = self_change_request(context, activate=True)
+    after = _prepared_improvement.cache_info()
+    assert after.misses == before.misses + 1
+    assert after.hits == before.hits + 1
+    assert serialize_record(disabled.improvement) == serialize_record(enabled.improvement)
+    assert disabled.improvement is not enabled.improvement
+    object.__setattr__(disabled.improvement, "root", "0" * 64)
+    assert enabled.improvement.root != "0" * 64
+    again = self_change_request(context)
+    assert serialize_record(again.improvement) == serialize_record(enabled.improvement)
 
 
 @dataclass(frozen=True, kw_only=True)

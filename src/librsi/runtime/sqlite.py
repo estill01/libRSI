@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import TypeVar
 
 from ..errors import RSITransitionError
-from ..records import SemanticRecord, deserialize_record, serialize_record
+from ..records import SemanticRecord, _DecodeCache, _RecordEncoder
 from .engine import RuntimeEngine
 from .records import Event, Run, RunState, Transition
 from .sqlite_schema import (
@@ -47,12 +47,19 @@ class _RecordCodec:
 
     Decoding is keyed by exact bytes, never a claimed root. Encoding retains its
     object alongside the identity key so garbage collection cannot recycle it.
-    Row/chain/schema validation and deterministic replay still run on every read.
+    Row/chain/schema validation still runs on every read. Within an append,
+    replay reuses only prefixes whose complete run/event bytes are unchanged.
+    No cache survives the store operation.
     """
 
     def __init__(self) -> None:
         self._decoded: dict[str, SemanticRecord] = {}
+        self._record_cache = _DecodeCache()
+        self._record_encoder = _RecordEncoder()
         self._encoded: dict[int, tuple[SemanticRecord, str]] = {}
+        self._replay_run: str | None = None
+        self._replay_events: tuple[str, ...] = ()
+        self._replay_trace: tuple[Transition, ...] = ()
 
     def decode(
         self,
@@ -63,7 +70,7 @@ class _RecordCodec:
     ) -> _RecordT:
         record = self._decoded.get(serialized)
         if record is None:
-            record = deserialize_record(serialized)
+            record = self._record_cache.deserialize(serialized)
             self._decoded[serialized] = record
         if not isinstance(record, expected_class) or record.root != expected_root:
             raise ValueError("stored runtime type/root does not match canonical bytes")
@@ -72,9 +79,32 @@ class _RecordCodec:
     def serialize(self, record: SemanticRecord) -> str:
         cached = self._encoded.get(id(record))
         if cached is None:
-            cached = (record, serialize_record(record))
+            cached = (record, self._record_encoder.serialize(record))
             self._encoded[id(record)] = cached
         return cached[1]
+
+    def replay(self, run: Run, events: tuple[Event, ...]) -> tuple[Transition, ...]:
+        run_bytes = self.serialize(run)
+        event_bytes = tuple(self.serialize(event) for event in events)
+        prefix_size = len(self._replay_events)
+        if (
+            self._replay_run == run_bytes
+            and len(event_bytes) >= prefix_size
+            and event_bytes[:prefix_size] == self._replay_events
+        ):
+            trace = list(self._replay_trace)
+            state = None if not trace else trace[-1].next_state
+            for event in events[prefix_size:]:
+                transition = RuntimeEngine._replay_event(run, state, event)
+                trace.append(transition)
+                state = transition.next_state
+            replayed = tuple(trace)
+        else:
+            replayed = RuntimeEngine.replay_trace(run, events)
+        self._replay_run = run_bytes
+        self._replay_events = event_bytes
+        self._replay_trace = replayed
+        return replayed
 
 
 class SQLiteRuntimeStore:
@@ -236,7 +266,7 @@ class SQLiteRuntimeStore:
         ):
             raise ValueError("stored runtime current-state projection is incomplete")
 
-        replayed = RuntimeEngine.replay_trace(run, events)
+        replayed = codec.replay(run, events)
         if len(replayed) != len(transitions) or any(
             codec.serialize(actual) != codec.serialize(stored)
             for actual, stored in zip(replayed, transitions, strict=True)
@@ -301,7 +331,7 @@ class SQLiteRuntimeStore:
                     raise RSITransitionError("runtime event does not cite current event")
                 candidate_events = (*history.events, transition.event)
 
-            expected = RuntimeEngine.replay_trace(run, candidate_events)[-1]
+            expected = codec.replay(run, candidate_events)[-1]
             if codec.serialize(expected) != transition_bytes:
                 raise RSITransitionError(
                     "runtime transition is not the deterministic result of its event history"

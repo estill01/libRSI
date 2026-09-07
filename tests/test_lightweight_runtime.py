@@ -5,8 +5,47 @@ from contextlib import closing
 
 import pytest
 
-from librsi import SQLiteRuntimeStore
+from librsi import Run, RuntimeEngine, SQLiteRuntimeStore
 from tests.test_block7_runtime_sqlite_integrity import _trace
+
+
+def test_store_read_reuses_embedded_run_across_history_rows(tmp_path, monkeypatch):
+    trace = _trace()
+    with SQLiteRuntimeStore(tmp_path / "shared.sqlite") as store:
+        for transition in trace:
+            store.append(transition)
+        calls = []
+        original = Run.__post_init__
+
+        def counted(self):
+            calls.append(self.run_id)
+            original(self)
+
+        monkeypatch.setattr(Run, "__post_init__", counted)
+        run_id = trace[0].next_state.run.run_id
+        assert store.resume(run_id) == trace[-1].next_state
+        assert calls == [run_id]
+        assert store.resume(run_id) == trace[-1].next_state
+        assert calls == [run_id, run_id]
+
+
+def test_append_replays_each_event_once_but_next_read_revalidates(tmp_path, monkeypatch):
+    trace = _trace()
+    with SQLiteRuntimeStore(tmp_path / "replay.sqlite") as store:
+        store.append(trace[0])
+        calls = []
+        original = RuntimeEngine._replay_event
+
+        def counted(cls, run, state, event):
+            calls.append(event.sequence)
+            return original(run, state, event)
+
+        monkeypatch.setattr(RuntimeEngine, "_replay_event", classmethod(counted))
+        assert store.append(trace[1]) == trace[1].next_state
+        assert calls == [0, 1]
+        calls.clear()
+        assert store.resume(trace[0].next_state.run.run_id) == trace[1].next_state
+        assert calls == [0, 1]
 
 
 def test_append_detects_trigger_corruption_of_already_decoded_prefix(tmp_path) -> None:

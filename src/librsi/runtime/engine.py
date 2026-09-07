@@ -486,38 +486,44 @@ class RuntimeEngine:
         state: RunState | None = None
         trace: list[Transition] = []
         for event in history:
-            if event.run != run.ref:
-                raise RSITransitionError("replay event belongs to a different run")
-            if state is None:
-                update = cls.start(run)
-            elif event.kind == "action_requested":
-                if event.action is None:  # pragma: no cover - Event invariant
-                    raise RuntimeError("action-requested replay event lost its action")
-                update = cls.request(state, event.action)
-            elif event.kind in {"action_succeeded", "action_failed", "action_cancelled"}:
-                if event.result is None:  # pragma: no cover - Event invariant
-                    raise RuntimeError("action-result replay event lost its result")
-                update = cls.submit(state, event.result)
-            elif event.kind == "run_completed":
-                if event.outcome is None:  # pragma: no cover - Event invariant
-                    raise RuntimeError("completion replay event lost its outcome")
-                update = cls.complete(state, event.outcome)
-            elif event.kind == "run_failed":
-                if event.failure is None:  # pragma: no cover - Event invariant
-                    raise RuntimeError("failure replay event lost its failure")
-                update = cls.fail(state, event.failure, event.outcome)
-            elif event.kind == "run_cancelled":
-                if event.failure is None:  # pragma: no cover - Event invariant
-                    raise RuntimeError("cancellation replay event lost its failure")
-                update = cls.cancel(state, event.failure, event.outcome)
-            else:
-                raise RSITransitionError("run-started event may appear only first")
-
-            if update.transition is None or update.transition.event != event:
-                raise RSITransitionError("runtime event history has a gap, reordering, or drift")
-            state = update.state
-            trace.append(update.transition)
+            transition = cls._replay_event(run, state, event)
+            state = transition.next_state
+            trace.append(transition)
         return tuple(trace)
+
+    @classmethod
+    def _replay_event(cls, run: Run, state: RunState | None, event: Event) -> Transition:
+        """Extend a replay-verified prefix using the ordinary transition rules."""
+
+        if event.run != run.ref:
+            raise RSITransitionError("replay event belongs to a different run")
+        if state is None:
+            update = cls.start(run)
+        elif event.kind == "action_requested":
+            if event.action is None:  # pragma: no cover - Event invariant
+                raise RuntimeError("action-requested replay event lost its action")
+            update = cls.request(state, event.action)
+        elif event.kind in {"action_succeeded", "action_failed", "action_cancelled"}:
+            if event.result is None:  # pragma: no cover - Event invariant
+                raise RuntimeError("action-result replay event lost its result")
+            update = cls.submit(state, event.result)
+        elif event.kind == "run_completed":
+            if event.outcome is None:  # pragma: no cover - Event invariant
+                raise RuntimeError("completion replay event lost its outcome")
+            update = cls.complete(state, event.outcome)
+        elif event.kind == "run_failed":
+            if event.failure is None:  # pragma: no cover - Event invariant
+                raise RuntimeError("failure replay event lost its failure")
+            update = cls.fail(state, event.failure, event.outcome)
+        elif event.kind == "run_cancelled":
+            if event.failure is None:  # pragma: no cover - Event invariant
+                raise RuntimeError("cancellation replay event lost its failure")
+            update = cls.cancel(state, event.failure, event.outcome)
+        else:
+            raise RSITransitionError("run-started event may appear only first")
+        if update.transition is None or update.transition.event != event:
+            raise RSITransitionError("runtime event history has a gap, reordering, or drift")
+        return update.transition
 
     @classmethod
     def replay(cls, run: Run, events: Sequence[Event]) -> RunState:

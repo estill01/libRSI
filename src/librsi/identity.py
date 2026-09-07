@@ -79,7 +79,51 @@ def thaw(value: FrozenValue) -> Any:
 
 
 def canonical_json(value: Any) -> str:
-    """Encode canonical JSON without relying on Python call-stack depth."""
+    """Encode canonical JSON with a native fast path and a stack-safe fallback."""
+
+    try:
+        prepared = _json_value(value, set(), {})
+        return json.dumps(
+            prepared, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False
+        )
+    except RecursionError:
+        return _canonical_json_iterative(value)
+
+
+def _json_value(value: Any, active: set[int], memo: dict[int, tuple[Any, Any]]) -> Any:
+    # JSON's native encoder silently coerces non-string dictionary keys. Check
+    # the canonical value model first, including custom Mapping implementations.
+    if value is None or isinstance(value, (bool, int, str)):
+        return value
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            raise ValueError("canonical values require finite floats")
+        return value
+    if isinstance(value, (Mapping, list, tuple)):
+        identity = id(value)
+        if identity in active:
+            raise ValueError("canonical values cannot contain cycles")
+        cached = memo.get(identity)
+        if cached is not None:
+            return cached[1]
+        active.add(identity)
+        try:
+            if isinstance(value, Mapping):
+                keys = tuple(value)
+                if any(not isinstance(key, str) for key in keys):
+                    raise TypeError("canonical mappings require string keys")
+                prepared: Any = {key: _json_value(value[key], active, memo) for key in keys}
+            else:
+                prepared = [_json_value(item, active, memo) for item in value]
+            memo[identity] = (value, prepared)
+            return prepared
+        finally:
+            active.remove(identity)
+    raise TypeError(f"unsupported canonical value type: {type(value).__name__}")
+
+
+def _canonical_json_iterative(value: Any) -> str:
+    """Preserve support for values deeper than the interpreter recursion limit."""
 
     output: list[str] = []
     active: set[int] = set()
