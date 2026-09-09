@@ -26,7 +26,6 @@ from ..investigation import (
     InvestigationResult,
     InvestigationWorkflow,
 )
-from ..local.learning import LocalLearningStore
 from ..rsi import (
     FORWARD_SHADOW_ACTION_KIND,
     HISTORICAL_EVALUATION_ACTION_KIND,
@@ -39,10 +38,11 @@ from ..rsi import (
 )
 from ..runtime import Action, ActionResult, RuntimeFailure, persist_transitions
 from .learning_host import LearningHost
+from .learning_store import LearningStore
 
 
 def recorded_action(
-    store: LocalLearningStore,
+    store: LearningStore,
     pass_id: str,
     action: Action,
     execute: Callable[[Action], ActionResult],
