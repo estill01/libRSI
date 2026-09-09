@@ -28,7 +28,6 @@ from ..investigation import (
     make_investigation_experiment_result,
     make_investigation_observation_content,
 )
-from ..local.learning import LocalLearningStore
 from ..reasoning import ReasoningResult, make_reasoning_action_result, reasoning_request_from_action
 from ..records import (
     DecisionRule,
@@ -43,6 +42,7 @@ from ..records import (
 from ..rsi import evaluation_command_from_action, make_evaluation_result
 from ..runtime import Action, ActionResult
 from .learning_records import LearningAdapter, LearningCase, LearningPolicy, TaskMeasurement
+from .learning_store import LearningStore
 
 
 def case_from_record(record: Observation) -> LearningCase:
@@ -59,7 +59,7 @@ class LearningHost:
 
     def __init__(
         self,
-        store: LocalLearningStore,
+        store: LearningStore,
         inputs: Observation,
         policy: LearningPolicy,
         adapter: LearningAdapter,

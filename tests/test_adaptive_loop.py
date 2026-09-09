@@ -8,6 +8,8 @@ from librsi.reasoning import ReasoningResult
 from librsi.records import Metric
 from librsi.rsi import make_review_result, review_command_from_action
 
+from .learning_store_support import ConsumerLearningStore
+
 
 class Ideas:
     adapter_id = "integer-ideas-v1"
@@ -109,9 +111,10 @@ def loop(store, *, adapter=None, proposer=None, reviewer=None, **policy):
     )
 
 
-def test_adoption_survives_restart_and_changes_next_task(tmp_path, monkeypatch):
+@pytest.mark.parametrize("store_factory", [LocalLearningStore, ConsumerLearningStore])
+def test_adoption_survives_restart_and_changes_next_task(tmp_path, monkeypatch, store_factory):
     adapter, proposer, reviewer = Ideas(), Proposer(), Reviewer()
-    with LocalLearningStore(
+    with store_factory(
         tmp_path, profile_id="ideas", initial_configuration={"offsets": [1]}
     ) as store:
         engine = loop(store, adapter=adapter, proposer=proposer, reviewer=reviewer)
@@ -133,7 +136,7 @@ def test_adoption_survives_restart_and_changes_next_task(tmp_path, monkeypatch):
         with pytest.raises(RuntimeError, match="pending"):
             engine.learn("different", shadow_cases=SHADOW)
         recorded_count = len(adapter.calls)
-    with LocalLearningStore(tmp_path, profile_id="ideas") as store:
+    with store_factory(tmp_path, profile_id="ideas") as store:
         engine = loop(store, adapter=adapter, proposer=proposer, reviewer=reviewer)
         original_finish = store.finish_pass
 
@@ -158,7 +161,7 @@ def test_adoption_survives_restart_and_changes_next_task(tmp_path, monkeypatch):
         count = len(adapter.calls)
         assert engine.run_task(TRAIN[0]) == feedback[0]
         assert len(adapter.calls) == count
-    with LocalLearningStore(tmp_path, profile_id="ideas") as store:
+    with store_factory(tmp_path, profile_id="ideas") as store:
         engine = loop(store, adapter=adapter, proposer=proposer, reviewer=reviewer)
         assert engine.learn("pass-1", shadow_cases=SHADOW, activate=True) == result
         assert len(adapter.calls) == count
@@ -254,9 +257,10 @@ def test_governance_and_activation_choice_preserve_baseline(
             engine.learn("guarded", shadow_cases=SHADOW, activate=not activate)
 
 
-def test_failed_verification_rolls_back_actual_strategy(tmp_path):
+@pytest.mark.parametrize("store_factory", [LocalLearningStore, ConsumerLearningStore])
+def test_failed_verification_rolls_back_actual_strategy(tmp_path, store_factory):
     verification = (case("verify-a", 50, 51), case("verify-b", 60, 61))
-    with LocalLearningStore(
+    with store_factory(
         tmp_path, profile_id="rollback", initial_configuration={"offsets": [1]}
     ) as store:
         engine = loop(store)

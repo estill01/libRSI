@@ -113,6 +113,38 @@ Inspect and reconcile the native result/actual target before resuming that profi
 
 ## Restart, history and boundaries
 
+`AdaptiveLoop` accepts the public, runtime-checkable `LearningStore` protocol.
+`LocalLearningStore` is the included filesystem/SQLite implementation; consumers
+can supply another implementation without subclassing it. Import the protocol
+from `librsi` or `librsi.facade`. The loop uses no directory or artifact-store API
+and does not own or close the supplied store's connections.
+
+The [persistence contract](../src/librsi/facade/learning_store.py) covers current
+strategy snapshots, ordered feedback, immutable pass inputs and completed work,
+the pending pass, and application/rollback compare-and-swap. Its `runtime` property
+must implement the existing `RuntimeStore` contract, including canonical history
+validation and replay. A backend must preserve exact profile and record identities,
+reject stale or conflicting writes, and durably save completed work before returning.
+Application must commit the active strategy and exact action identity together so
+the same effect can recover after an interruption without accepting a stale effect.
+Passing the structural protocol check does not certify those backend semantics.
+
+This extension supplies a persistence boundary, not distributed coordination.
+The host must serialize and, across processes, fence **all** use of one profile,
+including ordinary tasks, learning, effects, and recovery. Per-method locking alone
+does not protect a complete operation. Reopening must recover the same strategy,
+pending input, completed records, and runtime history; independent per-worker
+stores are separate profiles, not replicas of a shared authority. Native workflows
+still decide acceptance and application eligibility. Consumers must additionally
+enforce their own authority at the actual effect boundary.
+
+The consumer-adapter restart and rollback cases in
+[`tests/test_adaptive_loop.py`](../tests/test_adaptive_loop.py) exercise the same
+workflow assertions through a non-subclass adapter. That adapter delegates durable
+storage to the included local backend; it proves substitutability, not a remote
+backend's atomicity or fencing. Qualify those guarantees against the actual backend
+before shared use.
+
 Use one serialized owner per directory. On restart, reopen `LocalLearningStore`
 with the same profile ID and construct the same adapters/policy. Resume the pending
 pass with the same pass ID, activation choice and evaluation cases. Its inputs are

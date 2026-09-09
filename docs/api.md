@@ -119,4 +119,4 @@ improvement; verification evaluates the actual host-observed state.
 
 ## Adaptive operation through consumer use
 
-`AdaptiveLoop`, `LearningPolicy`, `LearningCase`, `LearningAdapter`, `TaskMeasurement`, `LearningResult`, and `LocalLearningStore` provide the public opt-in composition for measured feedback, bounded strategy revisions, durable restart and governed next-task adoption. See the [adapter contract and scheduling guide](adaptive-operation.md) and [executable template](../examples/adaptive_strategy.py). Core dependencies remain empty.
+`AdaptiveLoop`, `LearningPolicy`, `LearningCase`, `LearningAdapter`, `TaskMeasurement`, `LearningResult`, and `LearningStore` provide the public opt-in composition for measured feedback, bounded strategy revisions, durable restart and governed next-task adoption. `LocalLearningStore` implements the replaceable persistence contract with local files and SQLite; consumers own serialization, fencing, and the lifecycle of custom stores. See the [adapter contract and scheduling guide](adaptive-operation.md) and [executable template](../examples/adaptive_strategy.py). Core dependencies remain empty.

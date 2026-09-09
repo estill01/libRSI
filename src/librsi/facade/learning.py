@@ -12,7 +12,6 @@ from ..identity import digest, thaw
 from ..improvement import ImprovementBudget, ImprovementRequest, ImprovementResult
 from ..intent import OperationalizationPolicy, OperationalizationRequest
 from ..investigation import InvestigationRequest, InvestigationResult
-from ..local.learning import LocalLearningStore
 from ..reasoning import (
     ReasoningBackend,
     ReasoningRequest,
@@ -31,9 +30,10 @@ from ..rsi import (
     SelfChangeGovernancePolicy,
     SelfChangePolicy,
 )
-from ..runtime import Run, RunBudget, RuntimeEngine, RuntimeFailure
+from ..runtime import Run, RunBudget, RuntimeEngine, RuntimeFailure, RuntimeStore
 from .learning_host import LearningHost, case_from_record
 from .learning_records import LearningAdapter, LearningCase, LearningPolicy, TaskMeasurement
+from .learning_store import LearningStore
 from .learning_workflows import improve, investigate, recorded_action, recurse
 
 LearningTerminal = Outcome | InvestigationResult | ImprovementResult | RSIResult
@@ -67,14 +67,14 @@ class LearningResult:
 class AdaptiveLoop:
     """Run ordinary tasks and explicitly requested bounded learning passes.
 
-    Use one owner per local profile. The caller schedules passes, supplies held-out
+    Use one serialized owner per profile. The caller schedules passes, supplies held-out
     cases, versions adapter/provider identities, and bounds individual host calls.
     ``activate=False`` evaluates without changing the active strategy.
     """
 
     def __init__(
         self,
-        store: LocalLearningStore,
+        store: LearningStore,
         *,
         adapter: LearningAdapter,
         proposer: ReasoningBackend,
@@ -83,8 +83,12 @@ class AdaptiveLoop:
         reviewer_id: str,
         policy: LearningPolicy,
     ) -> None:
-        if not isinstance(store, LocalLearningStore) or not isinstance(policy, LearningPolicy):
-            raise TypeError("adaptive operation requires a local store and LearningPolicy")
+        if not isinstance(store, LearningStore):
+            raise TypeError("adaptive operation requires a LearningStore")
+        if not isinstance(store.runtime, RuntimeStore):
+            raise TypeError("adaptive operation requires a RuntimeStore")
+        if not isinstance(policy, LearningPolicy):
+            raise TypeError("adaptive operation requires a LearningPolicy")
         if not isinstance(adapter, LearningAdapter) or not isinstance(proposer, ReasoningBackend):
             raise TypeError("adaptive operation requires an adapter and ReasoningBackend")
         if not callable(getattr(reviewer, "review", None)):
