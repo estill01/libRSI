@@ -22,7 +22,7 @@ The shared composition belongs in libRSI; the host supplies domain work and scor
 - Primary outcome: reusable improvement through consumer use, with real adoption rather than a saved proposal alone.
 - Observable completion: an installed public example records actual task outcomes, derives strategy proposals from them, measures candidates on distinct cases, persists native workflow progress, adopts only an accepted revision, restarts, and uses it on a new task. Rejection, rollback, and restart negatives preserve the appropriate active strategy.
 - Ordinary effect classes needed: library composition/local adapter changes, focused tests, templates/examples/docs, local offline execution and wheel validation, scoped commits and branch pushes.
-- Hard direct authority or safety boundaries: retain proposal/evidence/application separation and existing self-change gates; no live model spend, deployment, release, production consumer mutation, or edits to Graphy/Patent Studio are needed for this library/template deliverable.
+- Hard direct authority or safety boundaries: retain proposal/evidence/application separation and existing self-change gates; no live model spend, deployment, release, production consumer mutation, or edits to consumer repositories are needed for this library/template deliverable.
 - Material goal alteration or reversal: a new distributed service, model training platform, automatic source rewriting, replacement semantic engine, or broad storage migration exceeds the lightweight request.
 
 ### Target-product capability frame
@@ -34,7 +34,7 @@ The shared composition belongs in libRSI; the host supplies domain work and scor
 - Protected capabilities: zero mandatory dependencies, domain-neutral semantic owners, exact evidence/currentness, bounded execution, durable restart, and explicit application with verification/rollback.
 - Architecture strategy: add composition and local profile support around existing records, artifacts, RuntimeStore, ImprovementWorkflow, RSIWorkflow, and capability routes; retain those owners' acceptance authority.
 - Requested capability: a maintained standard loop, versioned strategies, and a public consumer adapter template with demonstrated next-task adoption.
-- Proportionality: one serialized local owner with small histories and separate consumer profiles. A reusable layer is justified by Graphy and Patent Studio as intended consumers; a standalone platform is not.
+- Proportionality: one serialized local owner with small histories and separate consumer profiles. A reusable layer is justified by multiple intended downstream consumers; a standalone platform is not.
 - Tradeoffs: support bounded strategy configurations and prompts first. Keep built-in evaluation/governance rules fixed, retain explicit host scoring, and use the host's existing scheduling mechanism.
 - Uncertainty: no production consumer workload, scorer, or provider budget was supplied. Offline evidence must demonstrate the full mechanism without claiming proven model-quality gains or deployed consumer integration.
 
@@ -278,7 +278,7 @@ Accepted Blocks 0–1; public package/export/typing/documentation and existing C
 
 ### Scope and non-goals
 
-Library template, docs, integration proof and exact completion evidence. No edits or rollout to Graphy/Patent Studio, provider spend, new service, release, or automatic merge.
+Library template, docs, integration proof and exact completion evidence. No edits or rollout to consumer repositories, provider spend, new service, release, or automatic merge.
 
 ### Deliverables and recorded state
 

@@ -49,11 +49,12 @@ actual task inputs, outputs, scores, and producing strategy identities. Held-out
 cases and their observations are absent. Supply domain-specific proposal guidance
 in the configured backend; the consumer defines what its strategy fields mean.
 
-For Graphy, a strategy could contain an idea-generation prompt and search settings;
-its adapter would generate ideas using those fields and score actual results.
-Patent Studio can use its own drafting/search strategy and independently defined
-quality measure. Give them separate profile directories and IDs. This template
-does not install either production integration or pool their feedback.
+An idea-generation application could use a strategy containing a generation prompt
+and search settings; its adapter would generate ideas using those fields and score
+actual results. A document-authoring application could use its own drafting/search
+strategy and independently defined quality measure. Give each consumer separate
+profile directories and IDs. This template does not install production integrations
+or pool consumers' feedback.
 
 A model or process call belongs inside the adapter/backend, with its own timeout,
 token/cost limits and effect isolation. A candidate trial must not mutate the live
