@@ -1,12 +1,12 @@
 # libRSI Failure-Informed Proposal Learning Implementation Tracker
 
-- Tracker status: `planning`
+- Tracker status: `in-progress`
 - Tracker sequence: Blocks 0–2
 - Program identity: `proposal-learning`; qualify references as `proposal-learning/Block N`.
 - Repository: `https://github.com/estill01/libRSI`
 - Baseline: `4f06a6ced8898ca3d75182172d40070d963bc125` on main.
 - Governing objective: the September 10 direct user request in task `01a088ad-fde7-7941-9f42-6427f5f0b269` to retain and learn from unsuccessful proposal operations, experiment with improving proposal generation itself, and provide that capability generally in libRSI rather than only in Graphy.
-- Canonical owner: `docs/tracker.md`; sole current queue `proposal-learning/Blocks 0–2`; first eligible Block 0 after authoring review.
+- Canonical owner: `docs/tracker.md`; sole current queue `proposal-learning/Blocks 0–2`; authoring accepted at `5fd952a9`; first eligible Block 0 in progress.
 - Direct range: all three Blocks through installed standalone use, scoped upstream publication and main integration. Internal Stops are not final-return authority.
 
 ## 1. Purpose and intended outcome
@@ -112,6 +112,8 @@ are unknown, not zero. No change to existing Graphy or Patent Studio pins.
 
 ### Completion-evidence template
 
+Authoring independently accepted at `5fd952a9c5ca38bc1bee60118fe040bdc4cc842c`; review SHA-256 `f6904df0ff552596acb3913886b2d0ffc0cb2d2c687f5b8565cb6271fca49e14`.
+
 Record exact implementation commit and source hashes, inputs and observed native
 results, focused/mapped tests, independent review and corrections, actual operation
 cost scope, installed source/artifact, accepted status and push/main disposition.
@@ -121,7 +123,7 @@ Preserve historical results rather than relabeling failed or stale proof.
 
 | Block | Scope | Depends on | Status |
 |---:|---|---|---|
-| 0 | Inspect bounded native learning history and operation telemetry | — | `not-started` |
+| 0 | Inspect bounded native learning history and operation telemetry | — | `in-progress` |
 | 1 | Learn from failed attempts through bounded reflection and follow-up | 0 | `not-started` |
 | 2 | Demonstrate and deliver reusable proposal-generator improvement | 1 | `not-started` |
 
@@ -129,7 +131,7 @@ Required order: `0 → 1 → 2`.
 
 ## Block 0 — Inspect bounded native learning history and operation telemetry
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 

@@ -3,15 +3,14 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from dataclasses import dataclass
 from typing import cast
 
 from ..capabilities import Reviewer
 from ..comparison import ComparativeSelectionPolicy
 from ..identity import digest, thaw
-from ..improvement import ImprovementBudget, ImprovementRequest, ImprovementResult
+from ..improvement import ImprovementBudget, ImprovementRequest
 from ..intent import OperationalizationPolicy, OperationalizationRequest
-from ..investigation import InvestigationRequest, InvestigationResult
+from ..investigation import InvestigationRequest
 from ..reasoning import (
     ReasoningBackend,
     ReasoningRequest,
@@ -22,46 +21,20 @@ from ..reasoning import (
     make_reasoning_failure,
     reasoning_result_from_action_result,
 )
-from ..records import Hypothesis, Observation, Outcome, Question, TargetSnapshot, record_from_dict
+from ..records import Hypothesis, Observation, Outcome, Question, record_from_dict
 from ..rsi import (
     MetaTargetDeclaration,
     RSIRequest,
-    RSIResult,
     SelfChangeGovernancePolicy,
     SelfChangePolicy,
 )
 from ..runtime import Run, RunBudget, RuntimeEngine, RuntimeFailure, RuntimeStore
+from .learning_history import LearningAttempt, history, ordered_inputs
 from .learning_host import LearningHost, case_from_record
 from .learning_records import LearningAdapter, LearningCase, LearningPolicy, TaskMeasurement
+from .learning_results import LearningResult, LearningTerminal, learning_result
 from .learning_store import LearningStore
 from .learning_workflows import improve, investigate, recorded_action, recurse
-
-LearningTerminal = Outcome | InvestigationResult | ImprovementResult | RSIResult
-
-
-@dataclass(frozen=True)
-class LearningResult:
-    """A view of a native terminal result, never an independent acceptance decision."""
-
-    pass_id: str
-    native: LearningTerminal
-    strategy_after: TargetSnapshot
-
-    @property
-    def disposition(self) -> str:
-        if isinstance(self.native, Outcome):
-            return self.native.status
-        if isinstance(self.native, InvestigationResult):
-            return (
-                "no-supported-revision"
-                if self.native.terminal_status == "completed"
-                else self.native.terminal_status
-            )
-        return self.native.disposition
-
-    @property
-    def adopted(self) -> bool:
-        return isinstance(self.native, RSIResult) and self.native.disposition == "verified"
 
 
 class AdaptiveLoop:
@@ -102,6 +75,10 @@ class AdaptiveLoop:
         self.store, self.adapter, self.proposer = store, adapter, proposer
         self.proposer_id, self.reviewer, self.reviewer_id = proposer_id, reviewer, reviewer_id
         self.policy = policy
+
+    def history(self, *, limit: int = 2) -> tuple[LearningAttempt, ...]:
+        """Inspect bounded native attempts; use only attempt.feedback for reasoning."""
+        return history(self.store, limit=limit)
 
     def run_task(self, case: LearningCase) -> Observation:
         if not isinstance(case, LearningCase):
@@ -211,6 +188,12 @@ class AdaptiveLoop:
             target_snapshot=baseline,
             value={
                 "pass_id": pass_id,
+                "learning_version": 2,
+                "sequence": 1
+                + max(
+                    (item.value.get("sequence", 0) for item in ordered_inputs(self.store)),
+                    default=0,
+                ),
                 "configuration": configuration,
                 "feedback": [item.to_dict() for item in feedback],
                 "training": [case.record.to_dict() for case in training],
@@ -465,32 +448,7 @@ class AdaptiveLoop:
 
     @staticmethod
     def _result(host: LearningHost, native: LearningTerminal) -> LearningResult:
-        if not isinstance(native, (Outcome, InvestigationResult, ImprovementResult, RSIResult)):
-            raise ValueError("pass result is not a native terminal result")
-        if isinstance(native, RSIResult):
-            matches = (
-                native.request.rsi_id == host.pass_id
-                and native.request.declaration.target_snapshot == host.baseline
-            )
-        elif isinstance(native, ImprovementResult):
-            matches = (
-                native.request.request_id == host.pass_id
-                and native.request.baseline == host.baseline
-            )
-        elif isinstance(native, InvestigationResult):
-            matches = (
-                native.investigation.investigation_id == f"{host.pass_id}:investigate"
-                and native.investigation.target_snapshot == host.baseline
-            )
-        else:
-            state = host.store.runtime.resume(f"{host.pass_id}:ideas")
-            matches = state is not None and state.status == "failed" and state.outcome == native
-        if not matches:
-            raise ValueError("terminal result belongs to another learning pass")
-        after = native.authoritative_snapshot if isinstance(native, RSIResult) else host.baseline
-        if after is None:
-            raise RuntimeError("native result leaves strategy authority unresolved")
-        return LearningResult(host.pass_id, native, after)
+        return learning_result(host.store, host.inputs, native)
 
     def _finish(self, host: LearningHost, native: LearningTerminal) -> LearningResult:
         result = self._result(host, native)
