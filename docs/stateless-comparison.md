@@ -44,6 +44,15 @@ request = {
 }
 ```
 
+Transport canonical records as opaque JSON text through hosts whose numeric model
+cannot preserve Python JSON numbers. For example, JavaScript JSON.parse/stringify
+can change `1.0` to `1` or round large integers, invalidating record roots even
+though the parsed values appear equivalent. Preserve both request and response
+text in host persistence; extract display/index summaries separately. A host JSON
+envelope may carry `request_json` and `response_json` strings, with its Python
+adapter passing the original request text to this process. Those are host envelope
+fields, not additional fields accepted by the libRSI request schema above.
+
 Use `from librsi.comparison.external import evaluate_request` and
 `response = evaluate_request(request)` when a process transport is unnecessary.
 
