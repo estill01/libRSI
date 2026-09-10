@@ -7,6 +7,10 @@ not been published or tagged by this tracker run.
 
 ### Added
 
+- A bounded, stateless `python -m librsi.comparison` JSON boundary for hosts
+  that own storage and experiment execution. It recomputes canonical comparative
+  selection from exact records and returns advisory evidence without activation.
+
 - A facade-first `LibRSI` composition for local, embedded, managed, and external action
   loops over the same canonical runtime.
 - Typed validation, competing-hypothesis investigation, intervention, comparative

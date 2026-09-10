@@ -92,6 +92,8 @@ runtime authority.
 
 `AdaptiveLoop` adds a reusable feedback-to-strategy cycle: ordinary tasks record measured outcomes, bounded passes propose and evaluate revisions, and native self-change governance verifies adoption before the next task uses the new strategy. Start with the [adaptive operation guide](docs/adaptive-operation.md) and [runnable consumer template](examples/adaptive_strategy.py).
 
+For hosts that already own state and experiments, the [stateless comparison boundary](docs/stateless-comparison.md) accepts canonical trial records over JSON and returns an advisory selection without a local store.
+
 ## Install
 
 `0.3.0` is a release candidate, not a published distribution. The libRSI-owned source
