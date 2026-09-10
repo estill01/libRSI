@@ -6,7 +6,7 @@
 - Repository: `https://github.com/estill01/libRSI`
 - Baseline: `4f06a6ced8898ca3d75182172d40070d963bc125` on main.
 - Governing objective: the September 10 direct user request in task `01a088ad-fde7-7941-9f42-6427f5f0b269` to retain and learn from unsuccessful proposal operations, experiment with improving proposal generation itself, and provide that capability generally in libRSI rather than only in Graphy.
-- Canonical owner: `docs/tracker.md`; sole current queue `proposal-learning/Blocks 0–2`; authoring accepted at `5fd952a9`; Block 0 accepted; first eligible Block 1 in progress.
+- Canonical owner: `docs/tracker.md`; sole current queue `proposal-learning/Blocks 0–2`; authoring accepted at `5fd952a9`; Blocks 0–1 accepted; first eligible Block 2 in progress.
 - Direct range: all three Blocks through installed standalone use, scoped upstream publication and main integration. Internal Stops are not final-return authority.
 
 ## 1. Purpose and intended outcome
@@ -124,8 +124,8 @@ Preserve historical results rather than relabeling failed or stale proof.
 | Block | Scope | Depends on | Status |
 |---:|---|---|---|
 | 0 | Inspect bounded native learning history and operation telemetry | — | `completed` |
-| 1 | Learn from failed attempts through bounded reflection and follow-up | 0 | `in-progress` |
-| 2 | Demonstrate and deliver reusable proposal-generator improvement | 1 | `not-started` |
+| 1 | Learn from failed attempts through bounded reflection and follow-up | 0 | `completed` |
+| 2 | Demonstrate and deliver reusable proposal-generator improvement | 1 | `in-progress` |
 
 Required order: `0 → 1 → 2`.
 
@@ -211,7 +211,7 @@ Stop before new proposal/reflection or follow-up behavior owned by Block 1. This
 
 ## Block 1 — Learn from failed attempts through bounded reflection and follow-up
 
-Status: `in-progress`
+Status: `completed`
 
 ### Objective
 
@@ -265,7 +265,33 @@ Use the existing reviewer for exact-source and substantive outcome acceptance. M
 
 ### Completion evidence
 
-Pending.
+Accepted runtime source `0c629c6` (candidate `c6038fd` corrected for cross-round
+held-out separation). Frozen safe history, optional durable reflection and bounded
+follow-up are public facade behavior. New/current and selected historical training
+cannot expose earlier evaluation sets; every new pass uses fresh evaluation inputs.
+Same-pass replay still reconstructs exact old inputs. Actual canonical traces from
+the installed `c775bb41` wheel cover legacy pending and completed recovery.
+
+Focused checks: 18 passed in 50.32 s, including a valid reflection, two actual native
+candidate trials and six training measurements ending honestly without improvement.
+Fast regression: 615 passed, 312 deselected in 71.56 s. All adaptive/history slow
+checks: 31 passed in 633.29 s, including included/non-subclass store adoption,
+interrupted recovery and rollback. Global source/test/example Ruff passed; mypy
+passed 159 source/example modules. No core workflow or acceptance semantics changed.
+Corrected-source review SHA-256
+`6956f2816ffc99f057b8ec403c46aea01ab4e6e37b36e534973091e19cca467c`.
+
+Delivery-gate correction `3ec470f` repairs the previously failing main generic audit
+fixture from 102 to 104 files after the prior stateless comparison addition. Exact
+old roster reconstruction and zero leakage were independently reviewed (receipt
+`7c03bf55fc31a5eb355a639fc826b5bc3fec87cace6cd8c9536da550664dafab`);
+26 static audit/negative checks passed in 3.03 s. Audit rules and all generic runtime
+bytes remain unchanged. Old main's 892-pass/one-stale-fixture failure is preserved.
+
+Private `librsi-feedback-20260910/block1-{corrected,fast,affected}.log` and review
+receipts retain full results. These establish reusable mechanics and protected
+boundaries, not improved generator quality. Full range remains open on Block 2's
+installed standalone outcome and upstream delivery.
 
 ### Stop
 
@@ -275,7 +301,7 @@ Stop before public generator demonstration and upstream delivery owned by Block 
 
 ## Block 2 — Demonstrate and deliver reusable proposal-generator improvement
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 
@@ -293,6 +319,23 @@ An installed standalone consumer actually improves the configuration that genera
 ### Inputs and dependencies
 
 Block 1 accepted; current public LearningAdapter/ReasoningBackend/store/RSI contracts and existing package build/CI.
+
+Experiment protocol (independently reviewed before implementation): the changed
+configuration belongs to a repair-proposal generator, initially restricted to
+constant-offset fixes. Each case freezes a baseline affine program, three observed
+input/output examples, two separate scoring probes, a numeric tolerance and a
+budget of two distinct program proposals. The inner generator receives the
+observations/baseline/budget only; the adapter executes its proposals on the probes.
+Duplicate/malformed/failed proposals cannot increase the useful-proposal fraction.
+First alternate offset estimators must be measured and rejected. Reflection must
+identify nonconstant residuals from those actual measurements across cases before
+proposing affine fitting. Pair fitting and regression may tie; neither is claimed
+superior without evidence. Fresh outer cases qualify the resulting generator;
+restart and new ordinary work test its consumption. A valid-context ablation removes
+failure history/reflection while retaining ordinary feedback and the same budget.
+Count real generated repairs and measured program outputs; report measured cost
+scopes without equating equal proposal counts with equal CPU cost.
+
 
 ### Required work
 
