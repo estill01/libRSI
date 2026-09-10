@@ -232,7 +232,7 @@ def test_history_validates_successful_measurement_values(rejected):
         cached = store.cached
         for invalid in ({"value": True}, {"value": "1"}, {"output": []}):
 
-            def wrong(pass_id, key):
+            def wrong(pass_id, key, invalid=invalid):
                 row = cached(pass_id, key)
                 if key.startswith("measure:training:") and row is not None:
                     return replace(row, value={**row.value, **invalid})

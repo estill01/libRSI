@@ -6,7 +6,7 @@
 - Repository: `https://github.com/estill01/libRSI`
 - Baseline: `4f06a6ced8898ca3d75182172d40070d963bc125` on main.
 - Governing objective: the September 10 direct user request in task `01a088ad-fde7-7941-9f42-6427f5f0b269` to retain and learn from unsuccessful proposal operations, experiment with improving proposal generation itself, and provide that capability generally in libRSI rather than only in Graphy.
-- Canonical owner: `docs/tracker.md`; sole current queue `proposal-learning/Blocks 0–2`; authoring accepted at `5fd952a9`; first eligible Block 0 in progress.
+- Canonical owner: `docs/tracker.md`; sole current queue `proposal-learning/Blocks 0–2`; authoring accepted at `5fd952a9`; Block 0 accepted; first eligible Block 1 in progress.
 - Direct range: all three Blocks through installed standalone use, scoped upstream publication and main integration. Internal Stops are not final-return authority.
 
 ## 1. Purpose and intended outcome
@@ -123,15 +123,15 @@ Preserve historical results rather than relabeling failed or stale proof.
 
 | Block | Scope | Depends on | Status |
 |---:|---|---|---|
-| 0 | Inspect bounded native learning history and operation telemetry | — | `in-progress` |
-| 1 | Learn from failed attempts through bounded reflection and follow-up | 0 | `not-started` |
+| 0 | Inspect bounded native learning history and operation telemetry | — | `completed` |
+| 1 | Learn from failed attempts through bounded reflection and follow-up | 0 | `in-progress` |
 | 2 | Demonstrate and deliver reusable proposal-generator improvement | 1 | `not-started` |
 
 Required order: `0 → 1 → 2`.
 
 ## Block 0 — Inspect bounded native learning history and operation telemetry
 
-Status: `in-progress`
+Status: `completed`
 
 ### Objective
 
@@ -185,7 +185,23 @@ Use the existing reviewer for exact-source and substantive outcome acceptance. M
 
 ### Completion evidence
 
-Pending.
+Accepted source `7ee704c` (initial candidate `b4551e5` corrected after independent review).
+Public history retains real rejected attempts after reopening through both included
+and non-subclass consumer stores. Saved-input/run substitution, malformed scores,
+sequence conflicts and held-out/free-form context exclusion have focused coverage.
+New action costs are inclusive, nonadditive host scopes; missing provider/child costs
+remain unknown. No proposal-generation quality claim is made at this Block.
+
+Focused history: 16 passed in 140.45 s. Existing store/port and reasoning contracts:
+48 passed in 2.17 s. Ruff passed; mypy passed nine source modules. Original 10-pass /
+2-fixture-access-failure receipt remains preserved; corrected tests inspect the
+canonical value rather than the encoded record map. A later lint-only default
+argument preserves the same synchronously consumed malformed test values.
+Independent corrected-source receipt SHA-256
+`6436735dd96ca19223ca29af5ac9826d76ab959a1976c943f4580588cf438835`.
+Evidence: private `librsi-feedback-20260910/block0-{corrected,mapped}.log` and source
+review receipts. Full-range reconciliation: Block 0 accepted, Blocks 1–2 still
+required; no terminal-return authority at this checkpoint.
 
 ### Stop
 
@@ -195,7 +211,7 @@ Stop before new proposal/reflection or follow-up behavior owned by Block 1. This
 
 ## Block 1 — Learn from failed attempts through bounded reflection and follow-up
 
-Status: `not-started`
+Status: `in-progress`
 
 ### Objective
 
