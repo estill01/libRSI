@@ -2,16 +2,17 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import cast
 
 from ..identity import thaw
-from ..reasoning import ReasoningRequest
+from ..reasoning import ReasoningRequest, ReasoningResult
 from ..records import Observation, record_from_dict
 from ..runtime import Run, RunBudget
 from .learning_host import case_from_record
 
 
-def proposal_request(inputs: Observation) -> ReasoningRequest:
+def _base(inputs: Observation) -> ReasoningRequest:
     baseline = inputs.target_snapshot
     assert baseline is not None
     pass_id = inputs.value["pass_id"]
@@ -54,6 +55,71 @@ def proposal_request(inputs: Observation) -> ReasoningRequest:
             ],
         },
     )
+    if "history" in inputs.value:
+        historical = tuple(record_from_dict(thaw(row)) for row in inputs.value["history"])
+        if any(
+            not isinstance(row, Observation)
+            or row.kind != "learning.attempt-feedback"
+            or row.target_snapshot != baseline
+            for row in historical
+        ):
+            raise ValueError("learning context must contain baseline-bound attempt feedback")
+        refs = (*request.input_refs, *(row.ref for row in historical))
+        request = replace(
+            request,
+            input_refs=refs,
+            lineage=refs,
+            context={
+                **request.context,
+                "history": [cast(Observation, row).value for row in historical],
+                "follow_up_to": configuration.get("follow_up_to"),
+            },
+        )
+    return request
+
+
+def reflection_request(inputs: Observation) -> ReasoningRequest | None:
+    request = _base(inputs)
+    if not inputs.value["configuration"]["policy"].get("reflect_on_failure", False):
+        return None
+    if not any(
+        row["disposition"] not in {"pending", "verified", "activation-disabled"}
+        for row in request.context.get("history", ())
+    ):
+        return None
+    return replace(
+        request,
+        request_id=f"{inputs.value['pass_id']}:reflection",
+        kind="reflection",
+        instruction=(
+            "Inspect the recorded unsuccessful attempts and training measurements. Distinguish "
+            "observations from possible explanations; identify an assumption to test differently. "
+            "A rejection alone does not prove its cause. State open questions. Your reflection "
+            "is a proposal, never evidence, approval, or permission to change acceptance rules."
+        ),
+    )
+
+
+def proposal_request(
+    inputs: Observation, reflection: ReasoningResult | None = None
+) -> ReasoningRequest:
+    request = _base(inputs)
+    expected = reflection_request(inputs)
+    if expected is not None:
+        if reflection is None or reflection.request != expected:
+            raise ValueError("proposal requires its exact completed reflection")
+        refs = (*request.input_refs, reflection.ref)
+        request = replace(
+            request,
+            input_refs=refs,
+            lineage=refs,
+            context={
+                **request.context,
+                "reflection": reflection.content,
+            },
+        )
+    elif reflection is not None:
+        raise ValueError("unexpected reflection for this learning pass")
     return request
 
 

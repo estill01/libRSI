@@ -75,6 +75,9 @@ class LearningPolicy:
     max_feedback: int = 8
     max_candidates: int = 2
     max_cases: int = 8
+    history_limit: int = 2
+    reflect_on_failure: bool = False
+    max_followups: int = 1
 
     def __post_init__(self) -> None:
         if not isinstance(self.objective, str) or not self.objective.strip():
@@ -98,6 +101,11 @@ class LearningPolicy:
                 raise ValueError(f"{name} must be an integer of at least 2")
         if self.min_new_feedback > min(self.max_feedback, self.max_cases):
             raise ValueError("feedback and case allowances cannot be smaller than the trigger")
+        for name in ("history_limit", "max_followups"):
+            if type(getattr(self, name)) is not int or getattr(self, name) < 0:
+                raise ValueError(f"{name} must be a nonnegative integer")
+        if type(self.reflect_on_failure) is not bool:
+            raise ValueError("reflect_on_failure must be boolean")
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -108,4 +116,7 @@ class LearningPolicy:
             "max_feedback": self.max_feedback,
             "max_candidates": self.max_candidates,
             "max_cases": self.max_cases,
+            "history_limit": self.history_limit,
+            "reflect_on_failure": self.reflect_on_failure,
+            "max_followups": self.max_followups,
         }

@@ -8,6 +8,7 @@ from ..improvement import ImprovementResult
 from ..investigation import InvestigationResult
 from ..records import Observation, Outcome, TargetSnapshot
 from ..rsi import RSIResult
+from .learning_requests import reasoning_run, reflection_request
 from .learning_store import LearningStore
 
 LearningTerminal = Outcome | InvestigationResult | ImprovementResult | RSIResult
@@ -63,6 +64,16 @@ def learning_result(
     else:
         state = store.runtime.resume(f"{pass_id}:ideas")
         matches = state is not None and state.status == "failed" and state.outcome == native
+        if not matches:
+            request = reflection_request(inputs)
+            state = store.runtime.resume(f"{pass_id}:reflection") if request is not None else None
+            matches = (
+                request is not None
+                and state is not None
+                and state.run == reasoning_run(request)
+                and state.status == "failed"
+                and state.outcome == native
+            )
     if not matches:
         raise ValueError("terminal result belongs to another learning pass")
     after = native.authoritative_snapshot if isinstance(native, RSIResult) else baseline

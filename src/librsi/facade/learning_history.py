@@ -11,7 +11,7 @@ from ..records import Observation, record_from_dict
 from ..runtime import ActionResult
 from .learning_host import case_from_record
 from .learning_records import TaskMeasurement
-from .learning_requests import proposal_request, reasoning_run
+from .learning_requests import proposal_request, reasoning_run, reflection_request
 from .learning_results import LearningResult, LearningTerminal, learning_result
 from .learning_store import LearningStore
 
@@ -58,6 +58,7 @@ class LearningAttempt:
     inputs: Observation
     result: LearningResult | None
     proposal: ReasoningResult | None
+    reflection: ReasoningResult | None
     operations: tuple[ActionResult, ...]
     measurements: tuple[Observation, ...]
 
@@ -140,13 +141,14 @@ def attempt(store: LearningStore, inputs: Observation) -> LearningAttempt:
         None if native is None else learning_result(store, inputs, cast(LearningTerminal, native))
     )
     proposal = None
+    reflection = None
     operations: list[ActionResult] = []
     # These are the existing facade's canonical bounded run identities, not a
     # new runtime registry. Missing native submission proves neither success nor
     # absence of a host effect interrupted before submission.
     for suffix in (
-        "ideas",
         "reflection",
+        "ideas",
         "investigate",
         "improvement",
         "governance",
@@ -157,12 +159,26 @@ def attempt(store: LearningStore, inputs: Observation) -> LearningAttempt:
             continue
         if state.run.run_id != f"{pass_id}:{suffix}" or state.run.target_snapshot != baseline:
             raise ValueError("learning operation belongs to another baseline")
-        if suffix == "ideas" and state.run != reasoning_run(proposal_request(inputs)):
-            raise ValueError("historical proposal run does not match its frozen inputs")
+        if suffix in {"ideas", "reflection"}:
+            request = (
+                reflection_request(inputs)
+                if suffix == "reflection"
+                else proposal_request(inputs, reflection)
+            )
+            if request is None or state.run != reasoning_run(request):
+                raise ValueError("historical proposal run does not match its frozen inputs")
         operations.extend(state.results)
+        if (
+            suffix == "reflection"
+            and state.results
+            and state.results[-1].disposition == "succeeded"
+        ):
+            reflection = reasoning_result_from_action_result(state.results[-1])
+            if reflection.request != reflection_request(inputs):
+                raise ValueError("historical reflection belongs to another request")
         if suffix == "ideas" and state.results and state.results[-1].disposition == "succeeded":
             proposal = reasoning_result_from_action_result(state.results[-1])
-            if proposal.request != proposal_request(inputs):
+            if proposal.request != proposal_request(inputs, reflection):
                 raise ValueError("historical proposal belongs to another request")
     snapshots = {baseline.root: baseline}
     if proposal is not None:
@@ -198,7 +214,9 @@ def attempt(store: LearningStore, inputs: Observation) -> LearningAttempt:
             if row.kind == "learning.measurement":
                 TaskMeasurement(row.value["output"], row.value["value"])
             measurements.append(row)
-    return LearningAttempt(inputs, result, proposal, tuple(operations), tuple(measurements))
+    return LearningAttempt(
+        inputs, result, proposal, reflection, tuple(operations), tuple(measurements)
+    )
 
 
 def history(store: LearningStore, *, limit: int = 2) -> tuple[LearningAttempt, ...]:
