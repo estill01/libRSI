@@ -270,8 +270,10 @@ the benefit. A valid control removes historical failure feedback/reflection and
 measures the resulting proposals separately. It grants no native acceptance.
 
 The example saves complete evidence in its data directory and reports partial
-operation timing plus whole-invocation wall/process CPU, including admission,
-history inspection and control execution. Equal proposal budgets do not imply
+operation timing plus a declared example interval of wall/process CPU, including
+admission, history inspection and control execution. It excludes startup and final
+serialization/writes; measure the enclosing process for that additional cost.
+Equal proposal budgets do not imply
 equal CPU cost. It uses deterministic input-driven reasoning on a synthetic affine
 program domain; it does not establish better LLM ideas or production performance.
 To use a real model, replace the backend/adapter and qualify the generator against

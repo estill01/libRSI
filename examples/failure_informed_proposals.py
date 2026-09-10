@@ -379,13 +379,22 @@ def run_demo(directory: Path) -> dict[str, Any]:
         ]
     # Reopen once more and consume the adopted generator on a new ordinary input.
     with LocalLearningStore(directory, profile_id="repair-generator") as store:
-        next_task = make_loop(store).run_task(make_case("ordinary-next", 7, -6))
+        next_case = make_case("ordinary-next", 7, -6)
+        next_baseline = ProposalAdapter().evaluate(BASE_GENERATOR, next_case)
+        next_task = make_loop(store).run_task(next_case)
         if (
             next_task.target_snapshot != learned.strategy_after
-            or next_task.value["value"] <= ordinary[0].value["value"]
+            or next_task.value["value"] <= next_baseline.value
         ):
             raise RuntimeError("new ordinary work did not benefit from the adopted generator")
         evidence["next_task"] = next_task.to_dict()
+        evidence["ordinary_baseline"] = {
+            "case": next_case.record.to_dict(),
+            "strategy_root": first.strategy_after.root,
+            "configuration": BASE_GENERATOR,
+            "output": next_baseline.output,
+            "value": next_baseline.value,
+        }
         report = {
             "initial_disposition": first.disposition,
             "learned_disposition": learned.disposition,
@@ -397,12 +406,13 @@ def run_demo(directory: Path) -> dict[str, Any]:
             "heldout_rates": heldout,
             "ablation_rates": [row.value for row in ablation_trials],
             "next_rate": next_task.value["value"],
+            "next_baseline_rate": next_baseline.value,
             "next_task_root": next_task.root,
             "next_strategy_root": next_task.target_snapshot.root,
             "operations": operation_scopes,
             "wall_seconds": perf_counter() - started,
             "process_cpu_seconds": process_time() - cpu,
-            "cost_scope": "whole invocation including native admission/history, control and ordinary work; excludes final JSON serialization; not additive with nested operations",
+            "cost_scope": "run_demo entry through report construction, including native admission/history, controls and ordinary work; excludes imports/startup, final store close, evidence/report serialization and writes; not additive with nested operations",
             "provider_usage": None,
             "child_cpu_seconds": None,
         }
