@@ -6,7 +6,9 @@ import pytest
 
 from librsi import LearningAttempt, LocalLearningStore, Observation
 from librsi.facade.learning_history import ordered_inputs
+from librsi.facade.learning_requests import proposal_request, reasoning_run
 from librsi.reasoning import ReasoningResult
+from librsi.runtime import RuntimeEngine
 
 from .learning_store_support import ConsumerLearningStore
 from .test_adaptive_loop import SHADOW, TRAIN, Ideas, Proposer, loop
@@ -66,9 +68,9 @@ def test_safe_context_excludes_shadow_and_nested_native_trees(rejected):
         safe = attempt.feedback.to_dict()
         assert "shadow-a" not in str(safe) and "shadow-b" not in str(safe)
         assert "verification" not in str(safe)
-        assert "native" not in safe["value"] and "operations" not in safe["value"]
-        assert len(safe["value"]["hypotheses"]) == 2
-        assert set(safe["value"]["trials"][0]) == {
+        assert "native" not in attempt.feedback.value and "operations" not in attempt.feedback.value
+        assert len(attempt.feedback.value["hypotheses"]) == 2
+        assert set(attempt.feedback.value["trials"][0]) == {
             "case_id",
             "case",
             "configuration",
@@ -166,8 +168,15 @@ def test_ordering_is_explicit_and_never_inferred_from_pass_id_mapping(rejected):
         second = replace(second, value={**second.value, "sequence": 1})
         with pytest.raises(ValueError, match="ambiguous"):
             ordered_inputs(Reordered())
+        for version, sequence in ((2, None), (2, True), (2, 0), (3, 2), (True, 2)):
+            second = replace(
+                second, value={**second.value, "learning_version": version, "sequence": sequence}
+            )
+            with pytest.raises(ValueError, match="sequence|version"):
+                ordered_inputs(Reordered())
         legacy = dict(first.value)
         legacy.pop("sequence")
+        legacy.pop("learning_version")
         first = replace(first, value=legacy)
         second = replace(second, value={**legacy, "pass_id": "a-second"})
         rows = ordered_inputs(Reordered())
@@ -195,3 +204,40 @@ def test_substituted_measurement_or_terminal_result_rejects(rejected):
         )
         with pytest.raises(ValueError, match="native terminal"):
             engine.history()
+
+
+def test_history_rejects_wrong_run_and_same_id_with_different_frozen_inputs(rejected):
+    factory, path, _ = rejected
+    with factory(path, profile_id="history") as store:
+        resume = store.runtime.resume
+        original = store.pass_input("z-first")
+        altered = replace(original, value={**original.value, "feedback": ()})
+        wrong_ideas = RuntimeEngine.start(reasoning_run(proposal_request(altered))).state
+        store.runtime.resume = lambda run_id: (
+            wrong_ideas if run_id.endswith(":ideas") else resume(run_id)
+        )
+        with pytest.raises(ValueError, match="frozen inputs"):
+            loop(store).history()
+        correct_ideas = resume("z-first:ideas")
+        store.runtime.resume = lambda run_id: (
+            correct_ideas if run_id.endswith(":investigate") else resume(run_id)
+        )
+        with pytest.raises(ValueError, match="another baseline"):
+            loop(store).history()
+
+
+def test_history_validates_successful_measurement_values(rejected):
+    factory, path, _ = rejected
+    with factory(path, profile_id="history") as store:
+        cached = store.cached
+        for invalid in ({"value": True}, {"value": "1"}, {"output": []}):
+
+            def wrong(pass_id, key):
+                row = cached(pass_id, key)
+                if key.startswith("measure:training:") and row is not None:
+                    return replace(row, value={**row.value, **invalid})
+                return row
+
+            store.cached = wrong
+            with pytest.raises(TypeError, match="numeric|JSON object"):
+                loop(store).history()

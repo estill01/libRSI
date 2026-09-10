@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import cast
 
 from ..capabilities import Reviewer
 from ..comparison import ComparativeSelectionPolicy
@@ -13,7 +12,6 @@ from ..intent import OperationalizationPolicy, OperationalizationRequest
 from ..investigation import InvestigationRequest
 from ..reasoning import (
     ReasoningBackend,
-    ReasoningRequest,
     ReasoningResult,
     ReasoningResultValidator,
     make_reasoning_action,
@@ -28,10 +26,11 @@ from ..rsi import (
     SelfChangeGovernancePolicy,
     SelfChangePolicy,
 )
-from ..runtime import Run, RunBudget, RuntimeEngine, RuntimeFailure, RuntimeStore
+from ..runtime import RuntimeEngine, RuntimeFailure, RuntimeStore
 from .learning_history import LearningAttempt, history, ordered_inputs
 from .learning_host import LearningHost, case_from_record
 from .learning_records import LearningAdapter, LearningCase, LearningPolicy, TaskMeasurement
+from .learning_requests import proposal_request, reasoning_run
 from .learning_results import LearningResult, LearningTerminal, learning_result
 from .learning_store import LearningStore
 from .learning_workflows import improve, investigate, recorded_action, recurse
@@ -206,53 +205,8 @@ class AdaptiveLoop:
         return inputs
 
     def _propose(self, host: LearningHost) -> ReasoningResult | Outcome:
-        feedback = tuple(
-            cast(Observation, record_from_dict(thaw(item)))
-            for item in host.inputs.value["feedback"]
-        )
-        if any(not isinstance(item, Observation) for item in feedback):
-            raise ValueError("pass feedback must contain exact observations")
-        refs = (host.baseline.ref, *(item.ref for item in feedback))
-        request = ReasoningRequest(
-            request_id=f"{host.pass_id}:ideas",
-            kind="hypothesis-generation",
-            instruction=(
-                f"Propose 2 to {self.policy.max_candidates} distinct revisions to the active strategy "
-                "using measured task feedback. Each causal_model must contain only configuration: "
-                "a complete replacement JSON object valid for this adapter. Do not repeat the baseline."
-            ),
-            input_refs=refs,
-            target_snapshot=host.baseline,
-            lineage=refs,
-            context={
-                "configuration": host.baseline.state,
-                "policy": self.policy.to_dict(),
-                "adapter_id": self.adapter.adapter_id,
-                "proposer_id": self.proposer_id,
-                "feedback": [
-                    {
-                        "task_id": item.value["task_id"],
-                        "case": case_from_record(
-                            cast(Observation, record_from_dict(thaw(item.value["case"])))
-                        ).payload,
-                        "output": item.value["output"],
-                        "value": item.value["value"],
-                        "strategy": item.target_snapshot.root if item.target_snapshot else None,
-                        "feedback": item.root,
-                    }
-                    for item in feedback
-                ],
-            },
-        )
-        run = Run(
-            run_id=f"{host.pass_id}:ideas",
-            intent=request.ref,
-            target_snapshot=host.baseline,
-            budget=RunBudget(
-                max_actions=1, max_failures=1, max_retries=0, resource_limits={"calls": 1}
-            ),
-            lineage=(request.ref,),
-        )
+        request = proposal_request(host.inputs)
+        run = reasoning_run(request)
         state = self.store.runtime.resume(run.run_id)
         if state is None:
             update = RuntimeEngine.start(run)

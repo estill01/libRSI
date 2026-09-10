@@ -10,6 +10,8 @@ from ..reasoning import ReasoningResult, reasoning_result_from_action_result
 from ..records import Observation, record_from_dict
 from ..runtime import ActionResult
 from .learning_host import case_from_record
+from .learning_records import TaskMeasurement
+from .learning_requests import proposal_request, reasoning_run
 from .learning_results import LearningResult, LearningTerminal, learning_result
 from .learning_store import LearningStore
 
@@ -32,7 +34,10 @@ def ordered_inputs(store: LearningStore) -> tuple[Observation, ...]:
         ):
             raise ValueError("learning history input belongs to another pass or profile")
         sequence = inputs.value.get("sequence")
-        if sequence is not None:
+        version = inputs.value.get("learning_version")
+        if version is not None and (type(version) is not int or version != 2):
+            raise ValueError("unsupported learning history version")
+        if version == 2 or "sequence" in inputs.value:
             if type(sequence) is not int or sequence <= 0 or sequence in sequences:
                 raise ValueError("learning history sequence is invalid or ambiguous")
             sequences.add(sequence)
@@ -137,7 +142,8 @@ def attempt(store: LearningStore, inputs: Observation) -> LearningAttempt:
     proposal = None
     operations: list[ActionResult] = []
     # These are the existing facade's canonical bounded run identities, not a
-    # new runtime registry. A missing phase did not execute; it is not a success.
+    # new runtime registry. Missing native submission proves neither success nor
+    # absence of a host effect interrupted before submission.
     for suffix in (
         "ideas",
         "reflection",
@@ -149,15 +155,14 @@ def attempt(store: LearningStore, inputs: Observation) -> LearningAttempt:
         state = store.runtime.resume(f"{pass_id}:{suffix}")
         if state is None:
             continue
-        if state.run.target_snapshot != baseline:
+        if state.run.run_id != f"{pass_id}:{suffix}" or state.run.target_snapshot != baseline:
             raise ValueError("learning operation belongs to another baseline")
+        if suffix == "ideas" and state.run != reasoning_run(proposal_request(inputs)):
+            raise ValueError("historical proposal run does not match its frozen inputs")
         operations.extend(state.results)
         if suffix == "ideas" and state.results and state.results[-1].disposition == "succeeded":
             proposal = reasoning_result_from_action_result(state.results[-1])
-            if (
-                proposal.request.request_id != f"{pass_id}:ideas"
-                or proposal.kind != "hypothesis-generation"
-            ):
+            if proposal.request != proposal_request(inputs):
                 raise ValueError("historical proposal belongs to another request")
     snapshots = {baseline.root: baseline}
     if proposal is not None:
@@ -165,8 +170,14 @@ def attempt(store: LearningStore, inputs: Observation) -> LearningAttempt:
         maximum = inputs.value["configuration"]["policy"]["max_candidates"]
         if not 2 <= len(hypotheses) <= maximum:
             raise ValueError("historical proposal exceeds its candidate allowance")
+        roots = set()
         for hypothesis in hypotheses:
+            if set(hypothesis["causal_model"]) != {"configuration"}:
+                raise ValueError("historical proposal must contain only configuration")
             snapshot = store.snapshot(hypothesis["causal_model"]["configuration"])
+            if snapshot == baseline or snapshot.root in roots:
+                raise ValueError("historical proposals must be distinct baseline revisions")
+            roots.add(snapshot.root)
             snapshots[snapshot.root] = snapshot
     measurements = []
     for value in inputs.value["training"]:
@@ -184,6 +195,8 @@ def attempt(store: LearningStore, inputs: Observation) -> LearningAttempt:
                 or row.value["adapter_id"] != inputs.value["configuration"]["adapter_id"]
             ):
                 raise ValueError("historical measurement does not match its training inputs")
+            if row.kind == "learning.measurement":
+                TaskMeasurement(row.value["output"], row.value["value"])
             measurements.append(row)
     return LearningAttempt(inputs, result, proposal, tuple(operations), tuple(measurements))
 

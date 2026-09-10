@@ -11,6 +11,7 @@ import pytest
 _SLOW_MODULES = frozenset(
     {
         "test_adaptive_loop.py",
+        "test_learning_history.py",  # measured 124.90s including real native rejection setup
         "test_block11_investigation_persistence.py",
         "test_block11_investigation_workflow.py",
         "test_block15_improvement_workflow.py",
