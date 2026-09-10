@@ -48,7 +48,7 @@ Two complete executions must be byte-identical. The frozen roots are:
 
 ## Generic-code dependency audit
 
-`tests/block25_domain_audit.py` parses all 102 generic semantic, governance,
+`tests/block25_domain_audit.py` parses all 104 generic semantic, governance,
 runtime, external-agent protocol, and managed-service source modules. The roster
 includes identity, checkpoints, kernel, governance, protocol/controller, service,
 SQLite semantic stores, and every validation/investigation/improvement owner.
@@ -70,7 +70,12 @@ requirement of the generic engine. The audit rejects:
   aggregation surface rather than a lower-level generic owner.
 
 The exact accepted generic-source aggregate root is
-`913027cc09d5f976bbdffd8bd72a9e24da066f1cb39f3b67115f44539ebe8456`.
+`eee5b5d032cbde28ace69b42f30a9a68646be7fe647c7d24a31c7657cd115749`. The roster grew from 102 to 104 when
+`comparison/__main__.py` and `comparison/external.py` added the stateless public
+comparison boundary in `c775bb41`. Both use generic records and existing selection
+policy; the dependency/leakage rules are unchanged. The proposal-learning facade
+changes lie outside this generic-core roster. Earlier archived audit receipts
+remain historical evidence for their original source.
 Any generic source change intentionally invalidates that root and requires the
 cross-domain proof to be reviewed again. Negative tests inject each prohibited
 leak class and prove the audit fails closed. Runtime negatives independently
