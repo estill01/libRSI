@@ -113,6 +113,11 @@ Inspect and reconcile the native result/actual target before resuming that profi
 
 ## Restart, history and boundaries
 
+When the host only needs to compare completed trials, use the
+[stateless comparison boundary](stateless-comparison.md). It consumes exact
+canonical records and emits an advisory selection without constructing a profile
+or a runtime store. This keeps host-owned graph state out of per-worker stores.
+
 `AdaptiveLoop` accepts the public, runtime-checkable `LearningStore` protocol.
 `LocalLearningStore` is the included filesystem/SQLite implementation; consumers
 can supply another implementation without subclassing it. Import the protocol
