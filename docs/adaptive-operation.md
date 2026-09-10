@@ -279,3 +279,13 @@ program domain; it does not establish better LLM ideas or production performance
 To use a real model, replace the backend/adapter and qualify the generator against
 the consumer's actual downstream outcomes. No model weights or fixed library
 evaluation/governance rules are trained or changed.
+
+The independently reviewed installed run for [PR #44](https://github.com/estill01/libRSI/pull/44)
+measured zero useful proposals from the original generator and one useful proposal
+out of two from the revised generator on each of two fresh held-out problems.
+After reopening, the revised generator achieved the same improvement on a new
+ordinary problem compared with the original on that identical problem. Removing
+the failure signal left all four control measurements at zero. The complete
+installed process took 60.61 seconds wall and 56.60 seconds CPU; this is a quality
+mechanism demonstration, not a speedup. Exact native roots, review and validation
+receipts are recorded in [the completed tracker](tracker.md#block-2--demonstrate-and-deliver-reusable-proposal-generator-improvement).

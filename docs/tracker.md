@@ -1,12 +1,12 @@
 # libRSI Failure-Informed Proposal Learning Implementation Tracker
 
-- Tracker status: `in-progress`
+- Tracker status: `completed`
 - Tracker sequence: Blocks 0–2
 - Program identity: `proposal-learning`; qualify references as `proposal-learning/Block N`.
 - Repository: `https://github.com/estill01/libRSI`
 - Baseline: `4f06a6ced8898ca3d75182172d40070d963bc125` on main.
 - Governing objective: the September 10 direct user request in task `01a088ad-fde7-7941-9f42-6427f5f0b269` to retain and learn from unsuccessful proposal operations, experiment with improving proposal generation itself, and provide that capability generally in libRSI rather than only in Graphy.
-- Canonical owner: `docs/tracker.md`; sole current queue `proposal-learning/Blocks 0–2`; authoring accepted at `5fd952a9`; Blocks 0–1 accepted; first eligible Block 2 in progress.
+- Canonical owner: `docs/tracker.md`; sole current queue `proposal-learning/Blocks 0–2`; authoring accepted at `5fd952a9`; Blocks 0–2 accepted; reviewed implementation merged to main in PR #44; no remaining Block.
 - Direct range: all three Blocks through installed standalone use, scoped upstream publication and main integration. Internal Stops are not final-return authority.
 
 ## 1. Purpose and intended outcome
@@ -125,7 +125,7 @@ Preserve historical results rather than relabeling failed or stale proof.
 |---:|---|---|---|
 | 0 | Inspect bounded native learning history and operation telemetry | — | `completed` |
 | 1 | Learn from failed attempts through bounded reflection and follow-up | 0 | `completed` |
-| 2 | Demonstrate and deliver reusable proposal-generator improvement | 1 | `in-progress` |
+| 2 | Demonstrate and deliver reusable proposal-generator improvement | 1 | `completed` |
 
 Required order: `0 → 1 → 2`.
 
@@ -301,7 +301,7 @@ Stop before public generator demonstration and upstream delivery owned by Block 
 
 ## Block 2 — Demonstrate and deliver reusable proposal-generator improvement
 
-Status: `in-progress`
+Status: `completed`
 
 ### Objective
 
@@ -374,7 +374,82 @@ Use the existing reviewer for exact-source and substantive outcome acceptance. M
 
 ### Completion evidence
 
-Pending.
+Accepted source `2a80219f95497d23148499d41daaf2b6f859a595`, library runtime
+`0c629c6`, merged without source changes by
+[PR #44](https://github.com/estill01/libRSI/pull/44) to main
+`69c370adb029ca92430e25505b83f4d9a5d41773` (tree
+`31f25119fb334c912992846626fe8f5454dc2d59`). Independent source receipt
+`block2-source-review.md` SHA-256
+`16b8e4bc6b70039133f83555bca3ee25d303cd6f07108a3dc2445831f266c486`
+and outcome receipt `block2-outcome-review.md` SHA-256
+`36b70e1a5b01a04eacd4bcd6873b6ef7907d7153c2dde4ec29722290cb5c54e7`
+are retained under the private evidence root in Section 6.
+
+The built wheel SHA-256 is
+`071de94003adf7054973516bde74c799b1d526dc31a9b5778b6521f9eb4773d6`;
+all 154 installed Python files matched the source, and the copied standalone
+example SHA-256 is
+`de698be8fc00b7aab929dbc26f311540788f2859e0369a6396312aa4e21a926b`.
+A clean installed Python ran it outside the checkout with `-I`, no Graphy,
+no Patent Studio, no provider calls, two native learning passes, exit zero and
+empty stderr. Wheel/sdist audit and installed dependency check passed.
+
+Observed evidence:
+
+| Measurement | Original generator | Learned generator / control |
+|---|---:|---:|
+| Fresh held-out case 1, useful proposals out of budget 2 | 0 | 1 |
+| Fresh held-out case 2, useful proposals out of budget 2 | 0 | 1 |
+| New ordinary case after reopening, same-case comparison | 0 | 1 |
+| Valid control without failure history/reflection, four measurements | — | 0 each |
+
+The first native result was inconclusive, with facade disposition
+`no-supported-revision`, root
+`16f130b42941401ed0fd456dd203610878b4c8c7aaa6064c25ea488a263b57e7`.
+Measured failed residuals `[4, 6, 8]` and `[0, 4, 8]` informed the reflection
+and affine pair/regression hypotheses. The verified result root
+`267a9ce80f0f4df117eebbbf77e1f38e7fe97dbd5dc23b37f57bc875810b846b`
+retains independent native review, explicit approval, application and verification.
+Its active generator (`affine` / `pair`) is
+`75134583b8fd48492cb6af822337e3d0711eda6ab973025d66c82ba852348c0a`;
+new ordinary task root
+`bb36b0601c046a6344dfe245e603c79180700ca3933f279eb19aa8b634531914`
+uses that same revision. Pair/regression tie; pair superiority is not established.
+Native verification reuses the fresh outer comparison cases; it is not another
+independent sample.
+
+Independent review reopened the installed native store without calling the
+producer/evaluator, verified 51 canonical artifacts and the active/task bindings,
+recomputed 22 retained measurement rows from actual program outputs, and confirmed
+all 54 store files remained byte-identical. Complete raw evidence is
+`installed-demo/evidence.json`, SHA-256
+`db4ac0e87fabbca479d6496d9a62155283f0754005f5952c61d3267d09cd6d23`;
+independent readback is `block2-outcome-readback.json`, SHA-256
+`12978a5fc7b3059d47c520a0bed1d70ccdcf527c5dcd7dd74d9bc72800435ad3`.
+These support one deterministic synthetic demonstration, not general model quality,
+production usefulness, a performance improvement or consumer activation.
+
+The enclosing installed process measured 60.607927 seconds wall and 56.597526
+seconds CPU (53.946124 user + 2.651402 system), peak child RSS 129756 KiB,
+including startup, admission, controls, ordinary use and final serialization.
+The example's 59.192198-second wall / 55.362516-second CPU interval and its
+17 native operation scopes are nested, not additive. Provider/other-child usage
+remains unknown. Outer cost receipt `block2-process-cost.json` SHA-256 is
+`82d05363879a427568de9ed544d30a91469f16c291999f17ffa7433cf8eb888c`.
+
+Validation: six focused example tests passed in 0.32 seconds; unchanged Block 1
+runtime proof was reused (615 fast, 31 affected adaptive/history and 18 focused
+checks, with overlap). Ruff lint/format over `src tests examples` and mypy over
+160 source/example files passed. The 26 static generic-audit checks passed after
+reconciling the inherited 102-file fixture to the two previously reviewed
+comparison modules; no leakage assertion was relaxed. All three supported-Python
+[PR CI jobs passed](https://github.com/estill01/libRSI/actions/runs/34457769680).
+The existing full main regression/coverage
+[run 34458394485](https://github.com/estill01/libRSI/actions/runs/34458394485)
+was still running when this receipt was written; it is preserved, not claimed
+passed or waived. The final documentation-only receipt reuses these exact source
+and test inputs without starting a duplicate full regression. No release/tag or
+consumer pin/environment was changed.
 
 ### Stop
 
