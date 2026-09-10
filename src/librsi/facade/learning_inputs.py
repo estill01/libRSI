@@ -156,17 +156,26 @@ def prepare(
         ),
     )
     _disjoint(shadow, training)
+    _disjoint(verification, training)
     # Historical outcomes influence the next proposal even without revealing
     # held-out payloads. Reusing any previously assessed set is not fresh proof.
-    if selected:
-        old_cases = tuple(
-            case_from_record(row)
-            for inputs in previous
-            for key in ("training", "shadow", "verification")
-            for row in _records(inputs, key)
-        )
-        _disjoint(shadow, old_cases)
-        _disjoint(verification, (*old_cases, *training))
+    old_heldout = tuple(
+        case_from_record(row)
+        for inputs in previous
+        for key in ("shadow", "verification")
+        for row in _records(inputs, key)
+    )
+    _disjoint(training, old_heldout)
+    _disjoint(
+        tuple(case_from_record(row) for inputs in selected for row in _records(inputs, "training")),
+        old_heldout,
+    )
+    old_cases = (
+        *old_heldout,
+        *(case_from_record(row) for inputs in previous for row in _records(inputs, "training")),
+    )
+    _disjoint(shadow, old_cases)
+    _disjoint(verification, old_cases)
     historical = tuple(
         (inspected[row.root] if row.root in inspected else attempt(store, row)).feedback
         for row in selected

@@ -170,6 +170,8 @@ def test_adoption_survives_restart_and_changes_next_task(tmp_path, monkeypatch, 
         assert next_task.value["value"] == 0
         assert next_task.value["output"]["ideas"] != (41,)
         assert engine.learn("not-due", shadow_cases=SHADOW, activate=True) is None
+        with pytest.raises(ValueError, match="baseline or scoring"):
+            engine.learn("cannot-follow-adoption", follow_up_to="pass-1", shadow_cases=SHADOW)
 
 
 @pytest.mark.parametrize("variant", ["empty", "duplicate", "unchanged", "invalid", "error"])

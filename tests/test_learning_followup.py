@@ -9,6 +9,7 @@ from librsi.reasoning import ReasoningResult
 
 from .learning_store_support import ConsumerLearningStore
 from .test_adaptive_loop import SHADOW, TRAIN, Ideas, Proposer, case, loop
+from .test_learning_history import Unproductive
 
 FRESH = (case("fresh-a", 100, 105), case("fresh-b", 200, 206))
 LATER = (case("later-a", 300, 305), case("later-b", 400, 406))
@@ -88,18 +89,27 @@ def test_reflection_and_proposal_are_bounded_frozen_and_reused_after_crash(tmp_p
         assert engine.learn("not-due", shadow_cases=LATER) is None
 
 
-def test_reflection_failure_ends_pass_without_proposal_or_effect(tmp_path):
+@pytest.mark.parametrize("malformed", [False, True])
+def test_reflection_failure_ends_pass_without_proposal_or_effect(tmp_path, malformed):
+    class Invalid(FailedProvider):
+        def respond(self, request):
+            self.calls.append(request)
+            return ReasoningResult.propose(request=request, content={"summary": "Missing fields"})
+
     with LocalLearningStore(
         tmp_path, profile_id="failure", initial_configuration={"offsets": [1]}
     ) as store:
         failed(store)
-        backend, adapter = FailedProvider(), Ideas()
+        backend, adapter = Invalid() if malformed else FailedProvider(), Ideas()
         engine = loop(store, proposer=backend, adapter=adapter, reflect_on_failure=True)
         result = engine.learn("follow", follow_up_to="first", shadow_cases=FRESH)
         assert result.disposition == "failed" and not result.adopted
         assert [row.kind for row in backend.calls] == ["reflection"] and not adapter.calls
         assert store.runtime.resume("follow:ideas") is None
         assert engine.history(limit=1)[0].proposal is None
+        assert engine.history(limit=1)[0].feedback.value["failure_classes"] == (
+            "invalid-result" if malformed else "execution",
+        )
         assert engine.learn("follow", follow_up_to="first", shadow_cases=FRESH) == result
         assert len(backend.calls) == 1
 
@@ -135,6 +145,10 @@ def test_followup_checks_freshness_scoring_and_allowances_before_reasoning(tmp_p
             engine.learn("bad", follow_up_to="first", shadow_cases=FRESH)
         with pytest.raises(ValueError, match="baseline or scoring"):
             loop(store, minimum_effect=0.1).learn("bad", follow_up_to="first", shadow_cases=FRESH)
+        changed = Ideas()
+        changed.adapter_id = "new-scoring-semantics"
+        with pytest.raises(ValueError, match="baseline or scoring"):
+            loop(store, adapter=changed).learn("bad", follow_up_to="first", shadow_cases=FRESH)
         assert store.pending_pass is None and len(store.pass_ids) == 1
 
 
@@ -152,6 +166,91 @@ def test_fresh_feedback_scheduling_includes_only_compatible_bounded_history(tmp_
         assert backend.calls[0].kind == "hypothesis-generation"
         assert backend.calls[0].context["history"][0]["pass_id"] == "first"
         assert backend.calls[0].context["follow_up_to"] is None
+
+
+@pytest.mark.parametrize("rename", [False, True])
+def test_prior_heldout_cannot_become_later_proposal_training(tmp_path, rename):
+    with LocalLearningStore(
+        tmp_path, profile_id="holdout", initial_configuration={"offsets": [1]}
+    ) as store:
+        failed(store)
+        backend = FailedProvider()
+        engine = loop(store, proposer=backend)
+        for item in SHADOW:
+            engine.run_task(
+                LearningCase("renamed-" + item.case_id, item.payload) if rename else item
+            )
+        with pytest.raises(ValueError, match="held-out"):
+            engine.learn("second", shadow_cases=FRESH)
+        assert not backend.calls and store.pending_pass is None
+
+
+def test_disabling_history_does_not_make_old_evaluation_cases_fresh(tmp_path):
+    with LocalLearningStore(
+        tmp_path, profile_id="no-history", initial_configuration={"offsets": [1]}
+    ) as store:
+        failed(store)
+        backend = FailedProvider()
+        engine = loop(store, proposer=backend, history_limit=0)
+        for item in FRESH:
+            engine.run_task(item)
+        with pytest.raises(ValueError, match="held-out"):
+            engine.learn("second", shadow_cases=SHADOW)
+        assert not backend.calls and store.pending_pass is None
+
+
+def test_selected_legacy_training_cannot_reintroduce_protected_evaluation_inputs(tmp_path):
+    with LocalLearningStore(
+        tmp_path, profile_id="legacy-context", initial_configuration={"offsets": [1]}
+    ) as store:
+        failed(store)
+        original = store.pass_input
+        prior = original("first")
+        # A legacy-permitted history shape; new admission must reject before
+        # reading a result or calling a provider, without rewriting old inputs.
+        mixed = replace(
+            prior, value={**prior.value, "training": [row.record.to_dict() for row in SHADOW]}
+        )
+        store.pass_input = lambda pass_id: mixed if pass_id == "first" else original(pass_id)
+        backend = FailedProvider()
+        engine = loop(store, proposer=backend)
+        for row in FRESH:
+            engine.run_task(row)
+        with pytest.raises(ValueError, match="held-out"):
+            engine.learn("second", shadow_cases=LATER)
+        assert not backend.calls and store.pending_pass is None
+
+
+@pytest.mark.slow
+def test_valid_reflection_proposal_executes_native_trials_without_claiming_improvement(tmp_path):
+    class Reflecting(Unproductive):
+        def respond(self, request):
+            if request.kind == "reflection":
+                self.calls.append(request)
+                return ReasoningResult.propose(
+                    request=request,
+                    content={
+                        "summary": "An execution failure prevented the prior trial.",
+                        "observations": ["No measured candidate was produced."],
+                        "open_questions": ["Will these replacement settings improve output?"],
+                    },
+                )
+            assert request.context["reflection"]["open_questions"]
+            return super().respond(request)
+
+    with LocalLearningStore(
+        tmp_path, profile_id="valid", initial_configuration={"offsets": [1]}
+    ) as store:
+        failed(store)
+        proposer = Reflecting()
+        engine = loop(store, proposer=proposer, reflect_on_failure=True)
+        result = engine.learn("second", follow_up_to="first", shadow_cases=FRESH)
+        assert result.disposition == "no-supported-revision" and not result.adopted
+        assert [row.kind for row in proposer.calls] == ["reflection", "hypothesis-generation"]
+        attempt = engine.history(limit=1)[0]
+        assert attempt.reflection.ref in attempt.proposal.request.input_refs
+        assert len(attempt.measurements) == 6
+        assert set(row.value["value"] for row in attempt.measurements) == {2, 3, 13, 14, 23, 24}
 
 
 @pytest.mark.parametrize(
