@@ -10,6 +10,8 @@ evidence, and scheduling guidance; none is a competing active queue.
 
 ## Canonical documents
 
+- [`adaptive-operation-20260906.md`](adaptive-operation-20260906.md) — exact accepted adaptive-operation predecessor, Blocks 0–2; historical after the proposal-learning successor was authored.
+
 - [`architecture-contract.md`](architecture-contract.md) — maintained architecture, namespace ownership, control-plane, domain-neutrality, semantic/infrastructure boundaries, persistence, and compatibility contract established by Block 0 and later maintained revisions.
 - [`architecture-expansion-implementation-tracker.md`](architecture-expansion-implementation-tracker.md) — preserved predecessor architecture/refactor program, historical Blocks 0–25; its requirements are consolidated into the canonical tracker.
 - [`scope-boundaries-and-early-dogfood-revision.md`](scope-boundaries-and-early-dogfood-revision.md) — **normative planning amendment** that narrows infrastructure scope, promotes incremental Software Factory consumption, adds early non-software dogfoods, stages Outcome contracts earlier, treats external optimizers/backends as replaceable capabilities, and defers HTTP/MCP compatibility commitment until projected semantic contracts stabilize.

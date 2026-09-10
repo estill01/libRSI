@@ -111,6 +111,7 @@ from .facade import (
     FacadeUpdate,
     HypothesisTestResult,
     LearningAdapter,
+    LearningAttempt,
     LearningCase,
     LearningPolicy,
     LearningResult,
@@ -471,6 +472,7 @@ from .validation import (
 __all__ = [
     "AdaptiveLoop",
     "LearningAdapter",
+    "LearningAttempt",
     "LearningCase",
     "LearningPolicy",
     "LearningResult",

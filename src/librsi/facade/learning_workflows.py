@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import replace
 
 from ..application import (
     APPLY_CANDIDATE_ACTION_KIND,
@@ -39,6 +40,7 @@ from ..rsi import (
 from ..runtime import Action, ActionResult, RuntimeFailure, persist_transitions
 from .learning_host import LearningHost
 from .learning_store import LearningStore
+from .learning_telemetry import clock, elapsed
 
 
 def recorded_action(
@@ -53,6 +55,9 @@ def recorded_action(
         if not isinstance(cached, ActionResult) or cached.action != action:
             raise ValueError("cached result does not answer the exact pending action")
         return cached
+    inputs = store.pass_input(pass_id)
+    timed = inputs is not None and inputs.value.get("learning_version") == 2
+    started = clock()
     try:
         result = execute(action)
         if not isinstance(result, ActionResult) or result.action != action:
@@ -66,6 +71,14 @@ def recorded_action(
                 message=str(error) or type(error).__name__,
                 retryable=False,
             ),
+        )
+    if timed:
+        result = replace(
+            result,
+            metadata={
+                **result.metadata,
+                "learning_operation": elapsed(started, scope="host-action-inclusive"),
+            },
         )
     store.remember(pass_id, key, result)
     return result

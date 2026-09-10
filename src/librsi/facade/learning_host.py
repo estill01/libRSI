@@ -43,6 +43,7 @@ from ..rsi import evaluation_command_from_action, make_evaluation_result
 from ..runtime import Action, ActionResult
 from .learning_records import LearningAdapter, LearningCase, LearningPolicy, TaskMeasurement
 from .learning_store import LearningStore
+from .learning_telemetry import clock, elapsed
 
 
 def case_from_record(record: Observation) -> LearningCase:
@@ -85,23 +86,46 @@ class LearningHost:
         if cached is not None:
             if (
                 not isinstance(cached, Observation)
-                or cached.kind != "learning.measurement"
+                or cached.kind not in {"learning.measurement", "learning.measurement-failure"}
                 or cached.source_refs != expected_refs
                 or cached.target_snapshot != snapshot
                 or cached.value["adapter_id"] != self.adapter.adapter_id
             ):
                 raise ValueError("cached measurement does not match its exact inputs")
+            if cached.kind == "learning.measurement-failure":
+                raise RuntimeError(cached.value["message"])
             TaskMeasurement(cached.value["output"], cached.value["value"])
             return cached
-        measured = self.adapter.evaluate(snapshot.state, case)
-        if not isinstance(measured, TaskMeasurement):
-            raise TypeError("learning adapter must return TaskMeasurement")
+        timed = self.inputs.value.get("learning_version") == 2
+        started = clock()
+        try:
+            measured = self.adapter.evaluate(snapshot.state, case)
+            if not isinstance(measured, TaskMeasurement):
+                raise TypeError("learning adapter must return TaskMeasurement")
+        except Exception as error:
+            if timed:
+                self.store.remember(
+                    self.pass_id,
+                    key,
+                    Observation(
+                        kind="learning.measurement-failure",
+                        target_snapshot=snapshot,
+                        source_refs=expected_refs,
+                        value={
+                            "adapter_id": self.adapter.adapter_id,
+                            "message": str(error),
+                            "operation": elapsed(started, scope="adapter-call"),
+                        },
+                    ),
+                )
+            raise
         observation = Observation(
             kind="learning.measurement",
             value={
                 "output": measured.output,
                 "value": measured.value,
                 "adapter_id": self.adapter.adapter_id,
+                **({"operation": elapsed(started, scope="adapter-call")} if timed else {}),
             },
             target_snapshot=snapshot,
             source_refs=expected_refs,
