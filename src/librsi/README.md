@@ -404,3 +404,13 @@ its contracts.
 ## Adaptive strategy composition
 
 `facade/learning.py` exposes `AdaptiveLoop`; `learning_records.py` defines consumer inputs and limits, `learning_store.py` defines the backend-neutral `LearningStore` protocol, `learning_host.py` translates actual measurements, and `learning_workflows.py` persists native workflow transitions. `local/learning.py` implements the store contract with immutable strategy, feedback and pass artifacts and its native SQLite runtime. Consumers supplying other stores own persistence integrity, serialization and fencing. Acceptance remains owned by investigation, comparison, improvement, RSI and application policies. See `docs/adaptive-operation.md` and `examples/adaptive_strategy.py` in the repository.
+
+`learning_history.py` derives operator inspection and training-only feedback;
+`learning_inputs.py` freezes compatible history and admits bounded follow-ups with
+cross-round held-out separation. `learning_requests.py` shares exact old/new request
+construction, `learning_reasoning.py` executes durable proposal/reflection calls,
+`learning_results.py` projects native terminals and `learning_telemetry.py` records
+partial nonadditive host-call costs. These modules use public persistence ports,
+with no consumer-specific service or database dependency. The maintained standalone
+`examples/failure_informed_proposals.py` demonstrates generator configuration changes
+through actual downstream repair-proposal measurements and native adoption.

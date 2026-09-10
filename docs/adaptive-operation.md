@@ -88,7 +88,8 @@ if result is not None:
 
 `learn()` returns `None` when fewer than `min_new_feedback` unused observations
 exist. Defaults allow one proposal call, two candidates, and at most eight feedback
-and evaluation cases per set. For training count N, shadow count S, verification
+and evaluation cases per set. An enabled reflection adds at most one reasoning
+call per pass. For training count N, shadow count S, verification
 count V and candidate limit K, a complete pass makes at most
 `(K + 3) * N + 2 * S + 2 * V` adapter evaluations and one independent review.
 The default ceiling is 72 adapter evaluations. Ordinary tasks each make one call;
@@ -100,7 +101,11 @@ Provide at least two distinct cases per evaluation set, up to `max_cases`.
 Forward-shadow case IDs **and payloads** must differ from training inputs; renaming
 training data does not make it held out. Optional `verification_cases` run after
 application; otherwise verification executes the shadow cases again with fresh
-measurements. Rotate held-out cases as the workload changes. One scalar objective
+measurements. Every new pass requires evaluation IDs and payloads disjoint from
+all earlier training/evaluation sets. Earlier held-out cases also cannot become
+later proposal training, including through selected legacy history. These checks
+apply even when history is disabled; exact replay of a saved pass is unchanged.
+One scalar objective
 and a positive minimum effect are supported by this convenience layer; use the
 expert contracts for multiple objectives or additional guardrails.
 
@@ -155,8 +160,9 @@ with the same profile ID and construct the same adapters/policy. Resume the pend
 pass with the same pass ID, activation choice and evaluation cases. Its inputs are
 frozen; changing any of them rejects. A completed pass ID returns its historical
 native result, which need not be the currently active strategy after later passes.
-Use a new pass ID and fresh unused feedback for another learning round. Failed passes
-also consume their batch; they do not automatically spend more calls retrying it.
+Use a new pass ID and fresh unused feedback for another learning round. Failed
+passes also consume their batch. An explicit bounded follow-up can reuse that
+training batch as described below; the loop does not schedule or retry itself.
 
 A repeated task ID with identical input/scoring returns the original feedback, even
 if the active strategy later changes. Different input under that ID rejects. Use a
@@ -173,8 +179,101 @@ their result is saved; consumers should make those operations idempotent where
 needed. Cached results do not grant approval: native workflows own acceptance,
 currentness and rollback decisions throughout.
 
-This first operation improves host-supplied strategy configurations/prompts used by
+This operation improves host-supplied strategy configurations/prompts used by
 ordinary tasks. It does not train model weights, rewrite libRSI's fixed evaluation
 or governance rules, schedule itself, or deploy a consumer. Improving the proposal
 strategy can improve future ideas; whether it does so must be established by the
 consumer's real measurements across learning rounds.
+
+## Inspecting failures and improving proposals
+
+This functionality belongs to libRSI and works with any compatible consumer.
+It requires no Graphy Capability, graph database or host-specific service.
+
+`engine.history(limit=2)` returns `LearningAttempt` values. An attempt exposes its
+exact frozen inputs, proposal, optional reflection, native `LearningResult`,
+submitted operations and training measurements. `disposition` distinguishes a
+pending attempt, provider failure, unsupported revision, rejected governance,
+disabled activation, rollback and verified adoption. A historical verified result
+does not assert that its revision is still active. New inputs carry a logical
+sequence; old inputs have unknown chronology and deterministic identity ordering.
+
+`attempt.feedback` is a separate training-only projection: configurations,
+hypotheses, actual training outputs/scores, safe disposition/failure classes and
+source references. It excludes nested native result trees, held-out records and
+free-form failure/reviewer text. New-pass admission additionally checks that the
+selected historical training never overlaps retained evaluation sets. If legacy
+training was mixed with evaluation data, omit that history or use a separate
+profile; old exact replay does not rewrite those records. The full operator view
+is unsuitable for direct model context. A failure classification or rejection is
+an observation, not a proven causal explanation.
+
+`LearningPolicy` provides three settings:
+
+| Setting | Default | Meaning |
+|---|---:|---|
+| `history_limit` | 2 | Maximum compatible earlier attempts frozen into a new proposal's context; zero disables automatic history context. |
+| `reflect_on_failure` | `False` | Request one typed reflection before proposing when retained history includes an unsuccessful attempt. |
+| `max_followups` | 1 | Maximum inherited follow-up depth; zero disallows follow-ups. Each predecessor can have only one successor. |
+
+History compatibility requires the same current baseline, adapter, objective,
+metric and minimum effect. Reflection uses the configured `ReasoningBackend` with
+the existing `reflection` kind; that backend must support both reflection and
+hypothesis generation when enabled. The reflected explanation remains a proposal,
+with no evidence or activation authority. A failed/malformed reflection ends the
+pass before another proposal call. Exact completed calls are reused after restart.
+
+After configuring the policy, the host can request:
+
+```python
+result = engine.learn(
+    "follow-up-1",
+    follow_up_to="unsuccessful-pass",
+    shadow_cases=fresh_held_out_cases,
+    activate=False,
+)
+```
+
+The predecessor must be completed and unsuccessful, still share the current
+baseline/scoring, retain an available follow-up allowance, and have no successor.
+Adoption and activation-disabled success are not failed-predecessor retries.
+Training is reused explicitly, while shadow/verification cases must be fresh.
+Changing any frozen options, identities or cases under the same pass ID rejects.
+Old persisted passes recover with their old request/policy shape when the new
+options have default values; finish their replay before enabling different options.
+
+New learning-pass host calls retain wall and process CPU durations. Action timing
+is inclusive `host-action-inclusive` metadata; adapter measurement/failure timing
+has `adapter-call` scope. These durations overlap and must not be added together.
+Provider usage and child-process CPU remain unknown unless supplied elsewhere by
+the host. Full record bytes retain action metadata, which is not part of semantic
+identity. Old missing timing is unknown, not zero. Only submitted actions appear in
+the native operation view; a crash before submission does not prove a host effect
+was absent. Ordinary task exceptions retain their existing propagating behavior.
+
+## Improving a proposal generator itself
+
+Run the standalone [failure-informed example](../examples/failure_informed_proposals.py):
+
+```bash
+python -I examples/failure_informed_proposals.py --data-dir ./proposal-demo
+```
+
+Its adaptive target is the configuration of a repair-proposal generator. The
+adapter executes each generated program against frozen scoring probes and measures
+the fraction of distinct proposals that improve correctness, under an equal
+two-proposal budget. The first attempt varies offset estimators and is rejected.
+Reflection inspects the actual failed measurements for nonconstant residuals,
+then proposes a different model family. Fresh outer held-out problems, native
+independent review, explicit adoption, restart and new ordinary work must establish
+the benefit. A valid control removes historical failure feedback/reflection and
+measures the resulting proposals separately. It grants no native acceptance.
+
+The example saves complete evidence in its data directory and reports partial
+operation timing plus whole-invocation wall/process CPU, including admission,
+history inspection and control execution. Equal proposal budgets do not imply
+equal CPU cost. It uses deterministic input-driven reasoning on a synthetic affine
+program domain; it does not establish better LLM ideas or production performance.
+To use a real model, replace the backend/adapter and qualify the generator against
+the consumer's actual downstream outcomes. No model weights or fixed library
+evaluation/governance rules are trained or changed.
