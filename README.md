@@ -2,185 +2,102 @@
 
 # libRSI
 
-Development: [fast and full validation commands](docs/testing.md).
+**Test proposed changes. Measure improvement. Control what gets adopted.**
 
-`libRSI` is a zero-dependency Python library of evidence-bound primitives for
-validation, investigation, improvement, and governed recursive self-improvement.
+libRSI is a Python library for building systems that improve through experiments.
+It connects goals, hypotheses, measurements, and candidate selection in bounded,
+restartable workflows, with explicit review, verification, and rollback when a
+change is applied.
 
-For a small embedded starting point, install from this checkout and run:
+Your application supplies the target, candidate changes, and real measurements.
+libRSI checks the evidence against your criteria and records why a change was
+accepted, rejected, or left unresolved. You can use it for a single hypothesis
+test, a loop that improves an application strategy, or governed **recursive
+self-improvement (RSI)**—including changes to the strategy that proposes future
+improvements.
 
-```bash
-python -m pip install .
-python examples/embedded_improvement.py --data-dir ./my-first-improvement
-```
+**Python 3.11+ · Zero runtime dependencies in the core · Typed API · MIT license**
 
-The [example](examples/embedded_improvement.py) measures a numeric function, rejects
-an insufficient first candidate, interrupts, reopens SQLite, and selects the second
-candidate without repeating the completed cycle. It uses two cycles and two candidate
-experiments (plus four small hypothesis experiments), with no network or application.
-The host supplies the goal, measurable criterion, hypotheses, candidate preparation,
-and experiment measurements. libRSI validates their lineage and derives acceptance;
-it does not invent evidence or provide an autonomous coding agent. Use a fresh data
-directory for each demonstration. See the [embedded guide](docs/api.md#small-embedded-improvement)
-for the restart path and operating limits, and [provider setup](docs/providers.md)
-when your host actually needs model-generated reasoning.
+[Quick start](#quick-start) · [Choose an entry point](#choose-an-entry-point) ·
+[How it works](#how-it-works) · [Documentation](#documentation)
 
-Optional hosted-model and internal exact-utils Codex app-server integrations are
-documented in [docs/providers.md](docs/providers.md); both preserve the same
-proposal-only reasoning boundary. The Codex lane is interface-only in public package
-metadata while its producer artifacts remain unpublished and unlicensed.
-The [consumer integration contract](docs/consumer-integration.md) documents dependency
-direction, generic multi-component mapping, evidence return, effect ownership, and the
-libRSI-owned conformance scenarios for downstream adopters.
-The current package supplies deterministic policies and canonical records for
-reflection, hypothesis testing, experiment interpretation, program evolution,
-reviewed selection, and safe changes to the selector itself, plus typed ports for
-host-owned effects. Targets may be opaque or multi-component, and generic currentness
-checks keep stale target-bound evidence distinguishable from current evidence without
-requiring repository or Git concepts.
-Canonical knowledge can be persisted through a replaceable `KnowledgeStore` contract;
-the included transactional SQLite backend needs no service and labels retrieved
-target-bound records as current, stale, unbound, or incomparable.
-An independent `librsi.runtime` package provides canonical Run/Event/State/Action
-records, a pure deterministic transition engine, and an opt-in `RuntimeStore` with a
-replay-checked SQLite implementation. Runs are target-snapshot fixed by default; a
-same-target state transition is possible only when the Run carries an identity-bound
-transition-authority reference that the terminal Outcome also retains in lineage. The
-separate `librsi.capabilities` package maps
-exact action kinds to eight granular host protocols and explicit automatic, external,
-human-reserved, or unavailable postures without creating another state machine.
-The `librsi.reasoning` package adds strict provider-neutral reflection, hypothesis,
-experiment-design, explanation, intervention, decomposition, and revision proposals.
-Managed and external reasoners answer the same exact runtime action; their output is a
-lineage-bearing proposal, never evidence, validated knowledge, or application authority.
-The `librsi.validation` package is the first vertical workflow built on those primitives:
-it validates a `Claim` directly, reuses only current stored evidence, emits the smallest
-explicit evidence gap when needed, and returns a provenance-complete `ValidationResult`
-whose disposition is supported, contradicted, bounded, or inconclusive.
-The `librsi.intent` package turns declarative goals into typed `EvaluationContract`
-records with exact baselines, objectives, constraints, guardrails, and stopping rules.
-Operationalization proposals remain proposals; missing measurement facts are returned
-explicitly instead of being invented.
-The `librsi.improvement` package composes those layers into a bounded, restartable
-hypothesis-to-selection loop. The separate `librsi.application` package consumes only an
-accepted handoff and, when explicitly enabled, routes apply, verify, and rollback actions
-through configured host capabilities while recording the actual state each host reports.
-The structured `librsi.rsi` package then governs explicitly declared self-change targets
-without introducing another improvement engine. Historical replay and forward-shadow
-hosts return exact comparative trial batches, an independent actor reviews the exact
-shadow evaluation, and libRSI derives an identity-bound approval before reusing the
-ordinary application, actual-state verification, and rollback lifecycle. Operational
-failure never counts as counterevidence, and `activate=False` remains consumable and
-effect-free. A classified improvement carries its governance requirement through the
-ordinary handoff identity, so calling `apply_improvement` or `ApplicationWorkflow`
-directly cannot bypass self-change review: application rejects the request before host
-dispatch unless the exact matching `SelfChangeApproval` is present.
-The primary `LibRSI` facade now composes those same workflows for ordinary Python use.
-`LibRSI.local()` and `LibRSI.for_repo()` opt into replaceable SQLite runtime/knowledge
-stores, authority-scoped command execution, deterministic filesystem inspection, a local
-artifact directory, and structured standard-library logging. The facade owns no second
-lifecycle: `LibRSIRun.next()` and `submit()` expose the exact canonical actions and
-results used by managed execution.
-The `librsi.projections` package adds stable v1 external envelopes for every public
-workflow result and canonical runtime event. It reuses each workflow's canonical
-`Outcome` derivation, retains operational failure/cancellation settlement separately
-from epistemic inconclusiveness, and preserves
-the exact canonical result bytes/root, reconstructs through the registered record
-decoder, and keeps transport metadata outside semantic identity. A minimal replaceable
-`ProjectionStore` persists metadata-free canonical documents without becoming another
-runtime authority.
+## Why libRSI?
 
-`AdaptiveLoop` adds a reusable feedback-to-strategy cycle: ordinary tasks record measured outcomes, bounded passes propose and evaluate revisions, and native self-change governance verifies adoption before the next task uses the new strategy. Start with the [adaptive operation guide](docs/adaptive-operation.md) and [runnable consumer template](examples/adaptive_strategy.py). Bounded attempt history, optional reflection and explicit follow-ups let later proposals use unsuccessful experiments. The [failure-informed proposal-generator example](examples/failure_informed_proposals.py) tests changes to the generator itself, with a valid control and later ordinary use.
+Generating a plausible change is only one part of improvement. You also need to
+establish whether it helps, whether the evidence still applies, and whether the
+change is authorized to take effect. libRSI provides those decision rules and
+records so each application does not have to build them from scratch.
 
-For hosts that already own state and experiments, the [stateless comparison boundary](docs/stateless-comparison.md) accepts canonical trial records over JSON and returns an advisory selection without a local store.
+- **Make acceptance measurable.** Define a baseline, objectives, minimum effects,
+  and guardrails. Compare experimental results against those criteria, including
+  uncertainty and conflicting objectives.
+- **Keep decisions traceable.** Bind evidence to the exact hypothesis, experiment,
+  and target state it describes. Detect stale evidence and retain the lineage
+  behind each result.
+- **Bound work and resume it.** Set experiment, iteration, and resource limits;
+  persist progress with the included SQLite stores; and resume through the
+  workflow APIs after an interruption.
+- **Control adoption.** Separate candidate preparation and selection from
+  application. When application is enabled, verify the state actually produced
+  and request rollback if verification fails. Self-change adds comparative trials
+  and independent review.
+- **Keep your existing stack.** Supply your own models, optimizers, experiment
+  runners, storage, and application adapters. The same workflow records support
+  embedded Python, external action loops, and optional service interfaces.
 
-## Install
+## Quick start
 
-`0.3.0` is a release candidate, not a published distribution. The libRSI-owned source
-is available under the [MIT License](LICENSE), and the exact candidate can be built
-locally:
+### Install from source
 
-```bash
-python -m pip install build
-python -m build
-python -m pip install dist/librsi-0.3.0-py3-none-any.whl
-```
-
-For development:
+The current `0.3.0` release candidate is available from this repository; it is not
+a published distribution. Use Python 3.11 or newer, preferably in a virtual
+environment:
 
 ```bash
 git clone https://github.com/estill01/libRSI.git
 cd libRSI
-python -m pip install -e '.[dev]'
-python -m pytest --ignore=tests/test_block22_providers.py --ignore=tests/test_block24_system_dogfoods.py
+python -m pip install .
 ```
 
-The omitted suites consume exact internal artifacts from `estill01/utils`; CI builds
-and hash-verifies those artifacts from their accepted producer revision without adding
-them to public dependency metadata. The libRSI MIT license does not grant rights to
-install or redistribute those separate upstream artifacts.
-
-Optional service projections remain separate from the zero-dependency core:
+### Run a complete improvement loop
 
 ```bash
-python -m pip install -e '.[server]'  # FastAPI/HTTP
-python -m pip install -e '.[mcp]'     # stdio + Streamable HTTP MCP
-python -m pip install -e '.[service]' # both projections
+python examples/embedded_improvement.py --data-dir ./my-first-improvement
 ```
 
-The maintained end-to-end control-plane, lifecycle, shared-utility, and RSI
-scenario matrix is documented in
-[`docs/system-dogfoods.md`](docs/system-dogfoods.md). The exact shared utility
-artifacts are internal CI inputs and are not public runtime dependencies.
+The example minimizes `abs(4 - x)`, starting at `x = 0`, and requires an error
+reduction of at least 2:
 
-See the [public API guide](docs/api.md), [migration guide](docs/migration-0.2.md),
-[release gate](docs/release-gate.md), and [license decision packet](docs/license-decision.md)
-for the complete candidate boundary.
+| State | Measured error | Decision |
+| --- | ---: | --- |
+| Baseline: `x = 0` | 4 | Starting point |
+| First candidate: `x = 1` | 3 | Rejected: improvement is too small |
+| Second candidate: `x = 3` | 1 | Selected: improvement meets the criterion |
 
-## Quick start
+Between the two cycles, the example interrupts, closes SQLite, and resumes without
+repeating the completed cycle. It returns a selected candidate for the host to
+inspect; it performs no application step. After installation, it needs no model,
+credentials, or network access.
 
-The facade can validate a typed claim with a small local setup while persisting the exact
-runtime transitions:
+Use a fresh data directory each time. The
+[example source](examples/embedded_improvement.py) shows the host adapter and
+actual measurements; the [embedded guide](docs/api.md#small-embedded-improvement)
+explains the request, budgets, and restart path. This small deterministic example
+demonstrates the workflow, not statistical generalization to a real workload.
 
-```python
-from librsi import Evidence, LibRSI
+### Test a hypothesis in Python
 
-with LibRSI.for_repo(".") as lib:
-    claim = lib.claim("The service remains available", kind="behavioral")
-    snapshot = lib.snapshot()
-    evidence = tuple(
-        Evidence(
-            evidence_type="support",
-            data={"sample": sample},
-            subject_refs=(claim.ref,),
-            source_refs=(claim.ref,),
-            target_snapshot=snapshot,
-            weight=1.0,
-        )
-        for sample in (1, 2)
-    )
-    result = lib.validate(claim, target_snapshot=snapshot, evidence=evidence)
-
-assert result.disposition == "supported"
-```
-
-Hypothesis testing remains a first-class, evidence-bound path. The local runner receives
-canonical argv/cwd input, never invokes a shell, rejects a working directory outside its configured root,
-and echoes the exact experiment root into the observation:
-
-On POSIX hosts, timeout cleanup terminates the owned process group, escalates after
-a short grace period, and reaps the direct child. Other hosts support direct-child
-cleanup only. The working-directory check is not a filesystem sandbox, and this
-adapter cannot contain descendants that deliberately leave its process group.
+For a smaller starting point, run a local command against explicit criteria:
 
 ```python
 import sys
+from tempfile import TemporaryDirectory
 
 from librsi import LibRSI
 
-with LibRSI.local(".") as lib:
-    tested = lib.test_hypothesis(
-        "The local check reports READY",
+with TemporaryDirectory() as workspace, LibRSI.local(workspace) as lib:
+    result = lib.test_hypothesis(
+        "The local command reports READY",
         command=(sys.executable, "-c", "print('READY')"),
         success_criteria={
             "accepted_exit_codes": [0],
@@ -188,362 +105,122 @@ with LibRSI.local(".") as lib:
         },
     )
 
-assert tested.evidence.evidence_type == "support"
-assert tested.observation.exact_input_root == tested.experiment.root
+assert result.evidence.evidence_type == "support"
+assert result.observation.exact_input_root == result.experiment.root
 ```
 
-See [`examples/local_validation.py`](examples/local_validation.py) and
-[`examples/local_hypothesis.py`](examples/local_hypothesis.py) for executable versions.
-Every local default can be supplied independently through `LibRSI.local(...)`. Construct
-plain `LibRSI(...)` for a host-neutral composition, or use `LibRSI.start(request)` when an
-external host should own the action loop.
+The result ties the observation and evidence to the exact experiment. Replace the
+command and criteria with a check meaningful to your application. The local runner
+uses argv without a shell and restricts the working directory; it is not a
+filesystem sandbox. See the [local execution limits](docs/api.md#small-embedded-improvement).
 
-## Managed service and remote projections
+## Choose an entry point
 
-`LibRSIService` provides durable target and run handles over the same canonical
-controller used by the external CLI. `run_managed()` executes only exact admitted
-automatic routes from the configured provider registry and requires an explicit action
-bound. It stops at unavailable, external, human-reserved, and application-authority
-frontiers; callers must separately opt into application, and ordinary governance and
-currentness checks still apply.
+| What you want to do | Start here |
+| --- | --- |
+| Check a claim against evidence | `LibRSI.validate()` — [API guide](docs/api.md#facade-first-use) |
+| Test a hypothesis with a local command | `LibRSI.test_hypothesis()` — [runnable example](examples/local_hypothesis.py) |
+| Investigate competing explanations | `LibRSI.investigate()` — [API guide](docs/api.md#facade-first-use) |
+| Propose, test, and select a bounded improvement | `LibRSI.improve()` — [embedded example](examples/embedded_improvement.py) |
+| Improve a strategy from ordinary task feedback | `AdaptiveLoop` — [adaptive operation guide](docs/adaptive-operation.md) and [consumer template](examples/adaptive_strategy.py) |
+| Govern changes to the improvement process itself | `LibRSI.recurse()` — [self-change integration contract](docs/consumer-integration.md) |
+| Compare completed trials using host-owned state | [Stateless JSON comparison](docs/stateless-comparison.md) — no local store required |
+| Drive actions from an existing agent or service | `LibRSI.start()` — [external protocol](docs/external-agent-protocol.md) and [service interfaces](docs/service-protocol.md) |
 
-```python
-from librsi import ManagedBounds
-from librsi.service import LibRSIService
+`AdaptiveLoop` connects measured task outcomes to proposed strategy revisions. It
+can retain unsuccessful attempts, request reflection, and run bounded follow-ups;
+an adopted, verified revision becomes the strategy used by the next ordinary task.
+The [proposal-generator example](examples/failure_informed_proposals.py) demonstrates
+improving the generator itself, with a control comparison and subsequent use.
 
-with LibRSIService.local(
-    ".librsi",
-    registry=capability_registry,
-    current_snapshot_resolver=read_authoritative_snapshot,
-) as service:
-    service.submit_target(admission)
-    service.start(request, admission_id=admission.admission_id)
-    execution = service.run_managed(
-        request.canonical_run().run_id,
-        ManagedBounds(max_actions=8, allow_application=False),
-    )
+## How it works
+
+An improvement run follows four stages:
+
+1. **Define success.** Identify the target and baseline, then specify objectives,
+   constraints, guardrails, and stopping rules in an `EvaluationContract`.
+2. **Collect evidence.** Your host proposes hypotheses, prepares candidates, and
+   runs experiments. libRSI checks that returned records refer to the correct
+   inputs and target state.
+3. **Decide from measurements.** Deterministic policies evaluate the results.
+   Depending on the workflow, a result may support or contradict a claim, remain
+   inconclusive, or select one candidate, a Pareto set, or none.
+4. **Apply only when enabled.** The host explicitly authorizes application and
+   supplies the effect adapters. libRSI evaluates fresh measurements of the actual
+   resulting state and coordinates verification or rollback. Declared self-change
+   targets require additional governance before activation.
+
+The host owns execution and effects; libRSI owns the evidence and decision
+contracts. Model output remains a proposal. A successful command or a prepared
+candidate does not, by itself, establish improvement.
+
+`LibRSI.local()` provides SQLite persistence, a local command runner, filesystem
+inspection, artifacts, and logging. `LibRSI.for_repo()` adds repository-oriented
+convenience. Plain `LibRSI(...)` accepts host-supplied components, and
+`librsi.expert` exposes lower-level policies, workflows, and stores. All use the
+same canonical runtime records.
+
+### Operating boundaries
+
+- **Measurements come from your host.** libRSI checks their structure, lineage,
+  and applicability; it cannot establish that your metric captures what you value
+  or independently authenticate every supplied measurement.
+- **Application and activation default to disabled.** An accepted improvement
+  returns a handoff.
+  Enabling effects requires the appropriate host capabilities, current target
+  state, and authority. Operational failure remains distinct from evidence
+  against a hypothesis.
+- **Local operation assumes small histories and one serialized owner.** Arbitrary
+  external calls can repeat after a crash before their results are saved. Make
+  those effects idempotent and follow the [restart guidance](docs/adaptive-operation.md#restart-history-and-boundaries).
+- **Your application owns scheduling and isolation.** libRSI supplies the
+  improvement workflows; the host supplies process containment, credentials,
+  execution limits, and deployment.
+
+## Documentation
+
+| Guide | What it covers |
+| --- | --- |
+| [Public API](docs/api.md) | Local setup, workflow methods, expert APIs, typing, and execution limits |
+| [Adaptive operation](docs/adaptive-operation.md) | Task feedback, strategy revisions, failed attempts, independent review, and adoption |
+| [Consumer integration](docs/consumer-integration.md) | Mapping your system, measurements, and effects into libRSI contracts |
+| [Stateless comparison](docs/stateless-comparison.md) | Comparing canonical trial records over JSON without a runtime store |
+| [Providers](docs/providers.md) | Optional model-backed reasoning and provider boundaries |
+| [External agent protocol](docs/external-agent-protocol.md) | Owning the action loop from another process or agent |
+| [Service protocol](docs/service-protocol.md) | Managed execution, CLI, HTTP, MCP, authentication, and request bounds |
+| [Module map](src/librsi/README.md) | Core architecture, package responsibilities, and lower-level integration |
+
+HTTP and MCP are optional extras, separate from the dependency-free core:
+
+```bash
+python -m pip install '.[server]'   # FastAPI/HTTP
+python -m pip install '.[mcp]'      # stdio and Streamable HTTP MCP
+python -m pip install '.[service]'  # both
 ```
 
-Managed apply/verify/rollback will not execute without that authoritative snapshot
-resolver. Out-of-band target drift stops before the provider call.
+## Development
 
-The optional `librsi-http` and `librsi-mcp` entrypoints are thin projections over this
-facade. MCP supports local stdio and the maintained stateless Streamable HTTP transport.
-Neither transport launches a provider or owns semantic state. See
-[`docs/service-protocol.md`](docs/service-protocol.md) for endpoints, tools/resources,
-authentication scopes, request bounds, restart behavior, and deployment boundaries.
+From a source checkout:
 
-## Stable outcome projections
-
-Project any validation, investigation, improvement, or RSI result into the same
-versioned external contract:
-
-```python
-from librsi import OutcomeProjection, deserialize_projection, project_result, serialize_projection
-
-projection = project_result(result, metadata={"control_plane": "embedded"})
-wire_bytes = serialize_projection(projection)
-reconstructed = deserialize_projection(wire_bytes)
-
-assert isinstance(reconstructed, OutcomeProjection)
-assert reconstructed.projection_root == projection.projection_root
-assert reconstructed.result == result
-assert reconstructed.outcome.lineage[0] == result.ref
+```bash
+python -m pip install -e '.[dev]'
+python -m pytest -m "not slow" \
+  --ignore=tests/test_block22_providers.py \
+  --ignore=tests/test_block24_system_dogfoods.py
 ```
 
-`projection_root` depends only on the schema, workflow, result root, and derived Outcome
-root. Session, request, or transport metadata may differ across embedded, managed, CLI,
-HTTP, or MCP callers without changing those semantic roots. `project_event()` and
-`project_transition()` expose the same contract for append-only runtime events;
-`persist_projection()` stores a metadata-free canonical document behind the small
-`ProjectionStore` protocol. Unknown versions, relabeled workflows, missing lineage,
-stale target snapshots, altered summary fields, and divergent persisted bytes fail
-closed.
+The omitted suites require exact internal `estill01/utils` artifacts. They are
+separate CI inputs, not public runtime dependencies, and are not covered by
+libRSI's MIT license. See [provider setup](docs/providers.md) for that boundary.
 
-## Expert hypothesis and experiment API
+The [testing guide](docs/testing.md) explains fast and full validation, affected
+slow tests, and the full-suite 90% coverage gate with branch measurement enabled.
+Maintainers can follow the [implementation tracker](docs/tracker.md),
+[release gate](docs/release-gate.md), and [changelog](CHANGELOG.md). Existing users
+should also read the [migration guide](docs/migration-0.2.md).
 
-The canonical hypothesis/experiment path binds the proposition, target snapshot,
-experiment criteria, execution input, observation, and resulting evidence by exact
-immutable record identity:
+## License
 
-```python
-from librsi import CommandObservation, RSIKernel, TargetRef, TargetSnapshot
-
-rsi = RSIKernel()
-target = TargetRef(target_id="my-system", kind="software")
-baseline = TargetSnapshot(
-    target=target,
-    revision="abc123",
-    state={"revision": "abc123"},
-)
-
-hypothesis = rsi.hypotheses.create(
-    target=target,
-    statement="The new scheduler reduces queue latency",
-    causal_model={"change": "fair scheduling"},
-    predictions=({"p95_latency_delta": "< 0"},),
-)
-spec = rsi.experiments.design_command(
-    experiment_id="latency-comparison-1",
-    hypothesis=hypothesis,
-    target_snapshot=baseline,
-    design={"kind": "isolated comparison"},
-    success_criteria={"accepted_exit_codes": [0], "stdout_contains": ["IMPROVED"]},
-    command=["python", "compare_latency.py"],
-    cwd="/workspace",
-)
-command = rsi.experiments.prepare_command(spec)
-
-# A host-owned runner executes `command` and echoes its exact input root.
-observation = CommandObservation(
-    exit_code=0,
-    stdout="IMPROVED\n",
-    stderr="",
-    exact_input_root=command.exact_input_root,
-)
-evidence = rsi.experiments.evaluate_command(spec=spec, observation=observation)
-updated = rsi.hypotheses.apply(hypothesis=hypothesis, evidence=evidence)
-```
-
-`evaluate_command()` reads its decision criteria from the immutable `ExperimentSpec`;
-callers cannot replace them after execution. It also rejects observations that do not
-echo the exact spec/input root. Evidence names the exact hypothesis, experiment, and
-target snapshot it bears on, and a stale or different hypothesis rejects that evidence.
-The `0.2.0` scalar APIs remain available as deprecated compatibility wrappers.
-
-A host can durably record the same semantic run after each pure transition:
-
-```python
-from librsi import Action, Goal, Run, RuntimeEngine, SQLiteRuntimeStore
-
-run = Run(run_id="validation-1", intent=Goal(statement="Validate candidate").ref)
-started = RuntimeEngine.start(run)
-requested = RuntimeEngine.request(
-    started.state,
-    Action(run=run.ref, action_id="evaluate", kind="evaluate"),
-)
-assert started.transition is not None
-assert requested.transition is not None
-
-with SQLiteRuntimeStore("runtime.sqlite") as store:
-    store.append(started.transition)
-    store.append(requested.transition)
-    continuation = store.resume(run.run_id)
-
-assert continuation is not None
-# The host executes continuation.pending_actions through its own governed adapter.
-```
-
-`RuntimeEngine` performs no I/O. Exact duplicate transitions are no-ops, while every
-load validates the append-only chain, materialized state, and deterministic replay.
-The runtime and knowledge stores remain distinct authorities and may optionally share
-one SQLite file without sharing schema versioning or record types.
-Normal Runs require terminal outcomes to retain their exact initial target snapshot.
-Application Runs explicitly bind `target_transition_authority` to their
-`ApplicationRequest`; the engine then permits only a new snapshot of the same target and
-requires that authority reference in Outcome lineage.
-
-`CapabilityDispatcher` is optional control-plane convenience around that same engine.
-It invokes only explicitly supplied, automatically authorized capability objects; an
-external host can submit the same exact `ActionResult`, and hybrid mode may leave other
-actions external, human-reserved, or unavailable. Capability success never creates an
-`Outcome`, promotes knowledge, or grants selection/application authority on its own.
-Intervention dispatch is additionally fail-closed: `advance()` or `submit()` requires an
-explicit `current_snapshot` and verifies it against the intervention baseline before an
-Implementer is called or a result can mutate runtime state.
-
-Structured reasoning uses the same boundary. `ReasoningRequest` binds its inputs and
-exact target snapshot, `ReasoningResult` validates one of seven closed proposal schemas,
-and libRSI's nonreplaceable `ReasoningResultValidator` runs immediately before either
-managed or external submission mutates runtime state. The reserved `reason` action
-cannot pass through the dispatcher without canonical validation and an exact reasoner
-route; optional host validators run only in addition. A host can install
-`StructuredReasoner` around any
-object implementing the zero-provider `ReasoningBackend` protocol, or consume the
-serialized reasoning `Action` itself and return the same `ActionResult`. Downstream
-evidence or intervention decisions can use `require_reasoning_derivation()` to prove
-that both the proposal and every original input remain in lineage.
-
-Claim-only validation does not require a goal or intervention:
-
-```python
-from librsi import Claim, Evidence, validate
-
-claim = Claim(statement="The service remains available", kind="behavioral")
-evidence = tuple(
-    Evidence(
-        evidence_type="support",
-        data={"sample": sample},
-        subject_refs=(claim.ref,),
-        source_refs=(claim.ref,),
-        weight=1.0,
-    )
-    for sample in (1, 2)
-)
-result = validate(claim=claim, evidence=evidence)
-assert result.disposition == "supported"
-```
-
-`ValidationWorkflow.start()`, `step()`, `submit()`, and `resume()` expose the same exact
-runtime transitions and restart projection to external hosts. `resume()` returns a
-`ValidationUpdate`; hosts append any returned reconciliation transitions before
-continuing. `run_managed()` accepts the existing granular `Experimenter` protocol. The
-workflow reconciles every direct or managed submission against the persisted canonical
-frontier before mutation; when reused knowledge is present, pass the same
-`knowledge_store` to `submit()` or `run_managed()` so its exact roots can be revalidated.
-The convenience `validate()` path carries that store through the same transitions;
-when neither current knowledge, explicit evidence, nor a collector is available it
-returns an explicit inconclusive result rather than synthesizing support from narrative.
-Block 10 uses the canonical built-in epistemic policy in result identity; alternate
-sufficiency policies require a versioned semantic policy contract rather than silent
-runtime injection.
-
-Questions with competing explanations use the separate investigation workflow:
-
-```python
-from librsi import InvestigationRequest, InvestigationWorkflow, Question
-
-request = InvestigationRequest.for_question(
-    investigation_id="mechanism-study",
-    question=Question(prompt="Which mechanism explains the observation?"),
-    max_hypotheses=3,
-    max_experiments=4,
-)
-update = InvestigationWorkflow().start(request)
-assert update.progress.state.pending_actions[0].kind == "investigation-reason"
-```
-
-That first reserved action requests a structured competing-hypothesis proposal. Subsequent
-frontiers request one exact experiment design or experiment at a time. Sequential mode
-finishes one lane before the next; parallel mode activates all viable lanes and
-round-robins the least-tested branch, preserving deterministic persistence while keeping
-search alternatives live. Null or otherwise inconclusive evidence can trigger a bounded
-redesign. Supported findings repeat only the exact hypothesis statement and cite its
-canonical evidence; reasoner narration never becomes a conclusion. Falsified branches,
-unavailable evidence, experiment/redesign budgets, and unresolved alternatives remain
-explicit in `InvestigationResult`.
-
-`InvestigationWorkflow.start()`, `step()`, `submit()`, `resume()`, and `run_managed()`
-use the same Block 7 runtime. Managed Reasoner and Experimenter capabilities are invoked
-only after the persisted frontier and any reused `KnowledgeStore` roots reconcile
-exactly. Every reserved reasoning or experiment action embeds an `InvestigationFrontier`
-containing the complete ordered branch roster and the one policy-selected active branch.
-`CapabilityDispatcher` rejects investigation routes and results; only
-`InvestigationWorkflow.submit()` may validate and advance this specialized state machine.
-The public `derive_investigation_action()` function is the single action authority: it
-derives branch selection, design-versus-experiment phase, sequence, and budget eligibility
-from the complete roster, and builders, decoders, replay, and failed results require an
-exact match.
-Investigation experiment design uses a closed observation-only schema: a reasoner
-selects `measure`, `observe`, or `retrieve`, bounded measurement identifiers, and canonical
-evidence criteria. It cannot add operation/procedure payloads, intervention, candidate,
-implementation, mutation, application, or target-change authority. Target changes begin in
-later lifecycle blocks.
-
-Proposed changes enter a separate intervention-to-candidate lifecycle:
-
-```python
-from librsi import InterventionSpec, InterventionWorkflow
-
-intervention = InterventionSpec.create(
-    intervention_id="bounded-change",
-    baseline=current_snapshot,
-    kind="host.domain_change",
-    specification={"domain_owned": "payload"},
-    rationale=("The cited evidence supports preparing this candidate",),
-    supporting_refs=(claim.ref,),
-    evidence=(supporting_evidence,),
-    expected_effects={"metric": {"direction": "increase"}},
-    risks=("The expected effect may not reproduce",),
-    constraints=(),
-    validation_plan={"measure": "metric"},
-    rollback_expectations={"restore": current_snapshot.ref.to_dict()},
-)
-waiting = InterventionWorkflow().start(
-    intervention,
-    current_snapshot=current_snapshot,
-).progress
-assert waiting.handoff is not None
-assert waiting.handoff.authority == "candidate-only"
-```
-
-`librsi.interventions` separates the universal `InterventionSpec`, exact Implementer
-action/result codecs, candidate-only policy, and restartable workflow into distinct
-modules. Domain data lives only in `specification`; evidence rationale, risks,
-constraints, validation plan, rollback expectations, baseline currentness, and lineage
-remain generic and identity-bound. Without an Implementer, the workflow returns a
-complete serializable handoff. With a host-supplied Implementer, it may prepare a
-prospective `CandidateSnapshot`, but the `ImplementationResult` and terminal `Outcome`
-continue to name the unchanged authoritative baseline. The package intentionally has no
-candidate `apply` operation, domain implementation engine, comparison, or acceptance
-shortcut. The legacy low-level `Intervention` and `Candidate` records remain available;
-the structured records provide explicit compatibility projections.
-
-Candidate comparison is a separate structured package rather than an optimizer shortcut.
-Construct one `CandidateTrialBatch` per candidate from the same exact
-`EvaluationContract`, baseline/candidate experiment, and complete trial results, then call
-`ComparativeSelectionPolicy.select(...)`. The result exposes every objective and
-guardrail interval, minimum-effect outcome, invalid-trial count, pairwise dominance edge,
-and the final single, Pareto, or `none-accepted` disposition. It never infers improvement
-from successful execution alone and never hides conflicting objectives in one score.
-When review governance is enabled, an exact accepted `CandidateReview` must cover the
-candidate, experiment, and evaluation; untyped references cannot unlock selection.
-
-External numerical or model-driven search systems may implement `CandidateProposer` and
-return `SearchProposal`. That record has fixed `proposal-only` authority: candidate
-generation remains replaceable, while evidence interpretation and acceptance remain in
-libRSI.
-
-Accepted improvements are still not target mutations. `apply_improvement()` defaults to
-`apply=False` and returns a complete `application-disabled` result without calling an
-Applier. To enable application, a host must configure exact Applier and Verifier routes:
-
-```python
-from librsi import ApplicationWorkflow, ApplicationRequest
-
-request = ApplicationRequest.create(
-    application_id="deploy-accepted-candidate",
-    improvement=improvement_result,
-    current_snapshot=current_snapshot,
-    apply=True,
-)
-update = ApplicationWorkflow(capability_registry).start(
-    request,
-    current_snapshot=current_snapshot,
-)
-```
-
-`ApplicationWorkflow.run_managed()` executes only routes configured as `automatic`;
-external and human-reserved routes remain pending as a `DispatchPlan`. The Applier returns
-an `ApplicationReceipt` containing the exact state actually produced, not an assumed copy
-of the candidate. The Verifier returns an exact `CandidateTrialBatch` over that produced
-snapshot; libRSI recomputes its `CandidateAssessment` against the original improvement's
-`EvaluationContract`, guardrails, and `RiskPolicy`, so a host boolean or success narration
-cannot declare the application verified. Rejected, inconclusive, or unavailable
-verification requests exact rollback to the prior snapshot, while application, verifier,
-and rollback failures remain `RuntimeFailure` records rather than evidence or
-counterevidence. Failed rollback reports no authoritative snapshot. Every step can instead
-be submitted externally with its exact pre-effect and post-effect snapshots, and replay
-rejects stale, reordered, substituted, or duplicated effects.
-
-The deterministic core and `RSIKernel` still open no database, inspect no filesystem,
-start no process, infer no storage location, and construct no capabilities. Local effects
-exist only when a caller explicitly selects `LibRSI.local()`/`for_repo()` or supplies an
-adapter. The standard-library defaults are thin and independently replaceable; no worker,
-provider, transport, deployment, or generic repository-automation platform is included.
-Low-level APIs remain available from their original owning modules and documented
-top-level exports. `librsi.expert` curates the kernel, selected workflows/policies,
-dispatcher/registry, runtime engine, and SQLite stores for sophisticated composition. See
-[`src/librsi/README.md`](src/librsi/README.md) for the module map and complete
-integration boundary. The maintained implementation plan evolves this deterministic
-core toward higher-level validation, investigation, improvement, and RSI workflows
-without making libRSI a general-purpose agent/orchestration infrastructure platform.
-Maintainers should begin with the canonical [`docs/tracker.md`](docs/tracker.md).
-
-## Development guarantees
-
-- Python 3.11 or newer;
-- no runtime dependencies;
-- typed public API (`py.typed`);
-- deterministic policy decisions for identical inputs; and
-- at least 90% branch coverage in CI.
+libRSI-owned source is available under the [MIT License](LICENSE). See the
+[license decision record](docs/license-decision.md) for the release boundary and
+separate upstream artifact exclusions.
