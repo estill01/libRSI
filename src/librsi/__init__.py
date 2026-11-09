@@ -106,6 +106,8 @@ from .evaluation import (
 from .experiments import ExperimentPolicy
 from .facade import (
     AdaptiveLoop,
+    ConcurrentAdaptiveLoop,
+    ConcurrentLearningStore,
     FacadeProgress,
     FacadeResult,
     FacadeUpdate,
@@ -253,6 +255,7 @@ from .local import (
     ArtifactStore,
     LocalArtifactStore,
     LocalCommandRunner,
+    LocalConcurrentLearningStore,
     LocalFilesystemInspector,
     LocalLayout,
     LocalLearningStore,
@@ -470,6 +473,9 @@ from .validation import (
 )
 
 __all__ = [
+    "ConcurrentAdaptiveLoop",
+    "ConcurrentLearningStore",
+    "LocalConcurrentLearningStore",
     "AdaptiveLoop",
     "LearningAdapter",
     "LearningAttempt",

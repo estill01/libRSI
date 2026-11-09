@@ -123,6 +123,7 @@ filesystem sandbox. See the [local execution limits](docs/api.md#small-embedded-
 | Investigate competing explanations | `LibRSI.investigate()` — [API guide](docs/api.md#facade-first-use) |
 | Propose, test, and select a bounded improvement | `LibRSI.improve()` — [embedded example](examples/embedded_improvement.py) |
 | Improve a strategy from ordinary task feedback | `AdaptiveLoop` — [adaptive operation guide](docs/adaptive-operation.md) and [consumer template](examples/adaptive_strategy.py) |
+| Serve tasks while a strategy learns in the background | `ConcurrentAdaptiveLoop` — [concurrent operation guide](docs/concurrent-adaptive-operation.md) |
 | Govern changes to the improvement process itself | `LibRSI.recurse()` — [self-change integration contract](docs/consumer-integration.md) |
 | Compare completed trials using host-owned state | [Stateless JSON comparison](docs/stateless-comparison.md) — no local store required |
 | Drive actions from an existing agent or service | `LibRSI.start()` — [external protocol](docs/external-agent-protocol.md) and [service interfaces](docs/service-protocol.md) |
@@ -132,6 +133,12 @@ can retain unsuccessful attempts, request reflection, and run bounded follow-ups
 an adopted, verified revision becomes the strategy used by the next ordinary task.
 The [proposal-generator example](examples/failure_informed_proposals.py) demonstrates
 improving the generator itself, with a control comparison and subsequent use.
+
+`ConcurrentAdaptiveLoop` keeps ordinary requests on admitted strategy revisions
+while one learning pass runs. It publishes a replacement only after native
+verification and retains the producing revision for requests that span publication.
+The host supplies the executor and scheduling; the local backend uses one shared
+store instance and a dedicated profile.
 
 ## How it works
 
@@ -170,9 +177,12 @@ same canonical runtime records.
   Enabling effects requires the appropriate host capabilities, current target
   state, and authority. Operational failure remains distinct from evidence
   against a hypothesis.
-- **Local operation assumes small histories and one serialized owner.** Arbitrary
-  external calls can repeat after a crash before their results are saved. Make
-  those effects idempotent and follow the [restart guidance](docs/adaptive-operation.md#restart-history-and-boundaries).
+- **Local operation assumes small histories and one owner.** `AdaptiveLoop`
+  serializes tasks and learning. The opt-in concurrent facade permits many serving
+  threads while retaining one learning owner. External calls can repeat before
+  their results are saved; make those effects idempotent and follow the
+  [restart guidance](docs/adaptive-operation.md#restart-history-and-boundaries) or
+  [concurrent ownership contract](docs/concurrent-adaptive-operation.md#ownership-persistence-and-limits).
 - **Your application owns scheduling and isolation.** libRSI supplies the
   improvement workflows; the host supplies process containment, credentials,
   execution limits, and deployment.
@@ -183,6 +193,7 @@ same canonical runtime records.
 | --- | --- |
 | [Public API](docs/api.md) | Local setup, workflow methods, expert APIs, typing, and execution limits |
 | [Adaptive operation](docs/adaptive-operation.md) | Task feedback, strategy revisions, failed attempts, independent review, and adoption |
+| [Concurrent operation](docs/concurrent-adaptive-operation.md) | Serving during learning, durable task admissions, qualified publication, and local ownership |
 | [Consumer integration](docs/consumer-integration.md) | Mapping your system, measurements, and effects into libRSI contracts |
 | [Stateless comparison](docs/stateless-comparison.md) | Comparing canonical trial records over JSON without a runtime store |
 | [Providers](docs/providers.md) | Optional model-backed reasoning and provider boundaries |

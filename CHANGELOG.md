@@ -7,6 +7,12 @@ not been published or tagged by this tracker run.
 
 ### Added
 
+- Opt-in `ConcurrentAdaptiveLoop`, `ConcurrentLearningStore` and
+  `LocalConcurrentLearningStore` for concurrent ordinary tasks with one learning
+  owner. Durable task admissions preserve producing revisions across publication
+  and restart; serving retains the baseline during native application/verification.
+  The local backend fences a single process owner and publishes qualified native
+  results without holding model execution under its state lock.
 - A bounded, stateless `python -m librsi.comparison` JSON boundary for hosts
   that own storage and experiment execution. It recomputes canonical comparative
   selection from exact records and returns advisory evidence without activation.
@@ -37,6 +43,9 @@ not been published or tagged by this tracker run.
 
 ### Compatibility
 
+- `AdaptiveLoop` and `LearningStore` retain their serialized contracts. The local
+  concurrent store requires a dedicated schema-2 profile and does not implicitly
+  migrate existing schema-1 profiles.
 - The `0.2.0` public export fixture and deterministic identity fixtures remain passing.
 - Deprecated scalar hypothesis/experiment wrappers remain available for the `0.2.x`
   migration window; new integrations should use canonical typed records and the facade.

@@ -7,6 +7,13 @@ feedback to request competing revisions, measures them, and runs native
 investigation, selection, self-change review, application, verification and rollback.
 A verified revision becomes the strategy used by the next ordinary task.
 
+This guide describes the serialized `AdaptiveLoop` contract. To serve ordinary
+tasks while a learning pass runs, use the opt-in
+[`ConcurrentAdaptiveLoop`](concurrent-adaptive-operation.md) and its explicit
+`ConcurrentLearningStore` contract. It pins serving revisions separately from the
+native application's current state; legacy stores and their ownership rules remain
+unchanged.
+
 Run the complete offline template after installing libRSI:
 
 ```bash
@@ -113,7 +120,8 @@ expert contracts for multiple objectives or additional guardrails.
 completed evaluation with the original active strategy. Only `verified` makes
 `LearningResult.adopted` true. Rejected/inconclusive revisions preserve the baseline;
 failed post-application verification attempts native rollback. A result with
-unresolved strategy authority leaves the pass pending and ordinary work blocked.
+unresolved strategy authority leaves the pass pending and ordinary work blocked
+in this serialized API.
 Inspect and reconcile the native result/actual target before resuming that profile.
 
 ## Restart, history and boundaries
@@ -139,14 +147,19 @@ Application must commit the active strategy and exact action identity together s
 the same effect can recover after an interruption without accepting a stale effect.
 Passing the structural protocol check does not certify those backend semantics.
 
-This extension supplies a persistence boundary, not distributed coordination.
-The host must serialize and, across processes, fence **all** use of one profile,
+The `LearningStore` extension supplies a persistence boundary, not distributed
+coordination. For `AdaptiveLoop`, the host must serialize and, across processes,
+fence **all** use of one profile,
 including ordinary tasks, learning, effects, and recovery. Per-method locking alone
 does not protect a complete operation. Reopening must recover the same strategy,
 pending input, completed records, and runtime history; independent per-worker
 stores are separate profiles, not replicas of a shared authority. Native workflows
 still decide acceptance and application eligibility. Consumers must additionally
 enforce their own authority at the actual effect boundary.
+
+The separate [concurrent API](concurrent-adaptive-operation.md) permits task
+execution during learning through durable admissions and a stable serving snapshot.
+It preserves one learning owner and does not weaken this legacy store contract.
 
 The consumer-adapter restart and rollback cases in
 [`tests/test_adaptive_loop.py`](../tests/test_adaptive_loop.py) exercise the same

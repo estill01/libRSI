@@ -414,3 +414,15 @@ partial nonadditive host-call costs. These modules use public persistence ports,
 with no consumer-specific service or database dependency. The maintained standalone
 `examples/failure_informed_proposals.py` demonstrates generator configuration changes
 through actual downstream repair-proposal measurements and native adoption.
+
+`facade/concurrent_learning.py` adds `ConcurrentAdaptiveLoop`, and
+`facade/concurrent_store.py` defines the opt-in `ConcurrentLearningStore` extension.
+`local/concurrent_learning.py` provides `LocalConcurrentLearningStore`: a dedicated
+schema-2 local profile with durable task admissions, a lifetime process-ownership
+fence, short state locks and separate whole-operation learning ownership. The
+native `active` pointer may name an applied candidate; `serving_snapshot` retains
+the pending pass's baseline until a qualified native terminal is committed. Task
+completion keeps its admitted producing revision across publication or restart.
+Legacy serialized APIs remain unchanged. See the
+[concurrent operation guide](../../docs/concurrent-adaptive-operation.md) for the
+machine API, host executor pattern, backend contract and lifecycle limits.

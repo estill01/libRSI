@@ -51,4 +51,28 @@ checkout, process, provider call, or production effect.
 
 ## Reusable adaptive strategy loop
 
-For a consumer whose change target is a strategy configuration or prompt, use `AdaptiveLoop` with `LocalLearningStore`. The [adaptive operation contract](adaptive-operation.md) defines the executor/scorer, proposer, independent reviewer, profile isolation and caller scheduling hooks. The [public template](../examples/adaptive_strategy.py) demonstrates measured proposals, interruption/reopen, native acceptance and use of the accepted revision by the next ordinary task. This library support is available without deploying either consumer integration.
+For a consumer whose change target is a strategy configuration or prompt, choose
+the execution contract that matches the host:
+
+| Execution model | Public API |
+| --- | --- |
+| One serialized owner for ordinary tasks and learning | `AdaptiveLoop` with `LearningStore`; local implementation `LocalLearningStore` |
+| Concurrent ordinary tasks with one learning owner | `ConcurrentAdaptiveLoop` with `ConcurrentLearningStore`; local implementation `LocalConcurrentLearningStore` |
+
+The [adaptive operation contract](adaptive-operation.md) defines the executor/scorer,
+proposer, independent reviewer, profile isolation and scheduling responsibilities.
+The [public template](../examples/adaptive_strategy.py) demonstrates measured
+proposals, interruption/reopen, native acceptance and subsequent use.
+
+The [concurrent operation contract](concurrent-adaptive-operation.md) adds durable
+task admissions, snapshot-pinned completion and publication after native verification.
+Hosts may use `run_task()` or split `admit_task()` and `complete_task()` around their
+own executor. A separate `task_adapter` may own serving resources while retaining the
+learning adapter's execution/scoring identity. The consumer owns transport, model
+isolation, external idempotency, scheduling and request lifetimes.
+
+The local concurrent backend requires one shared instance and a dedicated schema-2
+profile directory; it rejects a second local owner and does not implicitly migrate
+serialized profiles. Custom stores must qualify their concurrency and durability
+guarantees independently. Both facades use the same native acceptance, application,
+verification and rollback workflows.

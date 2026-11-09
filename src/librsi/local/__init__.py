@@ -2,6 +2,7 @@
 
 from .artifacts import LocalArtifactStore
 from .commands import LocalCommandRunner
+from .concurrent_learning import LocalConcurrentLearningStore
 from .filesystem import LocalFilesystemInspector
 from .layout import LocalLayout
 from .learning import LocalLearningStore
@@ -12,6 +13,7 @@ __all__ = [
     "ArtifactStore",
     "LocalArtifactStore",
     "LocalCommandRunner",
+    "LocalConcurrentLearningStore",
     "LocalFilesystemInspector",
     "LocalLayout",
     "LocalLearningStore",
