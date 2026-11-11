@@ -49,7 +49,7 @@ def load(path: Path) -> tuple[dict[str, Any], dict[str, Any]]:
             for line in archive.read("scifact/queries.jsonl").splitlines()
             if (row := json.loads(line))
         }
-        qrels = {}
+        qrels: dict[str, list[str]] = {}
         split_ids = {}
         for split in ("train", "test"):
             ids = set()

@@ -205,7 +205,10 @@ def score_active(
         observations = [
             loop.run_task(case) for case in cases(test_queries, "final-test", meta=False)
         ]
-        if any(row.target_snapshot.root != stage["strategy_root"] for row in observations):
+        if any(
+            row.target_snapshot is None or row.target_snapshot.root != stage["strategy_root"]
+            for row in observations
+        ):
             raise RuntimeError("ordinary test task did not consume the verified strategy")
         raw = index.measure(stage["configuration"], index.resolve(test_queries))
         measured_mrr = sum(row.value["output"]["mrr_at_5"] for row in observations) / len(

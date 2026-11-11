@@ -1,4 +1,9 @@
-# Search improvement and meta-improvement
+# Supplement: deterministic search and proposal-policy selection
+
+This is the no-LLM companion to the principal
+[LLM-driven benchmark](llm-search-benchmark.md). It chooses among prewritten
+ranker configurations and portfolios; it does not generate new formulas or
+improver instructions.
 
 This benchmark asks a concrete question: **does changing an improver's proposal
 policy lead to a better search engine under the same downstream candidate budget?**

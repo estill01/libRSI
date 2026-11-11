@@ -12,6 +12,7 @@ include docs/providers.md
 include docs/release-gate.md
 include docs/service-protocol.md
 include docs/search-benchmark.md
+include docs/llm-search-benchmark.md
 include docs/system-dogfoods.md
 recursive-include docs/assets *.webp *.png *.svg
 recursive-include docs/benchmarks *.json *.gz *.txt
