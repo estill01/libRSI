@@ -29,7 +29,14 @@ It compares three systems on the same **300 official test queries**:
    then repeat the ordinary improvement pass with that policy and the same
    two-candidate budget.
 
-![Measured search quality and adaptation effort on BEIR SciFact](docs/assets/search-improvement.png)
+**What drives the improvement loops? No LLM or model provider is used in this run.**
+The ordinary `SearchProposer` supplies two predefined ranking configurations.
+The meta `PortfolioProposer` supplies two predefined proposal portfolios.
+`MeasuredReviewer` checks the evaluation in Python; scoring and libRSI's selection
+rules are deterministic too. The meta step selects a proposal policy from those
+choices; it is not an LLM generating or improving its own reasoning.
+
+![BEIR SciFact benchmark: ordinary proposer, meta-proposer, and reviewer use no LLM; all are deterministic Python](docs/assets/search-improvement.png)
 
 On this run, retrieval score (MRR@5) was **6.3%** for original search, **41.1%** with ordinary improvement, and **57.4%** after improving the proposer. The top result was relevant for **9, 102, and 151 of 300 queries**, respectively.
 
@@ -69,6 +76,9 @@ results, and durable stores. [Reproduction details](docs/search-benchmark.md#rep
 Provide three pieces: an **adapter** that runs a strategy and measures its output,
 a **proposer** that suggests candidate strategies, and a **reviewer** that checks
 results before adoption. They can wrap your existing models, tools, or services.
+libRSI has no built-in LLM choice: your reasoning backend determines the model.
+For example, its [OpenAI backend](docs/providers.md) requires a model identifier
+in its configuration. The benchmark above uses Python proposal functions instead.
 
 Once those application-owned pieces are supplied, an adaptive integration looks
 like this:

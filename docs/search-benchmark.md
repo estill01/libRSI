@@ -10,15 +10,30 @@ claim is true.
 
 ## Results
 
-![Search quality and measured effort](assets/search-improvement.png)
+**LLM/provider used: none, including ordinary proposals, meta proposals, and review.**
+The benchmark's runtime drivers are:
 
-| System | Test MRR@5 | Relevant result at rank 1 | Adaptation query executions | Elapsed / CPU |
-| --- | ---: | ---: | ---: | ---: |
-| Original search | 0.0631 | 9/300 | 0 | — |
-| Ordinary libRSI | 0.4106 | 102/300 | 1,200 | 130.3s / 76.3s |
-| Meta + ordinary libRSI | 0.5741 | 151/300 | 9,200 | 347.9s / 165.9s |
-| Fixed BM25 control | 0.5741 | 151/300 | 0 (no tuning) | Outside adaptation timing |
-| Full training sweep | 0.5792 | 145/300 | 360 | Outside adaptation timing |
+| Role | Driver used in this run | LLM / provider |
+| --- | --- | --- |
+| Ordinary improvement proposals | `SearchProposer`: enumerates two fixed ranker configurations from its current portfolio | None |
+| Meta-improvement proposals | `PortfolioProposer`: proposes the fixed `normalization` and `mixed` portfolios | None |
+| Review | `MeasuredReviewer`: deterministic check of the native evaluation | None |
+| Scoring and selection | MRR@5 against SciFact judgments and libRSI's deterministic policies | None |
+
+The meta loop chooses between predefined proposal policies. It does not ask an
+LLM to invent a strategy, reflect on failures, or rewrite an improver. Model-backed
+applications supply their own reasoning backend and model configuration; the
+library itself does not impose an LLM.
+
+![Search quality and effort; no LLM in the proposer, meta-proposer, or reviewer](assets/search-improvement.png)
+
+| System | Retrieval algorithm (LLM: none for every row) | Test MRR@5 | Relevant result at rank 1 | Adaptation query executions | Elapsed / CPU |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Original search | Raw term frequency | 0.0631 | 9/300 | 0 | — |
+| Ordinary libRSI | Log TF, title weight 2 | 0.4106 | 102/300 | 1,200 | 130.3s / 76.3s |
+| Meta + ordinary libRSI | BM25, title weight 2 | 0.5741 | 151/300 | 9,200 | 347.9s / 165.9s |
+| Fixed BM25 control | BM25, title weight 2 | 0.5741 | 151/300 | 0 (no tuning) | Outside adaptation timing |
+| Full training sweep | TF-IDF, title weight 2 | 0.5792 | 145/300 | 360 | Outside adaptation timing |
 
 Native dispositions: ordinary `verified`, meta `verified`, enhanced `verified`. The ordinary pass used `{'method': 'logtf', 'title_weight': 2}`. The meta pass returned `{'portfolio': 'normalization'}`; its downstream pass used `{'method': 'bm25', 'title_weight': 2}`. The complete measured run took 487.6s elapsed / 249.2s CPU, including final scoring and controls.
 

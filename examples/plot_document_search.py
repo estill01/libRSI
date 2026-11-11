@@ -45,11 +45,19 @@ def plot(report_path: Path, output: Path) -> None:
     for i, value in enumerate(values):
         quality.text(i, value + 0.025, f"{value:.1%}", ha="center", weight="bold", fontsize=13)
     names = ["Original search", "Ordinary libRSI", "Meta-improved libRSI"]
+    method_names = {"tf": "Raw TF", "logtf": "Log TF", "tfidf": "TF-IDF", "bm25": "BM25"}
+    rankers = [
+        "Raw TF",
+        *[
+            f"{method_names[stages[key]['configuration']['method']]} (title {stages[key]['configuration']['title_weight']})"
+            for key in ("ordinary", "enhanced")
+        ],
+    ]
     quality.set_xticks(
         range(3),
         [
-            f"{name}\n{scores[key]['top_1']}/{scores[key]['queries']} top-1"
-            for name, key in zip(names, keys, strict=True)
+            f"{name}\n{ranker}\n{scores[key]['top_1']}/{scores[key]['queries']} top-1"
+            for name, key, ranker in zip(names, keys, rankers, strict=True)
         ],
         fontsize=9,
     )
@@ -71,7 +79,7 @@ def plot(report_path: Path, output: Path) -> None:
         linewidth=1.6,
         label="Full 6-configuration training sweep",
     )
-    quality.legend(loc="upper left", bbox_to_anchor=(0, -0.20), frameon=False, fontsize=8.5)
+    quality.legend(loc="upper left", bbox_to_anchor=(0, -0.25), frameon=False, fontsize=8.5)
 
     ordinary = stages["ordinary"]["ranked_queries"]
     inner = stages["enhanced"]["ranked_queries"]
@@ -111,9 +119,17 @@ def plot(report_path: Path, output: Path) -> None:
     figure.text(
         0.06,
         0.91,
-        f"BEIR SciFact · {report['documents']:,} scientific abstracts · two candidate slots per pass · no model calls",
+        f"BEIR SciFact · {report['documents']:,} scientific abstracts · two candidate slots per pass",
         fontsize=10,
         color="#50627a",
+    )
+    figure.text(
+        0.06,
+        0.865,
+        "LLM / provider: NONE — ordinary proposer, meta-proposer and reviewer are fixed Python policies.",
+        fontsize=10,
+        color="#172b45",
+        weight="bold",
     )
     figure.text(
         0.06,
@@ -122,10 +138,12 @@ def plot(report_path: Path, output: Path) -> None:
         fontsize=8.5,
         color="#50627a",
     )
-    figure.subplots_adjust(left=0.075, right=0.97, top=0.81, bottom=0.29, wspace=0.32)
+    figure.subplots_adjust(left=0.075, right=0.97, top=0.76, bottom=0.31, wspace=0.32)
     output.parent.mkdir(parents=True, exist_ok=True)
     figure.savefig(output.with_suffix(".png"), dpi=180, facecolor=figure.get_facecolor())
     figure.savefig(output.with_suffix(".svg"), facecolor=figure.get_facecolor())
+    svg = output.with_suffix(".svg")
+    svg.write_text("\n".join(line.rstrip() for line in svg.read_text().splitlines()) + "\n")
     plt.close(figure)
 
 
