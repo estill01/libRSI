@@ -1,0 +1,7 @@
+Python 3.14.7
+Linux-6.12.111+deb13-cloud-amd64-x86_64-with-glibc2.41
+numpy==2.5.4
+matplotlib==3.11.2
+pytest==9.2.0
+ruff==0.17.4
+librsi==0.3.0

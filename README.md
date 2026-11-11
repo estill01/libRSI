@@ -2,236 +2,136 @@
 
 # libRSI
 
-**Test proposed changes. Measure improvement. Control what gets adopted.**
+**Turn task feedback into tested improvements—and improve the process that proposes them.**
 
-libRSI is a Python library for building systems that improve through experiments.
-It connects goals, hypotheses, measurements, and candidate selection in bounded,
-restartable workflows, with explicit review, verification, and rollback when a
-change is applied.
+libRSI is a Python library for adding an improvement loop to an application. Use it
+to improve a search strategy, an agent's prompt, or the way a system generates
+candidate solutions. Your application supplies the work, proposals, and scores;
+libRSI runs the bounded experiments, compares candidates, and manages review,
+adoption, verification, and recovery.
 
-Your application supplies the target, candidate changes, and real measurements.
-libRSI checks the evidence against your criteria and records why a change was
-accepted, rejected, or left unresolved. You can use it for a single hypothesis
-test, a loop that improves an application strategy, or governed **recursive
-self-improvement (RSI)**—including changes to the strategy that proposes future
-improvements.
+The same loop can target **the improver itself**: test a better proposal strategy,
+adopt it, then use it to find better changes on subsequent tasks. This is the
+library's practical approach to recursive self-improvement (RSI).
 
-**Python 3.11+ · Zero runtime dependencies in the core · Typed API · MIT license**
+**Python 3.11+ · Dependency-free core · Typed API · MIT**
 
-[Quick start](#quick-start) · [Choose an entry point](#choose-an-entry-point) ·
-[How it works](#how-it-works) · [Documentation](#documentation)
+## See it work: improve a search engine, then its improver
 
-## Why libRSI?
+The [runnable benchmark](examples/benchmark_document_search.py) searches **5,183
+scientific abstracts** using the public [BEIR SciFact dataset](https://github.com/beir-cellar/beir/wiki/Datasets-available).
+It compares three systems on the same **300 official test queries**:
 
-Generating a plausible change is only one part of improvement. You also need to
-establish whether it helps, whether the evidence still applies, and whether the
-change is authorized to take effect. libRSI provides those decision rules and
-records so each application does not have to build them from scratch.
+1. **Original search:** rank documents by matching term counts.
+2. **Ordinary libRSI:** propose two ranking changes, measure them, and use the
+   revision that passes review and verification.
+3. **Meta-improved libRSI:** first use libRSI to improve the proposal policy;
+   then repeat the ordinary improvement pass with that policy and the same
+   two-candidate budget.
 
-- **Make acceptance measurable.** Define a baseline, objectives, minimum effects,
-  and guardrails. Compare experimental results against those criteria, including
-  uncertainty and conflicting objectives.
-- **Keep decisions traceable.** Bind evidence to the exact hypothesis, experiment,
-  and target state it describes. Detect stale evidence and retain the lineage
-  behind each result.
-- **Bound work and resume it.** Set experiment, iteration, and resource limits;
-  persist progress with the included SQLite stores; and resume through the
-  workflow APIs after an interruption.
-- **Control adoption.** Separate candidate preparation and selection from
-  application. When application is enabled, verify the state actually produced
-  and request rollback if verification fails. Self-change adds comparative trials
-  and independent review.
-- **Keep your existing stack.** Supply your own models, optimizers, experiment
-  runners, storage, and application adapters. The same workflow records support
-  embedded Python, external action loops, and optional service interfaces.
+![Measured search quality and adaptation effort on BEIR SciFact](docs/assets/search-improvement.png)
 
-## Quick start
+On this run, retrieval score (MRR@5) was **6.3%** for original search, **41.1%** with ordinary improvement, and **57.4%** after improving the proposer. The top result was relevant for **9, 102, and 151 of 300 queries**, respectively.
 
-### Install from source
+Both ordinary passes use identical development queries. The meta pass gets an
+additional 600 training queries; its work is included in the effort graph.
+Fixed BM25 matches the meta result; a full sweep scores **57.9%** using only
+360 tuning-query executions. For this small search space, direct tuning is
+cheaper. libRSI adds the experiment history, review, and verified adoption workflow.
 
-The current `0.3.0` release candidate is available from this repository; it is not
-a published distribution. Use Python 3.11 or newer, preferably in a virtual
-environment:
+This example uses explicit, deterministic ranking algorithms and proposal policies,
+with **no model calls**. It demonstrates measured improvement and transfer from an
+improved proposer; it does not train model weights or rewrite libRSI's rules.
+See the [method, costs, limitations, and raw results](docs/search-benchmark.md).
+
+## Run it
+
+Install from this checkout, with NumPy for this benchmark's retrieval and
+Matplotlib for its graph. Ordinary libRSI use needs neither.
 
 ```bash
 git clone https://github.com/estill01/libRSI.git
 cd libRSI
-python -m pip install .
+python -m pip install . numpy matplotlib
+python examples/scifact_data.py --download ./scifact.zip
+python examples/benchmark_document_search.py \
+  --dataset ./scifact.zip --output ./search-run
+python examples/plot_document_search.py \
+  --report ./search-run/report.json --output ./search-run/improvement
 ```
 
-### Run a complete improvement loop
+Use a fresh output directory. The download is about 2.7 MB and is checked against
+a pinned hash. The run saves query-level scores, configurations, timings, native
+results, and durable stores. [Reproduction details](docs/search-benchmark.md#reproduce).
 
-```bash
-python examples/embedded_improvement.py --data-dir ./my-first-improvement
-```
+## Use it in your application
 
-The example minimizes `abs(4 - x)`, starting at `x = 0`, and requires an error
-reduction of at least 2:
+Provide three pieces: an **adapter** that runs a strategy and measures its output,
+a **proposer** that suggests candidate strategies, and a **reviewer** that checks
+results before adoption. They can wrap your existing models, tools, or services.
 
-| State | Measured error | Decision |
-| --- | ---: | --- |
-| Baseline: `x = 0` | 4 | Starting point |
-| First candidate: `x = 1` | 3 | Rejected: improvement is too small |
-| Second candidate: `x = 3` | 1 | Selected: improvement meets the criterion |
-
-Between the two cycles, the example interrupts, closes SQLite, and resumes without
-repeating the completed cycle. It returns a selected candidate for the host to
-inspect; it performs no application step. After installation, it needs no model,
-credentials, or network access.
-
-Use a fresh data directory each time. The
-[example source](examples/embedded_improvement.py) shows the host adapter and
-actual measurements; the [embedded guide](docs/api.md#small-embedded-improvement)
-explains the request, budgets, and restart path. This small deterministic example
-demonstrates the workflow, not statistical generalization to a real workload.
-
-### Test a hypothesis in Python
-
-For a smaller starting point, run a local command against explicit criteria:
+Once those application-owned pieces are supplied, an adaptive integration looks
+like this:
 
 ```python
-import sys
-from tempfile import TemporaryDirectory
+from librsi import AdaptiveLoop, LearningCase, LearningPolicy, LocalLearningStore, Metric
 
-from librsi import LibRSI
-
-with TemporaryDirectory() as workspace, LibRSI.local(workspace) as lib:
-    result = lib.test_hypothesis(
-        "The local command reports READY",
-        command=(sys.executable, "-c", "print('READY')"),
-        success_criteria={
-            "accepted_exit_codes": [0],
-            "stdout_contains": ["READY"],
-        },
+with LocalLearningStore(
+    "./search-profile",
+    profile_id="search",
+    initial_configuration=current_search_config,
+) as store:
+    loop = AdaptiveLoop(
+        store,
+        adapter=search_adapter,
+        proposer=search_proposer,
+        proposer_id="search-proposer-v1",
+        reviewer=search_reviewer,
+        reviewer_id="search-reviewer-v1",
+        policy=LearningPolicy(
+            objective="Improve retrieval quality",
+            metric=Metric(metric_id="mrr", direction="increase", unit="reciprocal-rank"),
+            minimum_effect=0.01,
+        ),
     )
-
-assert result.evidence.evidence_type == "support"
-assert result.observation.exact_input_root == result.experiment.root
+    for job_id, task_input in new_tasks:
+        feedback = loop.run_task(LearningCase(job_id, task_input))
+    result = loop.learn("round-1", shadow_cases=held_out_tasks, activate=True)
 ```
 
-The result ties the observation and evidence to the exact experiment. Replace the
-command and criteria with a check meaningful to your application. The local runner
-uses argv without a shell and restricts the working directory; it is not a
-filesystem sandbox. See the [local execution limits](docs/api.md#small-embedded-improvement).
+A verified revision becomes the strategy used by the next task. Without
+`activate=True`, learning evaluates changes while leaving the active strategy in
+place. The [benchmark adapter and proposers](examples/document_search.py) are
+complete implementations; the [integration guide](docs/adaptive-operation.md)
+explains how to replace them for your workload.
 
-## Choose an entry point
+For a meta application, make the adapter **measure the quality of proposed
+changes**, and make the configuration **the policy used to propose them**.
+Feed the verified policy back into the ordinary loop. The benchmark does exactly
+this, then reopens storage and checks that subsequent tasks use the saved revisions.
 
-| What you want to do | Start here |
-| --- | --- |
-| Check a claim against evidence | `LibRSI.validate()` — [API guide](docs/api.md#facade-first-use) |
-| Test a hypothesis with a local command | `LibRSI.test_hypothesis()` — [runnable example](examples/local_hypothesis.py) |
-| Investigate competing explanations | `LibRSI.investigate()` — [API guide](docs/api.md#facade-first-use) |
-| Propose, test, and select a bounded improvement | `LibRSI.improve()` — [embedded example](examples/embedded_improvement.py) |
-| Improve a strategy from ordinary task feedback | `AdaptiveLoop` — [adaptive operation guide](docs/adaptive-operation.md) and [consumer template](examples/adaptive_strategy.py) |
-| Serve tasks while a strategy learns in the background | `ConcurrentAdaptiveLoop` — [concurrent operation guide](docs/concurrent-adaptive-operation.md) |
-| Govern changes to the improvement process itself | `LibRSI.recurse()` — [self-change integration contract](docs/consumer-integration.md) |
-| Compare completed trials using host-owned state | [Stateless JSON comparison](docs/stateless-comparison.md) — no local store required |
-| Drive actions from an existing agent or service | `LibRSI.start()` — [external protocol](docs/external-agent-protocol.md) and [service interfaces](docs/service-protocol.md) |
+## Where to go next
 
-`AdaptiveLoop` connects measured task outcomes to proposed strategy revisions. It
-can retain unsuccessful attempts, request reflection, and run bounded follow-ups;
-an adopted, verified revision becomes the strategy used by the next ordinary task.
-The [proposal-generator example](examples/failure_informed_proposals.py) demonstrates
-improving the generator itself, with a control comparison and subsequent use.
+- [API guide](docs/api.md): validate a claim, test a hypothesis, investigate,
+  improve, or govern self-change through `LibRSI`.
+- [Adaptive operation](docs/adaptive-operation.md) and
+  [concurrent serving](docs/concurrent-adaptive-operation.md): learn from task
+  feedback, persist progress, and serve requests while learning.
+- [Consumer integration](docs/consumer-integration.md) and
+  [stateless comparison](docs/stateless-comparison.md): connect your execution
+  and storage, or compare completed trials without a local store.
+- [Model providers](docs/providers.md), [external agents](docs/external-agent-protocol.md),
+  and [HTTP/MCP](docs/service-protocol.md): use your existing reasoning and service stack.
 
-`ConcurrentAdaptiveLoop` keeps ordinary requests on admitted strategy revisions
-while one learning pass runs. It publishes a replacement only after native
-verification and retains the producing revision for requests that span publication.
-The host supplies the executor and scheduling; the local backend uses one shared
-store instance and a dedicated profile.
+Your application owns metric quality, execution isolation, scheduling, and effects.
+libRSI owns the experiment and decision records. A proposed change still has to earn
+adoption through measurements. Local profiles have explicit ownership and recovery
+requirements; see the relevant operation guide before sharing a profile.
 
-## How it works
+For development, see [testing](docs/testing.md), the [module map](src/librsi/README.md),
+and the [changelog](CHANGELOG.md). Internal provider tests require separate upstream
+artifacts; they are not public runtime dependencies. Existing users can consult the
+[migration guide](docs/migration-0.2.md).
 
-An improvement run follows four stages:
-
-1. **Define success.** Identify the target and baseline, then specify objectives,
-   constraints, guardrails, and stopping rules in an `EvaluationContract`.
-2. **Collect evidence.** Your host proposes hypotheses, prepares candidates, and
-   runs experiments. libRSI checks that returned records refer to the correct
-   inputs and target state.
-3. **Decide from measurements.** Deterministic policies evaluate the results.
-   Depending on the workflow, a result may support or contradict a claim, remain
-   inconclusive, or select one candidate, a Pareto set, or none.
-4. **Apply only when enabled.** The host explicitly authorizes application and
-   supplies the effect adapters. libRSI evaluates fresh measurements of the actual
-   resulting state and coordinates verification or rollback. Declared self-change
-   targets require additional governance before activation.
-
-The host owns execution and effects; libRSI owns the evidence and decision
-contracts. Model output remains a proposal. A successful command or a prepared
-candidate does not, by itself, establish improvement.
-
-`LibRSI.local()` provides SQLite persistence, a local command runner, filesystem
-inspection, artifacts, and logging. `LibRSI.for_repo()` adds repository-oriented
-convenience. Plain `LibRSI(...)` accepts host-supplied components, and
-`librsi.expert` exposes lower-level policies, workflows, and stores. All use the
-same canonical runtime records.
-
-### Operating boundaries
-
-- **Measurements come from your host.** libRSI checks their structure, lineage,
-  and applicability; it cannot establish that your metric captures what you value
-  or independently authenticate every supplied measurement.
-- **Application and activation default to disabled.** An accepted improvement
-  returns a handoff.
-  Enabling effects requires the appropriate host capabilities, current target
-  state, and authority. Operational failure remains distinct from evidence
-  against a hypothesis.
-- **Local operation assumes small histories and one owner.** `AdaptiveLoop`
-  serializes tasks and learning. The opt-in concurrent facade permits many serving
-  threads while retaining one learning owner. External calls can repeat before
-  their results are saved; make those effects idempotent and follow the
-  [restart guidance](docs/adaptive-operation.md#restart-history-and-boundaries) or
-  [concurrent ownership contract](docs/concurrent-adaptive-operation.md#ownership-persistence-and-limits).
-- **Your application owns scheduling and isolation.** libRSI supplies the
-  improvement workflows; the host supplies process containment, credentials,
-  execution limits, and deployment.
-
-## Documentation
-
-| Guide | What it covers |
-| --- | --- |
-| [Public API](docs/api.md) | Local setup, workflow methods, expert APIs, typing, and execution limits |
-| [Adaptive operation](docs/adaptive-operation.md) | Task feedback, strategy revisions, failed attempts, independent review, and adoption |
-| [Concurrent operation](docs/concurrent-adaptive-operation.md) | Serving during learning, durable task admissions, qualified publication, and local ownership |
-| [Consumer integration](docs/consumer-integration.md) | Mapping your system, measurements, and effects into libRSI contracts |
-| [Stateless comparison](docs/stateless-comparison.md) | Comparing canonical trial records over JSON without a runtime store |
-| [Providers](docs/providers.md) | Optional model-backed reasoning and provider boundaries |
-| [External agent protocol](docs/external-agent-protocol.md) | Owning the action loop from another process or agent |
-| [Service protocol](docs/service-protocol.md) | Managed execution, CLI, HTTP, MCP, authentication, and request bounds |
-| [Module map](src/librsi/README.md) | Core architecture, package responsibilities, and lower-level integration |
-
-HTTP and MCP are optional extras, separate from the dependency-free core:
-
-```bash
-python -m pip install '.[server]'   # FastAPI/HTTP
-python -m pip install '.[mcp]'      # stdio and Streamable HTTP MCP
-python -m pip install '.[service]'  # both
-```
-
-## Development
-
-From a source checkout:
-
-```bash
-python -m pip install -e '.[dev]'
-python -m pytest -m "not slow" \
-  --ignore=tests/test_block22_providers.py \
-  --ignore=tests/test_block24_system_dogfoods.py
-```
-
-The omitted suites require exact internal `estill01/utils` artifacts. They are
-separate CI inputs, not public runtime dependencies, and are not covered by
-libRSI's MIT license. See [provider setup](docs/providers.md) for that boundary.
-
-The [testing guide](docs/testing.md) explains fast and full validation, affected
-slow tests, and the full-suite 90% coverage gate with branch measurement enabled.
-Maintainers can follow the [implementation tracker](docs/tracker.md),
-[release gate](docs/release-gate.md), and [changelog](CHANGELOG.md). Existing users
-should also read the [migration guide](docs/migration-0.2.md).
-
-## License
-
-libRSI-owned source is available under the [MIT License](LICENSE). See the
-[license decision record](docs/license-decision.md) for the release boundary and
-separate upstream artifact exclusions.
+libRSI-owned material is [MIT licensed](LICENSE); separate upstream artifacts remain
+outside that grant. [License boundary](docs/license-decision.md).
