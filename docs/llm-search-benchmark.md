@@ -1,4 +1,8 @@
-# LLM-driven search improvement and meta improvement
+# First run: LLM-driven search improvement and meta improvement
+
+The [five-sample recursive follow-up](recursive-search-benchmark.md) tests
+stochastic variation and higher meta levels. This page retains the original run
+and its evidence, including the unsuccessful meta attempt.
 
 This experiment asks two questions: can an LLM propose a useful change to a search
 engine, and can an LLM improve the instructions used to propose those changes?
@@ -245,8 +249,8 @@ per-query test rankings. The CLI adds its own runtime context; the transcript is
 not a capture of the complete wire request. Token counts include that context.
 Published evidence is under [`benchmarks/llm-search/`](benchmarks/llm-search/).
 The executed source snapshot is retained alongside source hashes and the environment
-receipt. Later type annotations and null-snapshot guards do not change this run's
-formulas, model requests, measurements or decisions; the archive preserves the
-exact pre-edit source used by the running process. The previous
+receipt. The shared helper later gained typing fixes, null-snapshot guards and
+recursive sampling support. The archive preserves the exact code used in this run;
+its recorded formulas, model requests, measurements and decisions are unchanged. The previous
 [deterministic experiment](search-benchmark.md) remains a supplementary example
 of choosing among predefined configurations, with zero inference calls.

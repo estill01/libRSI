@@ -1,0 +1,92 @@
+{
+  "meta": {
+    "adopted": false,
+    "disposition": "no-supported-revision",
+    "native_result_root": "1179d8e0fb583bbbd429479c9382511eccc9cd4774d333af102390e41d692aab",
+    "unique_criteria": []
+  },
+  "meta_meta": {
+    "adopted": false,
+    "disposition": "governance-rejected",
+    "forward_shadow": {
+      "criteria": [
+        {
+          "disposition": "failed",
+          "effect": {
+            "estimate": -0.020483333333333364,
+            "lineage": [],
+            "lower": -0.022258822311364796,
+            "method": "student-standard-error",
+            "sample_count": 5,
+            "upper": -0.01870784435530193
+          },
+          "metric": "five-sample-paired-mrr"
+        }
+      ],
+      "disposition": "rejected",
+      "reason": "conservative favorable effect misses the minimum meaningful effect"
+    },
+    "native_result_root": "bf821cd40d23daefb70c06beefb5c68aa8d16b68c512689c0b371585013057c8",
+    "unique_criteria": [
+      {
+        "disposition": "failed",
+        "effect": {
+          "estimate": -0.020483333333333364,
+          "lineage": [],
+          "lower": -0.022258822311364796,
+          "method": "student-standard-error",
+          "sample_count": 5,
+          "upper": -0.01870784435530193
+        },
+        "reason": "conservative favorable effect misses the minimum meaningful effect",
+        "root": "872d9367c8eb3470d8cd3172bd39586e375cd488e4399c821f18fbcd669558ff"
+      },
+      {
+        "disposition": "passed",
+        "effect": {
+          "estimate": 0.012866666666666648,
+          "lineage": [],
+          "lower": 0.011430622718097439,
+          "method": "student-standard-error",
+          "sample_count": 5,
+          "upper": 0.014302710615235857
+        },
+        "reason": "conservative favorable effect meets the minimum meaningful effect",
+        "root": "9575a85c3e850d6ad57519cfdd3db44597c144eb43830632f57aeb4869b88b9d"
+      }
+    ]
+  },
+  "meta_meta_meta": {
+    "adopted": false,
+    "disposition": "no-useful-improvement",
+    "native_result_root": "f02a47844823ac21a6a0a3f476c07ee5a4b7a7bb1cfb51ac2f86f15efa4bdafd",
+    "unique_criteria": [
+      {
+        "disposition": "failed",
+        "effect": {
+          "estimate": 0.007099999999999951,
+          "lineage": [],
+          "lower": 0.0036136775185814027,
+          "method": "student-standard-error",
+          "sample_count": 5,
+          "upper": 0.0105863224814185
+        },
+        "reason": "conservative favorable effect misses the minimum meaningful effect",
+        "root": "c08a57619c77a9aba1ccb880e8b1087673f09a9797730e4a76bff8d1a2987f60"
+      },
+      {
+        "disposition": "failed",
+        "effect": {
+          "estimate": 0.012099999999999955,
+          "lineage": [],
+          "lower": 0.008613677518581407,
+          "method": "student-standard-error",
+          "sample_count": 5,
+          "upper": 0.015586322481418502
+        },
+        "reason": "conservative favorable effect misses the minimum meaningful effect",
+        "root": "181d8f177d43dafb3a6401cbe6002a427ca11777acc5414bf60535e8b1ecf797"
+      }
+    ]
+  }
+}

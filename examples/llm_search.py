@@ -13,6 +13,7 @@ import subprocess
 from collections import Counter
 from collections.abc import Mapping, Sequence
 from pathlib import Path
+from threading import Lock
 from time import perf_counter
 from typing import Any, cast
 
@@ -186,6 +187,7 @@ class CodexSampler:
         self.directory, self.model, self.max_calls = directory, model, max_calls
         directory.mkdir(parents=True, exist_ok=False)
         self.receipts: list[dict[str, Any]] = []
+        self._lock = Lock()
         self.version = subprocess.check_output(["codex", "--version"], text=True).strip()
         self.instructions = directory / "instructions.txt"
         self.instructions.write_text(
@@ -193,10 +195,16 @@ class CodexSampler:
             "Do not use tools or access files. Return only the requested JSON object.\n"
         )
 
-    def call(self, prompt: str, *, field: str, role: str) -> list[dict[str, Any]]:
-        if len(self.receipts) >= self.max_calls:
-            raise RuntimeError("model-call budget exhausted")
-        number = len(self.receipts) + 1
+    def call(self, prompt: str, *, field: str, role: str, count: int = 2) -> list[dict[str, Any]]:
+        if count not in (1, 2):
+            raise ValueError("candidate count must be one or two")
+        # Reserve before any provider access, including concurrent benchmark samples.
+        with self._lock:
+            if len(self.receipts) >= self.max_calls:
+                raise RuntimeError("model-call budget exhausted")
+            number = len(self.receipts) + 1
+            receipt: dict[str, Any] = {}
+            self.receipts.append(receipt)
         path = self.directory / f"{number:03d}"
         path.mkdir(exist_ok=False)
         schema = {
@@ -270,18 +278,19 @@ class CodexSampler:
             command += ["--disable", feature]
         command += ["-"]
         started = perf_counter()
-        receipt = {
-            "number": number,
-            "role": role,
-            "model": self.model,
-            "provider": "OpenAI via Codex CLI",
-            "reasoning_effort": "high",
-            "cli_version": self.version,
-            "prompt_sha256": digest(prompt),
-            "provider_cost_usd": None,
-        }
-        # Reserve a call before provider access; never repeat an uncertain call.
-        self.receipts.append(receipt)
+        receipt.update(
+            {
+                "number": number,
+                "role": role,
+                "model": self.model,
+                "provider": "OpenAI via Codex CLI",
+                "reasoning_effort": "high",
+                "cli_version": self.version,
+                "prompt_sha256": digest(prompt),
+                "provider_cost_usd": None,
+                "candidate_count": count,
+            }
+        )
         (path / "receipt.json").write_text(canonical_json(receipt) + "\n")
         with (path / "events.jsonl").open("w") as out, (path / "stderr.txt").open("w") as err:
             completed = subprocess.run(
@@ -316,8 +325,10 @@ class CodexSampler:
             )
         response = json.loads(messages[-1])
         choices = response["candidates"]
-        if len(choices) != 2 or choices[0]["configuration"] == choices[1]["configuration"]:
-            raise ValueError("model must propose exactly two distinct candidates")
+        if len(choices) != count or (
+            count == 2 and choices[0]["configuration"] == choices[1]["configuration"]
+        ):
+            raise ValueError(f"model must propose exactly {count} distinct candidates")
         (path / "response.json").write_text(canonical_json(response) + "\n")
         print(
             f"Model call {number}: {role}, {receipt['wall_seconds']:.1f}s, {usage[0]}", flush=True
