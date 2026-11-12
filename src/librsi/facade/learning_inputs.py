@@ -185,7 +185,7 @@ def prepare(
         target_snapshot=baseline,
         value={
             "pass_id": pass_id,
-            "learning_version": 2,
+            "learning_version": 3,
             "sequence": 1 + max((row.value.get("sequence", 0) for row in previous), default=0),
             "configuration": configuration,
             "feedback": [row.to_dict() for row in feedback],

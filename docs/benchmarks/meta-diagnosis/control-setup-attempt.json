@@ -1,0 +1,8 @@
+{
+  "attempt": "native-meta-controls-20261112",
+  "cause": "The control proposer supplied one hypothesis; AdaptiveLoop requires at least two.",
+  "correction": "A second distinct reference configuration was supplied in the successful v2 controls.",
+  "error": "proposal count exceeds candidate allowance",
+  "model": "none",
+  "status": "failed before experiment"
+}

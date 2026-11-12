@@ -1,0 +1,142 @@
+{
+  "model": "none; measured deterministic diagnostic",
+  "results": [
+    {
+      "name": "current_sparse",
+      "tie_treatment": "counterexample",
+      "adopted": false,
+      "disposition": "no-supported-revision",
+      "active": {
+        "policy": "original"
+      },
+      "active_root": "18f21efedca95106a7578eb3a9224cc3f5e7a99a4b71ae56a8b4e6988986b4f6",
+      "native_root": "8294a892fe671a07cf5cf5625a85f87104fc7da00edef1b5636247f7632b44e3",
+      "training_values": [
+        0.9999999962266048,
+        0.0,
+        0.0,
+        0.0,
+        0.9999999999999841,
+        0.0,
+        0.0,
+        0.0,
+        0.9999999993248164,
+        0.0,
+        0.0,
+        0.0,
+        0.9999999999999523,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mean": 0.24999999972195985,
+      "one_se_lower": 0.1381966009713137,
+      "wins": 4,
+      "ties": 12,
+      "losses": 0
+    },
+    {
+      "name": "neutral_ties_sparse",
+      "tie_treatment": "null",
+      "adopted": true,
+      "disposition": "verified",
+      "active": {
+        "policy": "sparse"
+      },
+      "active_root": "1eb0765ef4b66fa35d0805f78da214f5beafb54640175d24b312c97901ddd85d",
+      "native_root": "6d97e59df54f9dcb962f61ddbc1fe80d0db30c7839e236ca69e4e3776e973b96",
+      "training_values": [
+        0.9999999962266048,
+        0.0,
+        0.0,
+        0.0,
+        0.9999999999999841,
+        0.0,
+        0.0,
+        0.0,
+        0.9999999993248164,
+        0.0,
+        0.0,
+        0.0,
+        0.9999999999999523,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mean": 0.24999999972195985,
+      "one_se_lower": 0.1381966009713137,
+      "wins": 4,
+      "ties": 12,
+      "losses": 0
+    },
+    {
+      "name": "neutral_ties_worse",
+      "tie_treatment": "null",
+      "adopted": false,
+      "disposition": "no-supported-revision",
+      "active": {
+        "policy": "original"
+      },
+      "active_root": "a84bf216e864bc56f7f162249482b8a566e68a8e848954938d23cedf1ec69e9d",
+      "native_root": "05d1c9995c27b57298d789453b16eb2122c1b3b7879ec3b43a5ef201ffc06c8a",
+      "training_values": [
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0,
+        -1.0
+      ],
+      "mean": -1.0,
+      "one_se_lower": -1.0,
+      "wins": 0,
+      "ties": 0,
+      "losses": 16
+    },
+    {
+      "name": "neutral_ties_unchanged",
+      "tie_treatment": "null",
+      "adopted": false,
+      "disposition": "no-supported-revision",
+      "active": {
+        "policy": "original"
+      },
+      "active_root": "a9b53edcd9d2b72e4d9aa94aae9f55cb0abdcdcd25f06cad7ec9dcb63344e5b6",
+      "native_root": "d7de597fec437e29fb0832f4a84dd9fa07483f0b0bfbf9231b02629ed7102b09",
+      "training_values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "mean": 0.0,
+      "one_se_lower": 0.0,
+      "wins": 0,
+      "ties": 16,
+      "losses": 0
+    }
+  ],
+  "scope": "Only diagnostic process changes exact-zero counterexamples to neutral evidence. No library source or Astra study policy is changed."
+}

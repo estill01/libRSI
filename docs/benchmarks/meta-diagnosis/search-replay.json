@@ -1,0 +1,816 @@
+{
+  "limits": [
+    "Post-hoc diagnostic, no new model samples or adopted changes.",
+    "Bootstrap resamples queries while conditioning on the five already-generated model draws.",
+    "Native intervals only represent model-draw variation; one standard error is not a 95% interval.",
+    "Distinct strings can encode equivalent rankings; zero score variance alone does not prove identical algorithms."
+  ],
+  "model_calls": 0,
+  "source_model": "gpt-6-astra",
+  "stages": {
+    "meta": {
+      "comparisons": [
+        {
+          "shadow": {
+            "mean_effect": -0.015550000000000003,
+            "mean_effect_passes_0_01": false,
+            "native_bound_passes_0_01": false,
+            "native_one_se_bounds": [
+              -0.01803294180358703,
+              -0.013067058196412976
+            ],
+            "query_bootstrap_95_percentile": [
+              -0.02930041666666667,
+              -0.002566250000000005
+            ],
+            "query_losses": 22,
+            "query_wins": 8
+          },
+          "training": {
+            "mean_effect": -0.007166666666666668,
+            "mean_effect_passes_0_01": false,
+            "native_bound_passes_0_01": false,
+            "native_one_se_bounds": [
+              -0.009258316733001856,
+              -0.00507501660033148
+            ],
+            "query_bootstrap_95_percentile": [
+              -0.03667083333333333,
+              0.021333333333333336
+            ],
+            "query_losses": 10,
+            "query_wins": 7
+          },
+          "verification": {
+            "mean_effect": -0.012266666666666665,
+            "mean_effect_passes_0_01": false,
+            "native_bound_passes_0_01": false,
+            "native_one_se_bounds": [
+              -0.01478788220243067,
+              -0.00974545113090266
+            ],
+            "query_bootstrap_95_percentile": [
+              -0.021333333333333333,
+              -0.004432916666666673
+            ],
+            "query_losses": 17,
+            "query_wins": 5
+          }
+        },
+        {
+          "shadow": {
+            "mean_effect": -0.009133333333333332,
+            "mean_effect_passes_0_01": false,
+            "native_bound_passes_0_01": false,
+            "native_one_se_bounds": [
+              -0.01161627513692036,
+              -0.006650391529746304
+            ],
+            "query_bootstrap_95_percentile": [
+              -0.018783333333333332,
+              0.000983333333333334
+            ],
+            "query_losses": 23,
+            "query_wins": 7
+          },
+          "training": {
+            "mean_effect": -0.010833333333333334,
+            "mean_effect_passes_0_01": false,
+            "native_bound_passes_0_01": false,
+            "native_one_se_bounds": [
+              -0.012924983399668523,
+              -0.008741683266998144
+            ],
+            "query_bootstrap_95_percentile": [
+              -0.031000000000000007,
+              0.006666666666666667
+            ],
+            "query_losses": 9,
+            "query_wins": 6
+          },
+          "verification": {
+            "mean_effect": -0.008766666666666666,
+            "mean_effect_passes_0_01": false,
+            "native_bound_passes_0_01": false,
+            "native_one_se_bounds": [
+              -0.01128788220243067,
+              -0.006245451130902661
+            ],
+            "query_bootstrap_95_percentile": [
+              -0.022216666666666666,
+              0.00445
+            ],
+            "query_losses": 17,
+            "query_wins": 10
+          }
+        }
+      ],
+      "native": {
+        "adopted": false,
+        "disposition": "no-supported-revision",
+        "native_result_root": "1179d8e0fb583bbbd429479c9382511eccc9cd4774d333af102390e41d692aab",
+        "unique_criteria": []
+      },
+      "policies": [
+        {
+          "instruction": "Use the measured retrieval feedback to propose two distinct scoring formulas that are likely to improve MRR@5 on new queries. Explain the reason for each proposal.",
+          "scores": {
+            "shadow": {
+              "mean": 0.5971333333333333,
+              "model_sample_sd": 0.005552026656996492,
+              "samples": [
+                0.5983333333333334,
+                0.5983333333333334,
+                0.6028333333333333,
+                0.5878333333333334,
+                0.5983333333333334
+              ]
+            },
+            "training": {
+              "mean": 0.6598333333333333,
+              "model_sample_sd": 0.004677071733467352,
+              "samples": [
+                0.6581666666666667,
+                0.6581666666666667,
+                0.6573333333333333,
+                0.6681666666666665,
+                0.6573333333333332
+              ]
+            },
+            "verification": {
+              "mean": 0.5958499999999999,
+              "model_sample_sd": 0.005637609323896814,
+              "samples": [
+                0.5984999999999999,
+                0.5984999999999999,
+                0.5955833333333334,
+                0.58625,
+                0.6004166666666666
+              ]
+            }
+          },
+          "selected_formulas": [
+            "idf * sqrt(idf) * (tf / (tf + 0.6 + 0.4 * length) + 0.4 * title_tf / (title_tf + 1))",
+            "idf * sqrt(idf) * (tf / (tf + 0.6 + 0.4 * length) + 0.4 * title_tf / (title_tf + 1))",
+            "idf*sqrt(idf)*(tf/(tf+0.5+0.5*length)+0.4*title_tf/(title_tf+1))",
+            "idf * idf * (tf / (tf + 0.6 + 0.4 * length) + 0.3 * title_tf / (title_tf + 1))",
+            "idf*sqrt(idf)*(tf/(tf+0.6+0.4*length)+0.35*title_tf/(title_tf+1))"
+          ],
+          "unique_selected_formula_strings": 4
+        },
+        {
+          "instruction": "Optimize out-of-sample MRR@5 using a reproducible anchor plus one controlled rarity experiment. The strongest supplied result was 0.66817 for idf*idf*(tf/(tf+0.6+0.4*length)+0.3*title_tf/(title_tf+1)); nearby idf*sqrt(idf) variants scored about 0.657\u20130.658. This is limited, confounded evidence, not proof of a universal optimum. Emit the strongest formula as proposal one unless it is active; if active, change its title coefficient to 0.25. For proposal two, preserve the strongest formula's frequency, length and title components, but replace idf*idf with idf*idf*sqrt(1+idf/4), testing moderately stronger rarity emphasis. Do not spend either slot on linear-IDF BM25, cosmetic rewrites or global rescaling. Return exactly two distinct, non-active formulas under the required schema, with reasons framed only as hypotheses. Check grammar, finite values and size limits. Use no tools or external evidence. If rewriting this strategy, preserve the anchor-and-controlled-experiment design.",
+          "scores": {
+            "shadow": {
+              "mean": 0.5815833333333332,
+              "model_sample_sd": 0.0,
+              "samples": [
+                0.5815833333333333,
+                0.5815833333333333,
+                0.5815833333333333,
+                0.5815833333333333,
+                0.5815833333333333
+              ]
+            },
+            "training": {
+              "mean": 0.6526666666666667,
+              "model_sample_sd": 0.0,
+              "samples": [
+                0.6526666666666666,
+                0.6526666666666666,
+                0.6526666666666666,
+                0.6526666666666666,
+                0.6526666666666666
+              ]
+            },
+            "verification": {
+              "mean": 0.5835833333333332,
+              "model_sample_sd": 0.0,
+              "samples": [
+                0.5835833333333333,
+                0.5835833333333333,
+                0.5835833333333333,
+                0.5835833333333333,
+                0.5835833333333333
+              ]
+            }
+          },
+          "selected_formulas": [
+            "idf*idf*sqrt(1+idf/4)*(tf/(tf+0.6+0.4*length)+0.3*title_tf/(title_tf+1))",
+            "idf*idf*sqrt(1+idf/4)*(tf/(tf+0.6+0.4*length)+0.3*title_tf/(title_tf+1))",
+            "idf*idf*sqrt(1+idf/4)*(tf/(tf+0.6+0.4*length)+0.3*title_tf/(title_tf+1))",
+            "idf*idf*sqrt(1+idf/4)*(tf/(tf+0.6+0.4*length)+0.3*title_tf/(title_tf+1))",
+            "idf*idf*sqrt(1+idf/4)*(tf/(tf+0.6+0.4*length)+0.3*title_tf/(title_tf+1))"
+          ],
+          "unique_selected_formula_strings": 1
+        },
+        {
+          "instruction": "Use the supplied feedback to propose a conservative strong anchor and a complementary term-coverage challenger, targeting reliable MRR@5 rather than tuning-score maximization. Anchor on idf*idf*(tf/(tf+0.6+0.4*length)+0.3*title_tf/(title_tf+1)), the best observed scoring result. Emit it first unless active; then use a 0.25 title coefficient instead. For the second formula retain idf*idf and the separate 0.3*title_tf/(title_tf+1) bonus, but replace the body component with tf/(tf+0.3+0.2*length). This controlled change saturates repeated mentions faster and reduces the length penalty, testing whether coverage of multiple distinctive query terms matters more than repetition. Do not infer independent validation sets from the five model samples or claim the IDF effect is isolated. Avoid extra interactions, linear-IDF fallbacks and arbitrary coefficient searches. Emit exactly two distinct non-active formulas, obeying all grammar, finiteness and size constraints; reasons must be hypotheses. No tools. Preserve this paired design through instruction rewrites.",
+          "scores": {
+            "shadow": {
+              "mean": 0.588,
+              "model_sample_sd": 0.0,
+              "samples": [
+                0.588,
+                0.588,
+                0.588,
+                0.588,
+                0.588
+              ]
+            },
+            "training": {
+              "mean": 0.649,
+              "model_sample_sd": 0.0,
+              "samples": [
+                0.649,
+                0.649,
+                0.649,
+                0.649,
+                0.649
+              ]
+            },
+            "verification": {
+              "mean": 0.5870833333333334,
+              "model_sample_sd": 0.0,
+              "samples": [
+                0.5870833333333334,
+                0.5870833333333334,
+                0.5870833333333334,
+                0.5870833333333334,
+                0.5870833333333334
+              ]
+            }
+          },
+          "selected_formulas": [
+            "idf*idf*(tf/(tf+0.3+0.2*length)+0.3*title_tf/(title_tf+1))",
+            "idf*idf*(tf/(tf+0.3+0.2*length)+0.3*title_tf/(title_tf+1))",
+            "idf*idf*(tf/(tf+0.3+0.2*length)+0.3*title_tf/(title_tf+1))",
+            "idf*idf*(tf/(tf+0.3+0.2*length)+0.3*title_tf/(title_tf+1))",
+            "idf*idf*(tf/(tf+0.3+0.2*length)+0.3*title_tf/(title_tf+1))"
+          ],
+          "unique_selected_formula_strings": 1
+        }
+      ]
+    },
+    "meta_meta": {
+      "comparisons": [
+        {
+          "shadow": {
+            "mean_effect": -0.012983333333333333,
+            "mean_effect_passes_0_01": false,
+            "native_bound_passes_0_01": false,
+            "native_one_se_bounds": [
+              -0.014758822311364769,
+              -0.011207844355301897
+            ],
+            "query_bootstrap_95_percentile": [
+              -0.02825,
+              0.0017341666666666553
+            ],
+            "query_losses": 24,
+            "query_wins": 10
+          },
+          "training": {
+            "mean_effect": 0.010700000000000001,
+            "mean_effect_passes_0_01": true,
+            "native_bound_passes_0_01": false,
+            "native_one_se_bounds": [
+              0.0092639560514308,
+              0.012136043948569201
+            ],
+            "query_bootstrap_95_percentile": [
+              0.002033333333333333,
+              0.0216
+            ],
+            "query_losses": 3,
+            "query_wins": 9
+          },
+          "verification": {
+            "mean_effect": -0.009883333333333333,
+            "mean_effect_passes_0_01": false,
+            "native_bound_passes_0_01": false,
+            "native_one_se_bounds": [
+              -0.011808423518810944,
+              -0.007958243147855721
+            ],
+            "query_bootstrap_95_percentile": [
+              -0.022884166666666664,
+              0.002684583333333316
+            ],
+            "query_losses": 16,
+            "query_wins": 9
+          }
+        },
+        {
+          "shadow": {
+            "mean_effect": -0.020483333333333333,
+            "mean_effect_passes_0_01": false,
+            "native_bound_passes_0_01": false,
+            "native_one_se_bounds": [
+              -0.02225882231136477,
+              -0.018707844355301897
+            ],
+            "query_bootstrap_95_percentile": [
+              -0.0368675,
+              -0.004132916666666672
+            ],
+            "query_losses": 27,
+            "query_wins": 11
+          },
+          "training": {
+            "mean_effect": 0.012866666666666669,
+            "mean_effect_passes_0_01": true,
+            "native_bound_passes_0_01": true,
+            "native_one_se_bounds": [
+              0.011430622718097468,
+              0.014302710615235869
+            ],
+            "query_bootstrap_95_percentile": [
+              -0.005300833333333335,
+              0.03196749999999999
+            ],
+            "query_losses": 5,
+            "query_wins": 11
+          },
+          "verification": {
+            "mean_effect": -0.02138333333333333,
+            "mean_effect_passes_0_01": false,
+            "native_bound_passes_0_01": false,
+            "native_one_se_bounds": [
+              -0.02330842351881094,
+              -0.01945824314785572
+            ],
+            "query_bootstrap_95_percentile": [
+              -0.04106708333333334,
+              -0.003382916666666671
+            ],
+            "query_losses": 21,
+            "query_wins": 10
+          }
+        }
+      ],
+      "native": {
+        "adopted": false,
+        "disposition": "governance-rejected",
+        "forward_shadow": {
+          "criteria": [
+            {
+              "disposition": "failed",
+              "effect": {
+                "estimate": -0.020483333333333364,
+                "lineage": [],
+                "lower": -0.022258822311364796,
+                "method": "student-standard-error",
+                "sample_count": 5,
+                "upper": -0.01870784435530193
+              },
+              "metric": "five-sample-paired-mrr"
+            }
+          ],
+          "disposition": "rejected",
+          "reason": "conservative favorable effect misses the minimum meaningful effect"
+        },
+        "native_result_root": "bf821cd40d23daefb70c06beefb5c68aa8d16b68c512689c0b371585013057c8",
+        "unique_criteria": [
+          {
+            "disposition": "failed",
+            "effect": {
+              "estimate": -0.020483333333333364,
+              "lineage": [],
+              "lower": -0.022258822311364796,
+              "method": "student-standard-error",
+              "sample_count": 5,
+              "upper": -0.01870784435530193
+            },
+            "reason": "conservative favorable effect misses the minimum meaningful effect",
+            "root": "872d9367c8eb3470d8cd3172bd39586e375cd488e4399c821f18fbcd669558ff"
+          },
+          {
+            "disposition": "passed",
+            "effect": {
+              "estimate": 0.012866666666666648,
+              "lineage": [],
+              "lower": 0.011430622718097439,
+              "method": "student-standard-error",
+              "sample_count": 5,
+              "upper": 0.014302710615235857
+            },
+            "reason": "conservative favorable effect meets the minimum meaningful effect",
+            "root": "9575a85c3e850d6ad57519cfdd3db44597c144eb43830632f57aeb4869b88b9d"
+          }
+        ]
+      },
+      "policies": [
+        {
+          "instruction": "Use the measured retrieval feedback to improve the instruction given to a formula proposer. Produce one practical replacement that should generate more useful scoring formulas on unseen queries.",
+          "scores": {
+            "shadow": {
+              "mean": 0.6063166666666666,
+              "model_sample_sd": 0.003970114048179957,
+              "samples": [
+                0.61,
+                0.60775,
+                0.60775,
+                0.6065,
+                0.5995833333333332
+              ]
+            },
+            "training": {
+              "mean": 0.6549666666666667,
+              "model_sample_sd": 0.0032110918876779642,
+              "samples": [
+                0.6556666666666666,
+                0.6509999999999999,
+                0.6573333333333333,
+                0.6523333333333333,
+                0.6585
+              ]
+            },
+            "verification": {
+              "mean": 0.6191333333333332,
+              "model_sample_sd": 0.00430463251754558,
+              "samples": [
+                0.6175,
+                0.6204999999999999,
+                0.6224166666666666,
+                0.6228333333333333,
+                0.6124166666666667
+              ]
+            }
+          },
+          "selected_formulas": [
+            "idf * (2.2 * tf / (tf + 1.2 * (0.45 + 0.55 * length))) * (1 + 0.12 * title_tf / (1 + title_tf))",
+            "idf * (2.2 * tf / (tf + 1.2 * (0.6 + 0.4 * length))) * (1 + 0.25 * title_tf / (1 + title_tf))",
+            "idf*(2.2*tf/(tf+1.2*(0.4+0.6*length))+0.2*title_tf/(1+title_tf))",
+            "idf * (2.2 * tf / (tf + 1.2 * (0.4 + 0.6 * length)) + 0.3 * title_tf / (1 + title_tf))",
+            "idf * (2.2 * tf) / (tf + 1.2 * (0.5 + 0.5 * length))"
+          ],
+          "unique_selected_formula_strings": 5
+        },
+        {
+          "instruction": "Write one replacement instruction for the formula proposer, not formulas yourself. Require exactly two distinct, non-active formulas under the unchanged contract. Use a conservative anchor plus one controlled challenger: anchor on idf*2.2*tf/(tf+1.2*(0.5+0.5*length)), with no title bonus; challenger preserves its TF and length components but multiplies by sqrt(1+idf/4), testing gentle rarity amplification. If the anchor is active, change its saturation constant from 1.2 to 1.0 rather than rescaling it. Explain the evidence accurately: the title-free native selection scored 0.6585, but differences across samples do not isolate title effects; earlier rigid squared-IDF strategies underperformed their reference. Therefore avoid quadratic rarity, mandatory title boosts, and coverage-only alternatives that discard TF discrimination. Preserve this specific paired experiment through the rewrite. Require finite expressions, valid grammar and budgets, and hypothesis-only reasons. Do not claim measured improvement or treat five model samples as five independent query sets. Use only supplied evidence; no tools.",
+          "scores": {
+            "shadow": {
+              "mean": 0.5933333333333333,
+              "model_sample_sd": 0.0,
+              "samples": [
+                0.5933333333333333,
+                0.5933333333333333,
+                0.5933333333333333,
+                0.5933333333333333,
+                0.5933333333333333
+              ]
+            },
+            "training": {
+              "mean": 0.6656666666666666,
+              "model_sample_sd": 0.0,
+              "samples": [
+                0.6656666666666666,
+                0.6656666666666666,
+                0.6656666666666666,
+                0.6656666666666666,
+                0.6656666666666666
+              ]
+            },
+            "verification": {
+              "mean": 0.60925,
+              "model_sample_sd": 0.0,
+              "samples": [
+                0.60925,
+                0.60925,
+                0.60925,
+                0.60925,
+                0.60925
+              ]
+            }
+          },
+          "selected_formulas": [
+            "(idf*2.2*tf/(tf+1.2*(0.5+0.5*length)))*sqrt(1+idf/4)",
+            "(idf*2.2*tf/(tf+1.2*(0.5+0.5*length)))*sqrt(1+idf/4)",
+            "idf*2.2*tf/(tf+1.2*(0.5+0.5*length))*sqrt(1+idf/4)",
+            "(idf*2.2*tf/(tf+1.2*(0.5+0.5*length)))*sqrt(1+idf/4)",
+            "idf*2.2*tf/(tf+1.2*(0.5+0.5*length))*sqrt(1+idf/4)"
+          ],
+          "unique_selected_formula_strings": 2
+        },
+        {
+          "instruction": "Produce one practical child instruction that makes the formula proposer emit exactly two valid, distinct, non-active formulas. Test title handling within a shared mildly superlinear retrieval model: use idf*sqrt(idf), saturating TF with denominator tf+0.6+0.4*length, and no other interactions. First proposal omits title evidence. Second replaces every tf in that saturation fraction with tf+0.5*title_tf, so title matches strengthen effective frequency but share its saturation ceiling rather than receiving an independent bonus. Keep all other components identical to isolate this hypothesis. If either formula is active, use 0.7 instead of 0.6 in both denominators. Earlier mildly superlinear selections scored about 0.657\u20130.658; this motivates a test, not a superiority claim. Native title bonuses were not consistently better, while rigid quadratic-IDF strategies regressed. Do not escalate rarity weighting, eliminate TF sensitivity, or add unrelated length changes. Preserve the paired design in the child instruction, all original grammar and resource limits, finite contributions, and hypothesis-only reasons. Use supplied evidence only; no tools.",
+          "scores": {
+            "shadow": {
+              "mean": 0.5858333333333333,
+              "model_sample_sd": 0.0,
+              "samples": [
+                0.5858333333333333,
+                0.5858333333333333,
+                0.5858333333333333,
+                0.5858333333333333,
+                0.5858333333333333
+              ]
+            },
+            "training": {
+              "mean": 0.6678333333333333,
+              "model_sample_sd": 0.0,
+              "samples": [
+                0.6678333333333333,
+                0.6678333333333333,
+                0.6678333333333333,
+                0.6678333333333333,
+                0.6678333333333333
+              ]
+            },
+            "verification": {
+              "mean": 0.59775,
+              "model_sample_sd": 0.0,
+              "samples": [
+                0.59775,
+                0.59775,
+                0.59775,
+                0.59775,
+                0.59775
+              ]
+            }
+          },
+          "selected_formulas": [
+            "idf*sqrt(idf)*(tf+0.5*title_tf)/(tf+0.5*title_tf+0.6+0.4*length)",
+            "idf*sqrt(idf)*(tf+0.5*title_tf)/(tf+0.5*title_tf+0.6+0.4*length)",
+            "idf*sqrt(idf)*(tf+0.5*title_tf)/(tf+0.5*title_tf+0.6+0.4*length)",
+            "idf*sqrt(idf)*(tf+0.5*title_tf)/(tf+0.5*title_tf+0.6+0.4*length)",
+            "idf*sqrt(idf)*(tf+0.5*title_tf)/(tf+0.5*title_tf+0.6+0.4*length)"
+          ],
+          "unique_selected_formula_strings": 1
+        }
+      ]
+    },
+    "meta_meta_meta": {
+      "comparisons": [
+        {
+          "shadow": {
+            "mean_effect": -0.01583333333333333,
+            "mean_effect_passes_0_01": false,
+            "native_bound_passes_0_01": false,
+            "native_one_se_bounds": [
+              -0.019641402251944034,
+              -0.012025264414722629
+            ],
+            "query_bootstrap_95_percentile": [
+              -0.0285,
+              -0.0039499999999999995
+            ],
+            "query_losses": 34,
+            "query_wins": 19
+          },
+          "training": {
+            "mean_effect": 0.0071,
+            "mean_effect_passes_0_01": false,
+            "native_bound_passes_0_01": false,
+            "native_one_se_bounds": [
+              0.0036136775185814434,
+              0.010586322481418557
+            ],
+            "query_bootstrap_95_percentile": [
+              -0.008833333333333334,
+              0.024466666666666668
+            ],
+            "query_losses": 9,
+            "query_wins": 11
+          },
+          "verification": {
+            "mean_effect": -0.012433333333333334,
+            "mean_effect_passes_0_01": false,
+            "native_bound_passes_0_01": false,
+            "native_one_se_bounds": [
+              -0.01958046756865995,
+              -0.005286199098006718
+            ],
+            "query_bootstrap_95_percentile": [
+              -0.025733750000000003,
+              0.00010000000000000038
+            ],
+            "query_losses": 26,
+            "query_wins": 15
+          }
+        },
+        {
+          "shadow": {
+            "mean_effect": -0.012666666666666668,
+            "mean_effect_passes_0_01": false,
+            "native_bound_passes_0_01": false,
+            "native_one_se_bounds": [
+              -0.016474735585277372,
+              -0.008858597748055965
+            ],
+            "query_bootstrap_95_percentile": [
+              -0.028783333333333334,
+              0.0033333333333333353
+            ],
+            "query_losses": 31,
+            "query_wins": 21
+          },
+          "training": {
+            "mean_effect": 0.012100000000000003,
+            "mean_effect_passes_0_01": true,
+            "native_bound_passes_0_01": false,
+            "native_one_se_bounds": [
+              0.008613677518581445,
+              0.015586322481418561
+            ],
+            "query_bootstrap_95_percentile": [
+              -0.010635833333333327,
+              0.03613416666666665
+            ],
+            "query_losses": 7,
+            "query_wins": 11
+          },
+          "verification": {
+            "mean_effect": -0.02626666666666667,
+            "mean_effect_passes_0_01": false,
+            "native_bound_passes_0_01": false,
+            "native_one_se_bounds": [
+              -0.033413800901993286,
+              -0.019119532431340056
+            ],
+            "query_bootstrap_95_percentile": [
+              -0.04361708333333334,
+              -0.010432916666666672
+            ],
+            "query_losses": 27,
+            "query_wins": 14
+          }
+        }
+      ],
+      "native": {
+        "adopted": false,
+        "disposition": "no-useful-improvement",
+        "native_result_root": "f02a47844823ac21a6a0a3f476c07ee5a4b7a7bb1cfb51ac2f86f15efa4bdafd",
+        "unique_criteria": [
+          {
+            "disposition": "failed",
+            "effect": {
+              "estimate": 0.007099999999999951,
+              "lineage": [],
+              "lower": 0.0036136775185814027,
+              "method": "student-standard-error",
+              "sample_count": 5,
+              "upper": 0.0105863224814185
+            },
+            "reason": "conservative favorable effect misses the minimum meaningful effect",
+            "root": "c08a57619c77a9aba1ccb880e8b1087673f09a9797730e4a76bff8d1a2987f60"
+          },
+          {
+            "disposition": "failed",
+            "effect": {
+              "estimate": 0.012099999999999955,
+              "lineage": [],
+              "lower": 0.008613677518581407,
+              "method": "student-standard-error",
+              "sample_count": 5,
+              "upper": 0.015586322481418502
+            },
+            "reason": "conservative favorable effect misses the minimum meaningful effect",
+            "root": "181d8f177d43dafb3a6401cbe6002a427ca11777acc5414bf60535e8b1ecf797"
+          }
+        ]
+      },
+      "policies": [
+        {
+          "instruction": "Use the measured feedback to improve the strategy used to revise a formula proposer's instructions. Produce one replacement instruction for that meta proposer.",
+          "scores": {
+            "shadow": {
+              "mean": 0.6016666666666667,
+              "model_sample_sd": 0.00851510096501766,
+              "samples": [
+                0.6010833333333333,
+                0.589,
+                0.5995833333333332,
+                0.61125,
+                0.6074166666666667
+              ]
+            },
+            "training": {
+              "mean": 0.6607333333333334,
+              "model_sample_sd": 0.007795654059937579,
+              "samples": [
+                0.6523333333333333,
+                0.6728333333333332,
+                0.6585,
+                0.6631666666666667,
+                0.6568333333333334
+              ]
+            },
+            "verification": {
+              "mean": 0.6101833333333334,
+              "model_sample_sd": 0.015981477994506263,
+              "samples": [
+                0.626,
+                0.5839166666666668,
+                0.6124166666666667,
+                0.6189166666666667,
+                0.6096666666666666
+              ]
+            }
+          },
+          "selected_formulas": [
+            "idf*2.2*tf/(tf+1.2*(0.5+0.5*minimum(2,maximum(0.5,length))))*(1+0.15*title_tf/(1+title_tf))",
+            "idf*idf*tf/(tf+0.6+0.6*length)*(1+0.2*title_tf/(1+title_tf))",
+            "idf * tf / maximum(0.1, tf + 1.2 * (0.5 + 0.5 * length))",
+            "(idf*idf/(1+idf))*(2.2*tf/(tf+1.2*(0.5+0.5*length))+0.3*title_tf/(1+title_tf))",
+            "(idf * idf / (1 + idf)) * (tf / (tf + 0.5 + 0.5 * length) + 0.5 * title_tf / (1 + title_tf))"
+          ],
+          "unique_selected_formula_strings": 5
+        },
+        {
+          "instruction": "Produce one replacement instruction for the meta proposer, requiring it to write one formula-proposer instruction that preserves this paired experiment through subsequent rewrites. Target reliable out-of-sample MRR@5, not persuasive explanations. Earlier training yielded 0.66783 across five model samples for a shared-saturation title experiment; this was not an adopted revision or independent-query replication. Have the final proposer emit two formulas: idf*sqrt(idf)*tf/(tf+0.6+0.4*length) and idf*sqrt(idf)*(tf+0.5*title_tf)/(tf+0.5*title_tf+0.6+0.4*length). The second tests title evidence inside the TF saturation ceiling rather than as an independent bonus. If either equals the active formula, replace 0.6 with 0.7 in both. Preserve the pair rather than adding quadratic rarity, length clamps or unrelated interactions. Keep all original metrics, grammar, budgets, model, acceptance and output schemas unchanged. Each rewrite emits one child instruction; only the final proposer emits two distinct non-active formulas. Require finite contributions and hypothesis-only reasons. Use supplied evidence only; no tools.",
+          "scores": {
+            "shadow": {
+              "mean": 0.5858333333333333,
+              "model_sample_sd": 0.0,
+              "samples": [
+                0.5858333333333333,
+                0.5858333333333333,
+                0.5858333333333333,
+                0.5858333333333333,
+                0.5858333333333333
+              ]
+            },
+            "training": {
+              "mean": 0.6678333333333333,
+              "model_sample_sd": 0.0,
+              "samples": [
+                0.6678333333333333,
+                0.6678333333333333,
+                0.6678333333333333,
+                0.6678333333333333,
+                0.6678333333333333
+              ]
+            },
+            "verification": {
+              "mean": 0.59775,
+              "model_sample_sd": 0.0,
+              "samples": [
+                0.59775,
+                0.59775,
+                0.59775,
+                0.59775,
+                0.59775
+              ]
+            }
+          },
+          "selected_formulas": [
+            "idf*sqrt(idf)*(tf+0.5*title_tf)/(tf+0.5*title_tf+0.6+0.4*length)",
+            "idf*sqrt(idf)*(tf+0.5*title_tf)/(tf+0.5*title_tf+0.6+0.4*length)",
+            "idf*sqrt(idf)*(tf+0.5*title_tf)/(tf+0.5*title_tf+0.6+0.4*length)",
+            "idf*sqrt(idf)*(tf+0.5*title_tf)/(tf+0.5*title_tf+0.6+0.4*length)",
+            "idf*sqrt(idf)*(tf+0.5*title_tf)/(tf+0.5*title_tf+0.6+0.4*length)"
+          ],
+          "unique_selected_formula_strings": 1
+        },
+        {
+          "instruction": "Write one replacement instruction for the meta proposer that makes its child formula-proposer instruction preserve a strong observed anchor and a controlled rarity hedge. The highest native training selection, 0.67283, used idf*idf*tf/(tf+0.6+0.6*length)*(1+0.2*title_tf/(1+title_tf)); treat this as limited, confounded evidence, not a proven optimum. Require that formula as one final proposal. For the second, replace only idf*idf with idf*sqrt(idf), retaining its TF, length and bounded multiplicative title components. This tests weaker rarity concentration without reproducing earlier unsuccessful designs that combined quadratic IDF with separate additive title rewards. Those failures do not establish that quadratic IDF itself is harmful. If either formula is active, change 0.6+0.6*length to 0.7+0.6*length in both. Preserve this experiment through the rewrites: one child instruction per rewrite, exactly two distinct non-active formulas at the final stage. Keep metrics, grammar, budgets, model, acceptance and schemas unchanged; check finiteness. Reasons are hypotheses, not measured gains. Use supplied evidence only; no tools.",
+          "scores": {
+            "shadow": {
+              "mean": 0.589,
+              "model_sample_sd": 0.0,
+              "samples": [
+                0.589,
+                0.589,
+                0.589,
+                0.589,
+                0.589
+              ]
+            },
+            "training": {
+              "mean": 0.6728333333333334,
+              "model_sample_sd": 0.0,
+              "samples": [
+                0.6728333333333332,
+                0.6728333333333332,
+                0.6728333333333332,
+                0.6728333333333332,
+                0.6728333333333332
+              ]
+            },
+            "verification": {
+              "mean": 0.5839166666666666,
+              "model_sample_sd": 0.0,
+              "samples": [
+                0.5839166666666668,
+                0.5839166666666668,
+                0.5839166666666668,
+                0.5839166666666668,
+                0.5839166666666668
+              ]
+            }
+          },
+          "selected_formulas": [
+            "idf*idf*tf/(tf+0.6+0.6*length)*(1+0.2*title_tf/(1+title_tf))",
+            "idf*idf*tf/(tf+0.6+0.6*length)*(1+0.2*title_tf/(1+title_tf))",
+            "idf*idf*tf/(tf+0.6+0.6*length)*(1+0.2*title_tf/(1+title_tf))",
+            "idf*idf*tf/(tf+0.6+0.6*length)*(1+0.2*title_tf/(1+title_tf))",
+            "idf*idf*tf/(tf+0.6+0.6*length)*(1+0.2*title_tf/(1+title_tf))"
+          ],
+          "unique_selected_formula_strings": 1
+        }
+      ]
+    }
+  }
+}

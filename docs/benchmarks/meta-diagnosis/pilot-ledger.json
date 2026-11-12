@@ -1,0 +1,66 @@
+{
+  "limits": [
+    "One timed-out call has no final usage receipt; no invented token or dollar estimate.",
+    "Available source snapshots cover task implementation, not complete byte-identical pilot environments.",
+    "The first join pilot used four workloads twice, not eight independent workloads.",
+    "These exploratory results influenced task choice; they are not confirmatory evidence."
+  ],
+  "pilots": [
+    {
+      "calls_attempted": 8,
+      "completed_calls": 8,
+      "completed_workload_results": 8,
+      "mean_quality_among_completed": 1.0,
+      "missing_usage_calls": 0,
+      "model": "gpt-6-astra",
+      "provider_cost_usd": null,
+      "reasoning_effort": "high",
+      "reported_input_output_tokens": 82072,
+      "run": "join-pilot-20261112",
+      "scope": "Exploratory task selection; excluded from main confirmation. Model calls optimize individual plans, not search programs."
+    },
+    {
+      "calls_attempted": 8,
+      "completed_calls": 8,
+      "completed_workload_results": 8,
+      "mean_quality_among_completed": 1.0,
+      "missing_usage_calls": 0,
+      "model": "gpt-6-astra",
+      "provider_cost_usd": null,
+      "reasoning_effort": "high",
+      "reported_input_output_tokens": 85471,
+      "run": "join-many-pilot-20261112",
+      "scope": "Exploratory task selection; excluded from main confirmation. Model calls optimize individual plans, not search programs."
+    },
+    {
+      "calls_attempted": 8,
+      "completed_calls": 7,
+      "completed_workload_results": 7,
+      "failure": "Call 007 exceeded the 180-second timeout; no overall report or replacement call. Mean conditions on seven completions.",
+      "mean_quality_among_completed": 0.9774763179868502,
+      "missing_usage_calls": 1,
+      "model": "gpt-6-astra",
+      "provider_cost_usd": null,
+      "reasoning_effort": "high",
+      "reported_input_output_tokens": 88368,
+      "run": "sequence-pilot-20261112",
+      "scope": "Exploratory task selection; excluded from main confirmation. Model calls optimize individual plans, not search programs."
+    },
+    {
+      "calls_attempted": 8,
+      "completed_calls": 8,
+      "completed_workload_results": 8,
+      "mean_quality_among_completed": 0.8260309100558517,
+      "missing_usage_calls": 0,
+      "model": "gpt-6-luna",
+      "provider_cost_usd": null,
+      "reasoning_effort": "low",
+      "reported_input_output_tokens": 79690,
+      "run": "sequence-luna-pilot-20261112",
+      "scope": "Exploratory task selection; excluded from main confirmation. Model calls optimize individual plans, not search programs."
+    }
+  ],
+  "reported_tokens_lower_bound": 335601,
+  "total_attempted_calls": 32,
+  "total_completed_calls": 31
+}

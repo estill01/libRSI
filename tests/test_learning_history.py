@@ -168,7 +168,7 @@ def test_ordering_is_explicit_and_never_inferred_from_pass_id_mapping(rejected):
         second = replace(second, value={**second.value, "sequence": 1})
         with pytest.raises(ValueError, match="ambiguous"):
             ordered_inputs(Reordered())
-        for version, sequence in ((2, None), (2, True), (2, 0), (3, 2), (True, 2)):
+        for version, sequence in ((2, None), (2, True), (2, 0), (4, 2), (True, 2)):
             second = replace(
                 second, value={**second.value, "learning_version": version, "sequence": sequence}
             )

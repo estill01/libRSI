@@ -1,0 +1,8 @@
+{
+  "model": "none",
+  "attempt": "sparse-tie-diagnostic-20261112",
+  "status": "three diagnostic treatment cases failed validation",
+  "cause": "Exact ties were changed to null but still had weight 1; neutral evidence requires weight 0.",
+  "corrected_attempt": "sparse-tie-diagnostic-20261112-v2",
+  "note": "The unmodified current_sparse control completed in both attempts. Setup failures are not evidence of library misclassification."
+}

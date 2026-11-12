@@ -56,7 +56,7 @@ def recorded_action(
             raise ValueError("cached result does not answer the exact pending action")
         return cached
     inputs = store.pass_input(pass_id)
-    timed = inputs is not None and inputs.value.get("learning_version") == 2
+    timed = inputs is not None and inputs.value.get("learning_version") in (2, 3)
     started = clock()
     try:
         result = execute(action)

@@ -1,0 +1,24 @@
+{
+  "exclusions": "Local stores, compiled oracles, credentials and provider event streams remain private. Application prompts, structured proposals, scores and receipts are included.",
+  "sha256": {
+    "control-setup-attempt.json": "5905cb9ced03e0a20ee31f0a6ff1777387a757462ced56da3cd241b3ef94f0d0",
+    "join-many-pilot-20261112.json.gz": "3ad8c4fb255d47f8e8304c63e0a2cf16bb308530a6bbd95757ddef25dbe66679",
+    "join-pilot-20261112.json.gz": "7241680c43b29a657fdd10db03a6d196b8bcc9e815d4fb2a6fdb6642c5aa745c",
+    "native-controls.json": "7f5b307badee9633286f51265f711cc81e32818d669a7989069df717b257459e",
+    "negative-native.json.gz": "892100e0621265cb2082c5cf302daf29247665be00f279a44113a0d6c701743e",
+    "ordinary-gate-diagnosis.json": "83c6149eec78144d0af077ef8f5e9e3f8d792b49ce2fd8d1b3be0e7b7b942b5d",
+    "pilot-ledger.json": "ef3eba94e8ab66e074bd5d1fe82b2cb9c517ea792d15d8cd2bd59b25244419a8",
+    "positive-native.json.gz": "5570d737b38bc839cd6eabc231e9267f8c9804df11d9b39d001e3da3dc803e7d",
+    "search-replay.json": "883631087988102795a1dd163f03e642b4396e5d86ef674f84e0d31e56f5e836",
+    "sequence-luna-pilot-20261112.json.gz": "741371c621f6ddd0e3090ac158329aed1c83c344abae27dc2179bcfe8d296778",
+    "sequence-pilot-20261112.json.gz": "17eb516fc67f9ece42257cf2df7fa05b9025237285d19779913ef9826762f6be",
+    "shadow_regression-native.json.gz": "50ab2eb31c81d164b38e7225f59219bade24acb969e5122756848f2a4d7bb0b0",
+    "sparse-control-setup-attempt.json": "f983bb03baa613338ead12e387cc5234caf99c230eaa0b6a361d86eeeed4b861",
+    "sparse-current_sparse-native.json.gz": "3ae0271918a460de1f43f26b7dfe2c31cd209ab43f773a3d04319dda53832407",
+    "sparse-neutral_ties_sparse-native.json.gz": "ca6c185f9a3254eb693ef00e25be8a9fb7dc705e96dd25f8e46cb03e6d46b624",
+    "sparse-neutral_ties_unchanged-native.json.gz": "20787ee3e73cabf33b6115ae9adf0b3f8832fe7fb0e080cfee00cea057a516e8",
+    "sparse-neutral_ties_worse-native.json.gz": "060c73c8857e1834986ece78d9a9d39c7a3119f9edcb7d7bbed6b301a552c35e",
+    "sparse-tie-controls.json": "ef012f3b890fcad302b74cf4c1d3e81db0e05247cea0a23efc0ffc854140510e",
+    "verification_regression-native.json.gz": "8475df3691b09fb81983e8a1a84fb0d0692c083b58612adead2378b3d618e04a"
+  }
+}
