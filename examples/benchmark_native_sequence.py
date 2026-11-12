@@ -22,7 +22,8 @@ import numpy as np
 from benchmark_document_search import MeasuredReviewer, provenance, write_json
 from benchmark_llm_search import usage_total
 from benchmark_setup_sequence import hypotheses, interval
-from llm_search import CodexSampler, validate_instructions
+from llm_search import validate_instructions
+from recorded_codex_sampler import RecordedCodexSampler
 from sequence_program import (
     BASE_INSTRUCTIONS,
     BASE_PROGRAM,
@@ -237,6 +238,7 @@ class Study:
         return choices
 
     def generate(self, instruction, phase, label):
+        instruction = dict(instruction)
         choices = self.propose(instruction, phase, label)
         write_json(
             self.output / "proposals" / f"{label}.json",
@@ -385,7 +387,7 @@ def meta_run(study):
     return row
 
 
-def run(output):
+def run(output, reuse_proposals=None):
     started = perf_counter()
     output.mkdir(parents=True, exist_ok=False)
     for name in ("native", "runs", "proposals", "source"):
@@ -429,6 +431,8 @@ def run(output):
         "analysis": "Primary contrast: after-meta minus ordinary. 10000 crossed bootstrap draws over independent model draws and paired workload samples stratified by family; 95% interval. Conditional on one meta-development run, not uncertainty over repeated meta training. No optional stopping or replacing failures.",
         "costs": "Record calls, input/output tokens, wall time. Subscription dollar billing unknown. No equal-total-budget control; no claim that meta is more compute efficient.",
         "gate_version": 3,
+        "reused_proposals_from": reuse_proposals.name if reuse_proposals else None,
+        "replay_rule": "Reuse only completed responses matching exact prompt, role, model, reasoning effort and schema. Re-execute every native workflow; no recorded scores or adoption outcomes are reused.",
         "limits": [
             "Synthetic workload, not production throughput",
             "Same model alias, not immutable weights",
@@ -444,8 +448,13 @@ def run(output):
     write_json(output / "workloads.json", data)
     oracle = build_oracle(output / "oracle")
     problems = {split: [fresh_problem(row, oracle) for row in rows] for split, rows in data.items()}
-    sampler = CodexSampler(
-        output / "model-calls", MODEL, max_calls=169, reasoning_effort="high", timeout_seconds=600
+    sampler = RecordedCodexSampler(
+        output / "model-calls",
+        MODEL,
+        max_calls=169,
+        reasoning_effort="high",
+        timeout_seconds=600,
+        reuse=reuse_proposals,
     )
     study = Study(output, problems, sampler)
     try:
@@ -504,6 +513,8 @@ def run(output):
                 "forced_diagnostic_calls": 32 if not meta["adopted"] else 0,
                 "usage": usage_total(sampler.receipts),
                 "wall_seconds": perf_counter() - started,
+                "reused_model_calls": sum("reused_from" in r for r in sampler.receipts),
+                "prior_generation_wall_seconds": sampler.prior_generation_seconds(),
                 "native_inner_runs": 72 + len(rows),
                 "native_outer_runs": 1,
                 "provider_cost_usd": None,
@@ -533,4 +544,6 @@ def run(output):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, required=True)
-    run(parser.parse_args().output)
+    parser.add_argument("--reuse-proposals", type=Path)
+    args = parser.parse_args()
+    run(args.output, args.reuse_proposals)

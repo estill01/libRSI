@@ -1,5 +1,7 @@
 """Guard the actual-system meta objective and held-out split isolation."""
 
+import json
+import pickle
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -8,8 +10,10 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "examples"))
 import benchmark_native_sequence as benchmark  # noqa: E402
+from recorded_codex_sampler import RecordedCodexSampler  # noqa: E402
 
 from librsi import LearningCase  # noqa: E402
+from librsi.identity import FrozenMap, digest  # noqa: E402
 
 
 def test_outer_cases_use_distinct_inner_runs_and_retained_system_scores():
@@ -67,3 +71,48 @@ def test_corrected_baseline_is_single_start_and_contract_describes_it():
     assert "a nearest-neighbor cycle starting at job 0" in benchmark.CONTRACT
     assert "over all starting jobs" not in benchmark.CONTRACT
     assert len(set(benchmark.SEEDS.values())) == len(benchmark.SEEDS)
+
+
+def test_native_worker_payload_serializes_immutable_instruction(tmp_path):
+    (tmp_path / "proposals").mkdir()
+    study = benchmark.Study(tmp_path, {}, None)
+    study.propose = lambda *args: []
+    job = study.generate(FrozenMap(benchmark.BASE_INSTRUCTIONS), "development", "test")
+    assert type(job[3]) is dict
+    assert pickle.loads(pickle.dumps(job)) == job
+
+
+def test_exact_recorded_response_reuses_usage_and_rejects_changed_prompt(tmp_path, monkeypatch):
+    import llm_search
+
+    monkeypatch.setattr(llm_search.subprocess, "check_output", lambda *args, **kw: "test-cli")
+    previous = tmp_path / "previous"
+    call = previous / "model-calls" / "001"
+    call.mkdir(parents=True)
+    prompt = "original prompt"
+    receipt = {
+        "number": 1,
+        "model": benchmark.MODEL,
+        "reasoning_effort": "high",
+        "role": "draw",
+        "candidate_count": 1,
+        "prompt_sha256": digest(prompt),
+        "returncode": 0,
+        "tool_items": 0,
+        "usage": [{"input_tokens": 10, "output_tokens": 2}],
+    }
+    response = {
+        "candidates": [
+            {"configuration": {"instruction": "original answer"}, "reason": "hypothesis"}
+        ]
+    }
+    (call / "prompt.txt").write_text(prompt)
+    (call / "receipt.json").write_text(json.dumps(receipt))
+    (call / "response.json").write_text(json.dumps(response))
+    sampler = RecordedCodexSampler(tmp_path / "current", benchmark.MODEL, reuse=previous)
+    with pytest.raises(ValueError, match="exact request"):
+        sampler.call("changed prompt", field="instruction", role="draw", count=1)
+    assert not sampler.receipts
+    assert sampler.call(prompt, field="instruction", role="draw", count=1) == response["candidates"]
+    assert sampler.receipts[0]["usage"] == receipt["usage"]
+    assert sampler.receipts[0]["reused_from"]["run"] == "previous"

@@ -255,6 +255,13 @@ Changing any frozen options, identities or cases under the same pass ID rejects.
 Old persisted passes recover with their old request/policy shape when the new
 options have default values; finish their replay before enabling different options.
 
+New passes freeze evidence mapping version 3: exact metric ties are neutral, and
+nonzero investigation evidence is weighted by its effect magnitude with a bounded
+total confidence movement. This removes saturation caused by evidence order;
+it does not replace the later statistical, shadow, review or verification gates.
+Previously frozen version-2 and unversioned passes keep their original mapping
+on resume. See the [reproduction and correction](meta-diagnosis.md#follow-up-versioned-facade-correction).
+
 New learning-pass host calls retain wall and process CPU durations. Action timing
 is inclusive `host-action-inclusive` metadata; adapter measurement/failure timing
 has `adapter-call` scope. These durations overlap and must not be added together.
