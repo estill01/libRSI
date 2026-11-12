@@ -245,7 +245,7 @@ class Study:
         return (self.output, label, choices, instruction, self.problems, phase)
 
     def run_jobs(self, specs):
-        generated = []
+        generated: list[tuple] = []
         with ThreadPoolExecutor(max_workers=2) as model_pool:
             # At most two in flight; a failed pair prevents any later submission.
             for start in range(0, len(specs), 2):
