@@ -70,7 +70,12 @@ as proposal feedback.
 After the active improver is frozen and reopened, each primary optimization arm
 receives **32 independent model draws** on fresh inner training/shadow/verification
 partitions. Both arms start from the same original scheduler. All native outcomes
-are frozen before evaluation on **128 further unseen workloads**.
+are frozen before evaluation on unseen workloads. The runner initially reserved
+128 workloads. Before the meta policy or any final systems were frozen, we
+registered an expansion to **512 workloads** (the original 128 plus 384 new
+workloads), without adding model calls or optimization runs. The original
+128-workload result is also retained. The published comparison uses this
+prospectively expanded panel.
 
 If the meta revision is rejected, a prespecified diagnostic additionally runs 32
 native optimizations using the proposed instruction with the better outer-training
@@ -98,10 +103,13 @@ From this source checkout, with an authenticated Codex CLI that can access Astra
 
 ```bash
 python -m pip install . numpy matplotlib
-python examples/benchmark_native_sequence.py --output ./native-sequence-run
-python examples/audit_native_sequence.py --source ./native-sequence-run --output ./native-sequence-audit
-python examples/plot_native_sequence.py --report ./native-sequence-run/report.json.gz --receipts ./native-sequence-run/receipts.json --output ./native-sequence-plots
+python examples/run_native_sequence_study.py --output ./native-sequence-run
 ```
+
+The wrapper registers the 512-workload confirmation before meta development,
+runs the native experiment, audits its evidence and creates both graphs. The
+individual runner, auditor, confirmation evaluator and plotter are also available
+in `examples/`.
 
 A C++17 compiler is required for the exact reference solver. Use a fresh output
 directory. The runner bounds model calls to 169, uses two concurrent requests,

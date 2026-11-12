@@ -19,7 +19,7 @@ COLORS = ["#8993a6", "#2777b5", "#6b4cbb"]
 def bootstrap_mean(grid, seed):
     values = np.asarray(grid)
     rng = np.random.default_rng(seed)
-    families = [np.arange(i, 128, 4) for i in range(4)]
+    families = [np.arange(i, values.shape[1], 4) for i in range(4)]
     draws = []
     for _ in range(10000):
         rows = rng.integers(0, len(values), len(values))
@@ -40,6 +40,7 @@ def render(report, receipts, output):
         }
     )
     arms = ["ordinary", "after_meta"]
+    test_count = len(report["test_baseline_costs"])
     means = [0, *[report["means"][arm] * 100 for arm in arms]]
     bounds = [
         [0, 0],
@@ -120,7 +121,7 @@ def render(report, receipts, output):
     fig.text(
         0.10,
         0.065,
-        "Dots: retained-system mean per run. Whiskers: crossed-bootstrap 95% intervals over runs and 128 test workloads.\nSynthetic setup costs; deterministic scheduler at runtime. Uncertainty is conditional on one meta-development run.",
+        f"Dots: retained-system mean per run. Whiskers: crossed-bootstrap 95% intervals over runs and {test_count} test workloads.\nSynthetic setup costs; deterministic scheduler at runtime. Uncertainty is conditional on one meta-development run.",
         fontsize=9,
         color="#4c5564",
     )
