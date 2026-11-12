@@ -6,6 +6,7 @@ import argparse
 import gzip
 import hashlib
 import json
+import lzma
 import shutil
 from pathlib import Path
 
@@ -26,6 +27,13 @@ def load_gz(path):
 
 def dump_gz(path, value):
     path.write_bytes(gzip.compress(json.dumps(value, sort_keys=True).encode(), mtime=0))
+
+
+def export_native(source, destination):
+    raw = gzip.decompress(source.read_bytes())
+    encoded = lzma.compress(raw, preset=3)
+    assert lzma.decompress(encoded) == raw
+    destination.write_bytes(encoded)
 
 
 def audit(source, output):
@@ -61,6 +69,10 @@ def audit(source, output):
         assert receipt["tool_items"] == 0 and receipt["returncode"] == 0
         assert len(receipt["usage"]) == 1
         assert receipt["role"] not in roles
+        if "reused_from" in receipt:
+            original = {k: v for k, v in receipt.items() if k != "reused_from"}
+            original["number"] = receipt["reused_from"]["number"]
+            assert digest(original) == receipt["reused_from"]["original_receipt_sha256"]
         roles.add(receipt["role"])
         call = source / "model-calls" / f"{receipt['number']:03d}"
         prompt = (call / "prompt.txt").read_text()
@@ -93,15 +105,15 @@ def audit(source, output):
         assert row["adopted"] == (row["configuration"] != BASE_PROGRAM)
         if row["label"].startswith("after_meta-"):
             assert row["instruction"] == report["meta"]["active"]
-        shutil.copyfile(
-            source / "native" / f"{row['label']}.json.gz", native_dir / f"{row['label']}.json.gz"
+        export_native(
+            source / "native" / f"{row['label']}.json.gz", native_dir / f"{row['label']}.json.xz"
         )
     meta = load_gz(source / "native/meta.json.gz")
     assert record_from_dict(meta["active"]).root == report["meta"]["active_root"]
     assert meta["native"]["root"] == report["meta"]["native_root"]
     if not report["meta"]["adopted"]:
         assert report["meta"]["active"] == BASE_INSTRUCTIONS
-    shutil.copyfile(source / "native/meta.json.gz", native_dir / "meta.json.gz")
+    export_native(source / "native/meta.json.gz", native_dir / "meta.json.xz")
     oracle = build_oracle(output / "oracle")
     problems = {
         split: [fresh_problem(row, oracle) for row in rows]

@@ -20,6 +20,7 @@ class Sparse(Ideas):
 
 
 @pytest.mark.parametrize("version", [2, 3])
+@pytest.mark.slow
 def test_sparse_gain_and_frozen_v2_resume(tmp_path, monkeypatch, version):
     original_begin = LocalLearningStore.begin_pass
 

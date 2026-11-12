@@ -45,9 +45,11 @@ def render(report, receipts, output):
         [0, 0],
         *[bootstrap_mean(report["scores"][arm], 2026111211 + i) for i, arm in enumerate(arms)],
     ]
-    labels = ["Base scheduler", "libRSI optimization", "Meta optimizer → libRSI"]
-    fig, ax = plt.subplots(figsize=(11.5, 6.6))
-    fig.subplots_adjust(left=0.10, right=0.97, bottom=0.26, top=0.78)
+    labels = ["Base\nscheduler", "libRSI\noptimization", "Meta → libRSI\noptimization"]
+    fig, (ax, effort_ax) = plt.subplots(
+        1, 2, figsize=(13, 6.9), gridspec_kw={"width_ratios": [1.7, 1]}
+    )
+    fig.subplots_adjust(left=0.10, right=0.97, bottom=0.28, top=0.78, wspace=0.35)
     fig.suptitle(
         "What did the system actually retain?",
         fontsize=19,
@@ -88,6 +90,18 @@ def render(report, receipts, output):
     ax.set_ylim(0, max(max(v[1] for v in bounds), max(means)) + 7)
     ax.grid(axis="y", alpha=0.18)
     ax.set_axisbelow(True)
+    ordinary = [r for r in receipts if r["role"].startswith("ordinary-")]
+    meta_rows = [r for r in receipts if r["role"].startswith(("dev-", "meta-", "after_meta-"))]
+    calls = [0, len(ordinary), len(meta_rows)]
+    effort_ax.bar(range(3), calls, color=COLORS, width=0.6)
+    effort_ax.set_xticks(range(3), ["Base", "libRSI", "Meta → libRSI"])
+    effort_ax.set_ylabel("Model calls used")
+    effort_ax.set_ylim(0, max(calls) * 1.25)
+    effort_ax.grid(axis="y", alpha=0.18)
+    effort_ax.set_axisbelow(True)
+    for i, value in enumerate(calls):
+        effort_ax.text(i, value + 4, str(value), ha="center", weight="bold", fontsize=13)
+    effort_ax.set_title("Meta includes 73 development calls", fontsize=10, pad=12)
     meta = report["meta"]
     status = (
         "Meta revision adopted and reopened"
@@ -153,6 +167,9 @@ def render(report, receipts, output):
         ax.grid(axis="y", alpha=0.18)
         ax.set_axisbelow(True)
     extra = report["effort"]["forced_diagnostic_calls"]
+    phase_seconds = report["effort"]["wall_seconds"] + report["effort"].get(
+        "prior_generation_wall_seconds", 0
+    )
     fig.text(
         0.09,
         0.21,
@@ -162,13 +179,13 @@ def render(report, receipts, output):
     fig.text(
         0.09,
         0.15,
-        f"Full study: {report['effort']['model_calls']} calls, {report['effort']['wall_seconds'] / 60:.1f} elapsed minutes.\nAdditional forced-revision diagnostic: {extra} calls (excluded from the two primary treatment budgets).",
+        f"Full study: {report['effort']['model_calls']} calls, {phase_seconds / 60:.1f} recorded phase minutes.\nAdditional forced-revision diagnostic: {extra} calls (excluded from the two primary treatment budgets).",
         fontsize=10,
     )
     fig.text(
         0.09,
         0.065,
-        "No model calls during scheduler execution; both optimized schedulers get 256 cost evaluations per workload.\nTokens include cached input; billing is unknown. This comparison does not establish superiority at equal total compute.",
+        "No model calls during scheduler execution; both optimized schedulers get 256 cost evaluations per workload.\nIncludes reused generation time; excludes recovery work. Tokens include cached input; billing is unknown.\nThis comparison does not establish superiority at equal total compute.",
         fontsize=9,
         color="#4c5564",
     )
