@@ -171,6 +171,11 @@ def render(report, receipts, output):
     phase_seconds = report["effort"]["wall_seconds"] + report["effort"].get(
         "prior_generation_wall_seconds", 0
     )
+    wall_note = (
+        "Includes reused generation time, interruptions and recovery pauses."
+        if report["effort"].get("wall_time_includes_interruptions")
+        else "Includes reused generation time; excludes recovery work."
+    )
     fig.text(
         0.09,
         0.21,
@@ -186,7 +191,9 @@ def render(report, receipts, output):
     fig.text(
         0.09,
         0.065,
-        "No model calls during scheduler execution; both optimized schedulers get 256 cost evaluations per workload.\nIncludes reused generation time; excludes recovery work. Tokens include cached input; billing is unknown.\nThis comparison does not establish superiority at equal total compute.",
+        "No model calls during scheduler execution; both optimized schedulers get 256 cost evaluations per workload.\n"
+        f"{wall_note} Tokens include cached input; billing is unknown.\n"
+        "This comparison does not establish superiority at equal total compute.",
         fontsize=9,
         color="#4c5564",
     )

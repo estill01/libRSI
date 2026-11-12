@@ -118,6 +118,12 @@ retain receipts and stop the run; malformed model outputs consume their slots.
 Repeated model requests need not reproduce identical proposals. The offline audit
 replays retained-system scores from the recorded proposals and configurations.
 
+If the host interrupts a worker, `python examples/resume_native_sequence.py
+--source ./native-sequence-run/raw` validates completed results against their
+durable stores and resumes pending native passes with the original samples.
+It verifies the original runtime and experiment source hashes and counts saved
+model responses once. An unfinished provider request stops recovery for diagnosis.
+
 The earlier [candidate study](setup-sequence-benchmark.md) and
 [recursive scientific-search study](recursive-search-benchmark.md) remain
 available with their original evidence. Their results are separate experiments.

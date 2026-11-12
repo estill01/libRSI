@@ -175,6 +175,12 @@ def audit(source, output):
             if p.is_file()
         },
     )
+    if (source / "recovery").exists():
+        for receipt_path in sorted((source / "recovery").glob("*.json")):
+            recovery = json.loads(receipt_path.read_text())
+            script = receipt_path.with_suffix(".py")
+            assert hashlib.sha256(script.read_bytes()).hexdigest() == recovery["source_sha256"]
+        shutil.copytree(source / "recovery", output / "recovery")
     validation = {
         "all_reasoning": f"{MODEL}, high",
         "verified_model_calls": len(receipts),
