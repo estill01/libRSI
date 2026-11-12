@@ -16,6 +16,46 @@ for higher-level recursive self-improvement.
 
 **Python 3.11+ · Dependency-free core · Typed API · MIT**
 
+## Start with your coding agent
+
+Install the [libRSI skill](skills/librsi/SKILL.md), then give your agent a goal.
+It helps the agent find relevant feedback, propose changes, run measured
+experiments through libRSI, and report which changes actually improved things.
+
+**Codex** — install for your user:
+
+```bash
+mkdir -p ~/.agents/skills/librsi
+curl -fsSL https://raw.githubusercontent.com/estill01/libRSI/main/skills/librsi/SKILL.md \
+  -o ~/.agents/skills/librsi/SKILL.md
+```
+
+**Claude Code** — the same portable skill:
+
+```bash
+mkdir -p ~/.claude/skills/librsi
+curl -fsSL https://raw.githubusercontent.com/estill01/libRSI/main/skills/librsi/SKILL.md \
+  -o ~/.claude/skills/librsi/SKILL.md
+```
+
+Start a new agent session in your project, then ask:
+
+```text
+Use libRSI to improve our support-answer prompt. Use our existing evals,
+try two candidate changes, and report held-out quality and effort.
+Keep the current prompt unless a change earns adoption.
+```
+
+Invoke explicitly with `$librsi` in Codex or `/librsi` in Claude Code. For a
+project-only install, use `.agents/skills/librsi` or `.claude/skills/librsi` inside
+that project instead. These are the documented [Codex](https://developers.openai.com/codex/skills/)
+and [Claude Code](https://code.claude.com/docs/en/skills) skill locations.
+
+The skill is agent instructions; it guides Python package setup and integration
+with your evaluator. Your coding agent can supply the LLM proposals using its
+existing model access. A configured [shared HTTP/MCP service](docs/goal-intake.md)
+can instead accept broad goals and return durable experiment runs.
+
 ## A real LLM-driven example
 
 Search **5,183 scientific abstracts**, then improve the search and its improvers:
