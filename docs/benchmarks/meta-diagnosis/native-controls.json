@@ -1,0 +1,49 @@
+{
+  "model": "none; measured deterministic controls",
+  "results": [
+    {
+      "name": "positive",
+      "adopted": true,
+      "disposition": "verified",
+      "active": {
+        "policy": "optimal"
+      },
+      "active_root": "c99c716441fa51b5317c0d85d483e1ef0c326cffb41901414ed10e5d15d871f1",
+      "native_root": "75f1bdf0f4598bf4caca5976a2c4bb3a767691e2d9ce13bcbbfa570e5e841df7",
+      "after_value": 0.999999999999831
+    },
+    {
+      "name": "negative",
+      "adopted": false,
+      "disposition": "no-supported-revision",
+      "active": {
+        "policy": "optimal"
+      },
+      "active_root": "e9fdb0a1a9f88749c1f00f8be885c4995c368fe3dd302d23c4feaaae86cec6a9",
+      "native_root": "a46bf6bdc427f05bbed938f0d4e4d9e7b022dffc985b23132868023dc8abb81f",
+      "after_value": 0.999999999999831
+    },
+    {
+      "name": "shadow_regression",
+      "adopted": false,
+      "disposition": "governance-rejected",
+      "active": {
+        "policy": "original"
+      },
+      "active_root": "621847c66205bc9f806650f0d88f3c08c507905e9954875c8b1bcdcdd27bd5db",
+      "native_root": "c0ecbcf8dd9ae4be5040f9469433b914260136f6a11ba7ada0a3ac63e78479ff",
+      "after_value": 0.0
+    },
+    {
+      "name": "verification_regression",
+      "adopted": false,
+      "disposition": "rolled-back",
+      "active": {
+        "policy": "original"
+      },
+      "active_root": "6419544acb2eabafd701529b70cfb1577c19594b0cd856b046173ecfc13023b1",
+      "native_root": "611629de9969507559ab587a2d7fec370eed301d35844076ace9053c5a4c5a01",
+      "after_value": 0.0
+    }
+  ]
+}

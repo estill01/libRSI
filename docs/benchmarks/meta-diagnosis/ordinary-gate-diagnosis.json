@@ -1,0 +1,85 @@
+{
+  "model": "none for this diagnostic; source proposals gpt-6-astra high",
+  "source_native_root": "cb5c22eeb0ad5e77032925a37608b7fc1a730d99e46d066573699126e43fc85d",
+  "scope": "Post-hoc calculation from the actual ordinary-native training evidence. Enumerates sign-order permutations through the unchanged LinearEvidenceAggregator; does not relabel or replace native evidence or change the Astra experiment. These are possible order outcomes, not probabilities for real root ordering.",
+  "branches": [
+    {
+      "branch_id": "hypothesis-1",
+      "native_status": "retired",
+      "native_confidence": 0.4000000000000001,
+      "wins": 7,
+      "ties": 9,
+      "losses": 0,
+      "values": [
+        0.0,
+        0.0,
+        0.049107142857142905,
+        0.0,
+        0.0,
+        0.0,
+        0.11428571428571432,
+        0.09606986899563319,
+        0.0,
+        0.0,
+        0.09387755102040818,
+        0.16201117318435754,
+        0.09459459459459463,
+        0.0,
+        0.0,
+        0.19999999999999996
+      ],
+      "mean": 0.05062162780861567,
+      "one_se_lower": 0.03382503581611629,
+      "all_distinct_sign_orders": 11440,
+      "final_status_counts": {
+        "rejected": 5931,
+        "testing": 2808,
+        "weakened": 2157,
+        "supported": 544
+      },
+      "confidence_range": [
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "branch_id": "hypothesis-2",
+      "native_status": "rejected",
+      "native_confidence": 0.2,
+      "wins": 7,
+      "ties": 9,
+      "losses": 0,
+      "values": [
+        0.0,
+        0.0738461538461539,
+        0.0,
+        0.049107142857142905,
+        0.09459459459459463,
+        0.0,
+        0.09606986899563319,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.11428571428571432,
+        0.16201117318435754,
+        0.0,
+        0.0,
+        0.03883495145631066
+      ],
+      "mean": 0.039296849951244196,
+      "one_se_lower": 0.026044264905244724,
+      "all_distinct_sign_orders": 11440,
+      "final_status_counts": {
+        "rejected": 5931,
+        "testing": 2808,
+        "weakened": 2157,
+        "supported": 544
+      },
+      "confidence_range": [
+        0.0,
+        1.0
+      ]
+    }
+  ]
+}
