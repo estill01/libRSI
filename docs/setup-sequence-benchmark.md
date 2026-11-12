@@ -15,6 +15,18 @@ throughput. The [search diagnosis](meta-diagnosis.md) explains why we changed ta
 
 ## Measured result
 
+The primary comparison is **base → LLM-driven libRSI optimization of the base →
+LLM meta optimization of the improver, followed by its use on the same base**.
+Both optimization arms restart from the existing planner. The third arm does not
+continue optimizing the second arm's output.
+
+![The three primary cases; Astra high at both optimization levels](assets/setup-sequence-overview.png)
+
+The current data show candidate quality for these three cases. The native passes
+kept the base planner and original improver; the revised improver was evaluated
+separately after rejection. This is not a successful end-to-end adoption chain.
+The figure below retains the secondary equal-call control and uncertainty analysis.
+
 ![Candidate improvement and model-call effort; all reasoning uses gpt-6-astra high](assets/setup-sequence-improvement.png)
 
 | Frozen proposal policy | Model | Mean setup cost saved | SD across 32 model draws | Model calls |

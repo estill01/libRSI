@@ -15,36 +15,49 @@ work. Repeat at higher levels for recursive improvement.
 
 **Python 3.11+ · Dependency-free core · Typed API · MIT**
 
-## A measured example
+## Base → LLM optimization → meta optimization
 
 Start with **“Reduce changeover downtime while keeping planning inexpensive.”**
 Astra translates this into setup-cost reduction, a 2% worthwhile-effect threshold,
 and competing search strategies. It assembles programs for repeating 14-job
 production schedules; the host enforces **256 cost evaluations per program**.
 
+Compare three cases:
+
+1. **Base:** run the existing planner without optimization.
+2. **libRSI optimizes the base:** Astra proposes and libRSI evaluates changes to
+   that planner, using the original improver.
+3. **Meta optimization, then optimize the base:** Astra proposes changes to the
+   improver itself. Test the revised improver on the **same starting planner**.
+   This measures whether improving the improver produces a better final system.
+
+Cases 2 and 3 both start from the base. Case 3 does not start from case 2's output.
+
 **Every reasoning role uses OpenAI `gpt-6-astra`, high reasoning, via Codex CLI:**
 goal interpretation, program proposals, meta revisions and subsequent proposals.
 The planner, scoring and reviewer use **no model**. libRSI has no default model;
 your backend specifies one.
 
-![Candidate gains, adjusted uncertainty and effort; all reasoning uses OpenAI gpt-6-astra high](docs/assets/setup-sequence-improvement.png)
+![Base, LLM-driven libRSI, and meta-optimized libRSI; candidate gains with Astra high, not adopted changes](docs/assets/setup-sequence-overview.png)
 
-| Proposal policy scored | Model | Mean setup cost saved | Model calls |
+| Comparison | Optimization model | Candidate cost saved vs base | Native adoption |
 | --- | --- | ---: | ---: |
-| Starting planner | None | 0% | 0 |
-| Original improver | `gpt-6-astra`, high | 5.02% | 32 |
-| Revised improver | `gpt-6-astra`, high | 5.71% | 97 development + 32 reuse |
-| Original improver, same total calls | `gpt-6-astra`, high | 4.27% | 129 |
+| 1. Base | None | 0% | Starting state |
+| 2. libRSI optimization of base | `gpt-6-astra`, high | 5.02% | No |
+| 3. Meta → libRSI optimization of base | `gpt-6-astra`, high at both levels | 5.71% | No |
 
-Each arm has **32 proposal draws on 128 unseen synthetic workloads**. The revision
-adds **0.69 percentage points** over ordinary use, adjusted interval **−0.02 to
-+1.54**; against the same-call control, **+1.44 points [0.13, 2.76]**. Neither
-establishes the prespecified two-point worthwhile gain.
+Each optimization case has **32 proposal draws on 128 unseen synthetic workloads**.
+The proposed meta improver adds **0.69 percentage points** over the original
+improver, adjusted interval **−0.02 to +1.54**. That does not establish the
+prespecified two-point worthwhile gain. Extra-budget controls are in the
+[full results](docs/setup-sequence-benchmark.md).
 
-**These are candidate scores, not adopted improvements.** Native governance kept
-the original instructions; subsequent native use rejected its program at the
-shadow check. Separately, we found a facade limitation: ties count against
-proposals, and evidence order can change early decisions.
+**The requested end-to-end adoption chain did not succeed in this run.** The
+recorded native passes kept the base planner and original improver. The 5.02% and
+5.71% figures score generated candidates separately; the proposed meta revision
+was tested despite its rejection. They must not be read as deployed libRSI gains.
+We also found a facade limitation: ties count against proposals, and evidence
+order can change early decisions.
 [Diagnosis and controlled reproduction](docs/meta-diagnosis.md).
 
 Total: **261 Astra calls · 3,560,773 reported input/output tokens · 35.0 minutes**.
@@ -61,7 +74,7 @@ reference solver requires a C++17 compiler.
 ```bash
 python -m pip install . numpy matplotlib
 python examples/benchmark_setup_sequence.py --output ./sequence-run --model gpt-6-astra
-python examples/plot_setup_sequence.py --report ./sequence-run/report.json --output ./sequence-run/improvement
+python examples/plot_setup_sequence_overview.py --report ./sequence-run/report.json --output ./sequence-run/overview
 ```
 
 Use a fresh output directory: 300-call ceiling, no automatic retries.
