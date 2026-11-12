@@ -1,10 +1,11 @@
 # Why the first meta passes did not help
 
 The search revisions failed to generalize. A separate follow-up also exposed a
-library limitation: the adaptive facade can discard useful average improvements
-before statistical comparison because it treats tied cases as counterexamples.
+library limitation: the version-2 adaptive facade could discard useful average
+improvements before statistical comparison because it treated tied cases as counterexamples.
 These are distinct findings; fixing that gate would not make the six losing
-search revisions beneficial.
+search revisions beneficial. A [versioned correction](#follow-up-versioned-facade-correction)
+now applies to new passes; the earlier results below describe their original code.
 
 [Replay data, native controls, pilot receipts and source snapshots](benchmarks/meta-diagnosis/)
 are retained with a [SHA-256 manifest](benchmarks/meta-diagnosis/evidence-manifest.json).
@@ -91,8 +92,8 @@ Nevertheless, it received `no-supported-revision` before comparative evaluation.
 The other proposal also had seven wins and nine ties, averaging 3.93% with a 2.60%
 lower bound, and stopped at the same earlier stage.
 
-In [`LearningHost.experiment()`](../src/librsi/facade/learning_host.py), every
-strictly positive case becomes `support`; every other case, including exact
+In the version-2 path of [`LearningHost.experiment()`](../src/librsi/facade/learning_host.py),
+every strictly positive case becomes `support`; every other case, including exact
 equality, becomes `counterexample`. The investigation policy applies bounded
 linear confidence updates to those signs in evidence-root order. Effect magnitude
 does not enter that gate. Only supported branches reach comparison of the mean.
@@ -113,7 +114,7 @@ post-hoc calculation separately from the confirmatory comparison.
 A [model-free diagnostic](../examples/check_sparse_adoption.py) isolates that
 behavior with measured join costs: four improvements, 12 ties, no regressions.
 The mean gain is 25%, with a one-standard-error lower bound of 13.82%, versus a
-1% minimum. The current facade still returns `no-supported-revision`. The
+1% minimum. The then-current version-2 facade returned `no-supported-revision`. The
 diagnostic also tests an isolated treatment that labels exact ties as neutral,
 with the required zero evidence weight. That treatment reaches **`verified`**
 and adopts the same sparse improvement. Unchanged and worsening controls are
@@ -121,7 +122,7 @@ also included and remain unadopted.
 
 | Control | Model | Training outcomes | Native result |
 | --- | --- | --- | --- |
-| Current tie handling | None | 4 wins, 12 ties, 0 losses | `no-supported-revision` |
+| Version-2 tie handling | None | 4 wins, 12 ties, 0 losses | `no-supported-revision` |
 | Neutral ties, zero weight | None | 4 wins, 12 ties, 0 losses | `verified` |
 | Neutral ties, worse candidate | None | 0 wins, 0 ties, 16 losses | `no-supported-revision` |
 | Neutral ties, unchanged candidate | None | 0 wins, 16 ties, 0 losses | `no-supported-revision` |
@@ -147,7 +148,8 @@ Neutral ties are a useful isolated correction, but not a complete solution for
 mixed wins and losses: the sign-based gate still ignores effect magnitude and
 uses order-sensitive clipping. A production change needs explicit, replay-safe
 semantics for that gate and regression coverage for pending and historical passes.
-This investigation leaves those library semantics unchanged.
+That diagnostic left library semantics unchanged; the subsequent correction is
+documented below.
 
 ## What the follow-up changes
 
