@@ -14,6 +14,7 @@ import numpy as np
 from benchmark_document_search import write_json
 from benchmark_native_sequence import BASE_INSTRUCTIONS, BASE_PROGRAM, MODEL, fresh_problem
 from benchmark_setup_sequence import interval
+from resume_native_sequence import resolve_transport_recovery
 from sequence_program import execute
 from setup_sequence import build_oracle
 
@@ -58,7 +59,9 @@ def audit(source, output):
     assert runtime.hexdigest() == protocol["provenance"]["runtime_python_sha256"]
     receipts = json.loads((source / "receipts.json").read_text())
     expected_calls = 137 if report["meta"]["adopted"] else 169
-    assert len(receipts) == expected_calls == report["effort"]["model_calls"]
+    retry_count = sum("transport_retry" in r for r in receipts)
+    assert len(receipts) == expected_calls
+    assert len(receipts) + retry_count == report["effort"]["model_calls"]
     transcripts = []
     roles = set()
     test_data = json.loads((source / "workloads.json").read_text())
@@ -75,6 +78,9 @@ def audit(source, output):
             assert digest(original) == receipt["reused_from"]["original_receipt_sha256"]
         roles.add(receipt["role"])
         call = source / "model-calls" / f"{receipt['number']:03d}"
+        original = json.loads((call / "receipt.json").read_text())
+        call, effective = resolve_transport_recovery(source, call, original)
+        assert effective == receipt
         prompt = (call / "prompt.txt").read_text()
         assert digest(prompt) == receipt["prompt_sha256"]
         assert all(row["id"] not in prompt for row in test_data["test"])
@@ -181,9 +187,21 @@ def audit(source, output):
             script = receipt_path.with_suffix(".py")
             assert hashlib.sha256(script.read_bytes()).hexdigest() == recovery["source_sha256"]
         shutil.copytree(source / "recovery", output / "recovery")
+    if retry_count:
+        plan = json.loads((source / "transport-recovery.json").read_text())
+        assert retry_count == len(plan["retries"]) <= plan["extra_attempt_limit"]
+        from datetime import datetime
+
+        assert (
+            datetime.fromisoformat(plan["registered_at"]).timestamp()
+            < (source / "frozen-final-systems.json").stat().st_mtime
+        )
+        shutil.copyfile(source / "transport-recovery.json", output / "transport-recovery.json")
     validation = {
         "all_reasoning": f"{MODEL}, high",
-        "verified_model_calls": len(receipts),
+        "verified_model_calls": len(receipts) + retry_count,
+        "completed_model_calls": len(receipts),
+        "unknown_usage_timeout_calls": retry_count,
         "verified_native_inner_outcomes": len(all_runs),
         "verified_native_meta_outcomes": 1,
         "score_replay": "all development retained systems on all three outer scoring splits, all final retained systems on all 128 test workloads",

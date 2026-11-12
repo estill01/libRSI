@@ -1,5 +1,6 @@
 """Interrupted native studies retain exact provider draws and count each once."""
 
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -57,4 +58,39 @@ def test_resume_refuses_unfinished_provider_call(tmp_path, monkeypatch):
     receipt.pop("returncode")
     (call / "receipt.json").write_text(json.dumps(receipt))
     with pytest.raises(ValueError, match="unfinished provider call"):
+        recovery.ExistingSampler(tmp_path, protocol)
+
+
+def test_registered_retry_preserves_failed_receipt_and_checks_exact_request(tmp_path, monkeypatch):
+    call, choices, receipt, protocol = fixture(tmp_path, monkeypatch)
+    receipt["timeout_seconds"] = 600
+    replacement = tmp_path / "transport-retries/001/001"
+    replacement.mkdir(parents=True)
+    (replacement / "receipt.json").write_text(json.dumps(receipt))
+    (replacement / "response.json").write_text((call / "response.json").read_text())
+    (call / "response.json").unlink()
+    for name, value in (("prompt.txt", "exact prompt"), ("schema.json", "fixed schema")):
+        (call / name).write_text(value)
+        (replacement / name).write_text(value)
+    (replacement.parent / "instructions.txt").write_text("fixed instructions")
+    failed = {k: v for k, v in receipt.items() if k not in ("returncode", "tool_items")}
+    failed.update(status="timeout", usage=[])
+    (call / "receipt.json").write_text(json.dumps(failed))
+    original_bytes = (call / "receipt.json").read_bytes()
+    plan = {
+        "retries": {
+            "1": {
+                "role": receipt["role"],
+                "original_receipt_sha256": hashlib.sha256(original_bytes).hexdigest(),
+                "replacement": "transport-retries/001/001",
+            }
+        }
+    }
+    (tmp_path / "transport-recovery.json").write_text(json.dumps(plan))
+    sampler = recovery.ExistingSampler(tmp_path, protocol)
+    assert sampler.call("exact prompt", field="program", role="ordinary-00") == choices
+    assert sampler.receipts[0]["transport_retry"]["original_receipt"] == failed
+    assert (call / "receipt.json").read_bytes() == original_bytes
+    (replacement / "prompt.txt").write_text("different prompt")
+    with pytest.raises(AssertionError):
         recovery.ExistingSampler(tmp_path, protocol)

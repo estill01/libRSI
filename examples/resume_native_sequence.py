@@ -33,6 +33,54 @@ from librsi import LocalLearningStore, record_from_dict
 from librsi.identity import digest
 
 
+def resolve_transport_recovery(source, path, receipt):
+    """Use only an explicitly registered, already completed transport retry."""
+    if receipt.get("returncode") == 0 and len(receipt.get("usage", [])) == 1:
+        return path, receipt
+    plan_path = source / "transport-recovery.json"
+    if not plan_path.exists():
+        raise ValueError(f"unfinished provider call {path}; diagnose before resuming")
+    plan = json.loads(plan_path.read_text())
+    entry = plan["retries"].get(str(receipt["number"]))
+    if entry is None:
+        raise ValueError(f"unfinished provider call {path}; no registered recovery")
+    assert receipt.get("status") == "timeout" and not receipt.get("usage")
+    assert not (path / "response.json").exists()
+    assert (
+        hashlib.sha256((path / "receipt.json").read_bytes()).hexdigest()
+        == entry["original_receipt_sha256"]
+    )
+    replacement = (source / entry["replacement"]).resolve()
+    assert replacement.is_relative_to(source.resolve())
+    retried = json.loads((replacement / "receipt.json").read_text())
+    assert retried.get("returncode") == 0 and len(retried.get("usage", [])) == 1
+    assert retried["tool_items"] == 0 and receipt["role"] == entry["role"]
+    for key in (
+        "role",
+        "model",
+        "reasoning_effort",
+        "candidate_count",
+        "prompt_sha256",
+        "timeout_seconds",
+    ):
+        assert retried[key] == receipt[key], key
+    for name in ("prompt.txt", "schema.json"):
+        assert (replacement / name).read_bytes() == (path / name).read_bytes()
+    assert (replacement.parent / "instructions.txt").read_bytes() == (
+        path.parent / "instructions.txt"
+    ).read_bytes()
+    effective = {
+        **retried,
+        "number": receipt["number"],
+        "transport_retry": {
+            **entry,
+            "replacement_number": retried["number"],
+            "original_receipt": receipt,
+        },
+    }
+    return replacement, effective
+
+
 class ExistingSampler(CodexSampler):
     def __init__(self, source, protocol):
         self.directory = source / "model-calls"
@@ -49,9 +97,8 @@ class ExistingSampler(CodexSampler):
         self.recorded: dict[str, tuple[Path, dict[str, Any]]] = {}
         for number, path in enumerate(paths, 1):
             receipt = json.loads((path / "receipt.json").read_text())
-            if receipt.get("returncode") != 0 or len(receipt.get("usage", [])) != 1:
-                raise ValueError(f"unfinished provider call {path}; diagnose before resuming")
             assert receipt["number"] == number and path.name == f"{number:03d}"
+            path, receipt = resolve_transport_recovery(source, path, receipt)
             assert receipt["role"] not in self.recorded
             self.receipts.append(receipt)
             self.recorded[receipt["role"]] = (path, receipt)
@@ -239,7 +286,12 @@ def run(source):
                 for arm in scores
             },
             "effort": {
-                "model_calls": len(sampler.receipts),
+                "model_calls": len(sampler.receipts)
+                + sum("transport_retry" in r for r in sampler.receipts),
+                "completed_model_calls": len(sampler.receipts),
+                "unknown_usage_timeout_calls": sum(
+                    "transport_retry" in r for r in sampler.receipts
+                ),
                 "meta_development_calls": 73,
                 "ordinary_final_calls": 32,
                 "after_meta_final_calls": 32,

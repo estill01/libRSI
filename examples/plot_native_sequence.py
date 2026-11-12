@@ -16,6 +16,10 @@ import numpy as np
 COLORS = ["#8993a6", "#2777b5", "#6b4cbb"]
 
 
+def attempts(rows):
+    return len(rows) + sum("transport_retry" in row for row in rows)
+
+
 def bootstrap_mean(grid, seed):
     values = np.asarray(grid)
     rng = np.random.default_rng(seed)
@@ -94,16 +98,23 @@ def render(report, receipts, output):
     ax.set_axisbelow(True)
     ordinary = [r for r in receipts if r["role"].startswith("ordinary-")]
     meta_rows = [r for r in receipts if r["role"].startswith(("dev-", "meta-", "after_meta-"))]
-    calls = [0, len(ordinary), len(meta_rows)]
+    calls = [0, attempts(ordinary), attempts(meta_rows)]
     effort_ax.bar(range(3), calls, color=COLORS, width=0.6)
     effort_ax.set_xticks(range(3), ["Base", "libRSI", "Meta → libRSI"])
-    effort_ax.set_ylabel("Model calls used")
+    effort_ax.set_ylabel("Model request attempts")
     effort_ax.set_ylim(0, max(calls) * 1.25)
     effort_ax.grid(axis="y", alpha=0.18)
     effort_ax.set_axisbelow(True)
     for i, value in enumerate(calls):
         effort_ax.text(i, value + 4, str(value), ha="center", weight="bold", fontsize=13)
-    effort_ax.set_title("Meta includes 73 development calls", fontsize=10, pad=12)
+    retry_count = report["effort"].get("unknown_usage_timeout_calls", 0)
+    effort_ax.set_title(
+        f"Meta includes 73 development calls + {retry_count} retry"
+        if retry_count
+        else "Meta includes 73 development calls",
+        fontsize=10,
+        pad=12,
+    )
     meta = report["meta"]
     status = (
         "Meta revision adopted and reopened"
@@ -139,7 +150,7 @@ def render(report, receipts, output):
 
     ordinary = [r for r in receipts if r["role"].startswith("ordinary-")]
     meta_rows = [r for r in receipts if r["role"].startswith(("dev-", "meta-", "after_meta-"))]
-    calls = [0, len(ordinary), len(meta_rows)]
+    calls = [0, attempts(ordinary), attempts(meta_rows)]
     token_counts = [0, tokens(ordinary), tokens(meta_rows)]
     fig, axes = plt.subplots(1, 2, figsize=(11.5, 6.4))
     fig.subplots_adjust(left=0.09, right=0.97, bottom=0.30, top=0.76, wspace=0.35)
@@ -161,7 +172,7 @@ def render(report, receipts, output):
     for ax, values, ylabel, fmt in zip(
         axes,
         [[float(x) for x in calls], [x / 1e6 for x in token_counts]],
-        ["Total model calls", "Reported input + output tokens (millions)"],
+        ["Total model request attempts", "Reported input + output tokens (millions)"],
         [".0f", ".2f"],
         strict=True,
     ):
@@ -185,7 +196,7 @@ def render(report, receipts, output):
     fig.text(
         0.09,
         0.21,
-        "Ordinary: 32 independent native optimizations. Meta: 73 development calls + 32 independent native optimizations.",
+        f"Ordinary: 32 native optimizations. Meta: 73 development calls + 32 native optimizations + {retry_count} timeout retry.",
         fontsize=10,
     )
     fig.text(
@@ -198,7 +209,7 @@ def render(report, receipts, output):
         0.09,
         0.065,
         "No model calls during scheduler execution; both optimized schedulers get 256 cost evaluations per workload.\n"
-        f"{wall_note} Tokens include cached input; billing is unknown.\n"
+        f"{wall_note} Cached input included; timeout usage and billing unknown.\n"
         "This comparison does not establish superiority at equal total compute.",
         fontsize=9,
         color="#4c5564",

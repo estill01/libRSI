@@ -79,7 +79,9 @@ def summarize(report, workloads, receipts):
         effort[name] = {
             "model": "gpt-6-astra",
             "reasoning_effort": "high",
-            "calls": len(rows),
+            "calls": len(rows) + sum("transport_retry" in row for row in rows),
+            "completed_calls": len(rows),
+            "unknown_usage_timeout_calls": sum("transport_retry" in row for row in rows),
             "input_tokens": sum(u.get("input_tokens", 0) for row in rows for u in row["usage"]),
             "output_tokens": sum(u.get("output_tokens", 0) for row in rows for u in row["usage"]),
             "cached_input_tokens": sum(
