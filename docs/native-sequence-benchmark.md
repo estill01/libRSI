@@ -1,4 +1,4 @@
-# Base, libRSI, and a meta-optimized libRSI improver
+# Base, libRSI optimization, and meta optimization
 
 This experiment evaluates the **systems retained by completed native libRSI
 workflows**. Candidate quality is not substituted for an adopted result.
@@ -103,6 +103,24 @@ Effort totals cover this experiment's recorded provider calls. Coding and review
 work are not metered in those totals, and earlier experiments retain their own
 cost ledgers. Dollar billing is unavailable; reported input tokens include cached
 input. Setup failures are itemized separately from the main comparison.
+
+## Additional transfer diagnostic
+
+After meta development, before any final systems or test scores were frozen, we
+recorded an exploratory check of **all three development pools**: 24 retained
+systems from the original improver and 24 from each proposed instruction. These
+existing programs are evaluated on the same 512 unseen workloads. This adds no
+model calls or native optimization runs and does not replace the primary final
+comparison or its training-selected forced-instruction diagnostic.
+
+The motivation was mixed development evidence: both revisions lost on training,
+while the second showed positive shadow and verification means. Evaluating every
+development pool avoids reporting only the instruction selected by training.
+Two crossed-bootstrap comparisons against the original use 97.5% intervals each
+(Bonferroni for two exploratory comparisons). They remain conditional on one meta
+development round. These programs used earlier native training cases and
+sequential generation batches; the primary final arms use fresh native cases and
+interleaved requests. All reasoning in both analyses uses **`gpt-6-astra`, high**.
 
 ## Library correction
 

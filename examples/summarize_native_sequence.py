@@ -114,7 +114,7 @@ def export_run_csv(report, output):
         "mean_cost_reduction_percent",
     ]
     with output.open("w", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=fields)
+        writer = csv.DictWriter(stream, fieldnames=fields, lineterminator="\n")
         writer.writeheader()
         writer.writerow(
             {

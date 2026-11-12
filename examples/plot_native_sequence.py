@@ -41,6 +41,7 @@ def render(report, receipts, output):
     )
     arms = ["ordinary", "after_meta"]
     test_count = len(report["test_baseline_costs"])
+    started = report["protocol"]["created_at"][:10]
     means = [0, *[report["means"][arm] * 100 for arm in arms]]
     bounds = [
         [0, 0],
@@ -62,13 +63,13 @@ def render(report, receipts, output):
     fig.text(
         0.10,
         0.90,
-        "gpt-6-astra · high reasoning · scheduler proposals AND meta proposals",
+        f"gpt-6-astra · high reasoning · scheduler AND meta proposals · started {started}",
         fontsize=11,
     )
     fig.text(
         0.10,
         0.855,
-        "32 complete libRSI optimization runs per arm; each starts from the same base",
+        "32 complete libRSI runs per optimization arm; each starts from the same base",
         fontsize=11,
     )
     ax.bar(range(3), means, width=0.6, color=COLORS, alpha=0.88)
@@ -150,7 +151,12 @@ def render(report, receipts, output):
         y=0.96,
         weight="bold",
     )
-    fig.text(0.09, 0.89, "gpt-6-astra · high reasoning · all reasoning roles", fontsize=11)
+    fig.text(
+        0.09,
+        0.89,
+        f"gpt-6-astra · high reasoning · all reasoning roles · started {started}",
+        fontsize=11,
+    )
     short = ["Base", "libRSI", "Meta → libRSI"]
     for ax, values, ylabel, fmt in zip(
         axes,
