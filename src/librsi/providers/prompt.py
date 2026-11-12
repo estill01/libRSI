@@ -29,7 +29,10 @@ def reasoning_prompt(request: ReasoningRequest) -> str:
         },
         "authority": (
             "Return a proposal only. Do not claim truth, evidence, selection, application, "
-            "verification, or acceptance authority. Return one JSON object and no markdown."
+            "verification, or acceptance authority. Return one JSON object and no markdown. "
+            "Put all task-specific fields inside the top-level content object; "
+            'the envelope is {"content": {...}, "narration": null}. '
+            "Do not put fields such as hypotheses or adapter_id at the top level."
         ),
     }
     return json.dumps(envelope, sort_keys=True, separators=(",", ":"), ensure_ascii=False)

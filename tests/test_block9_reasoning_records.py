@@ -33,6 +33,14 @@ def _context(kind: str) -> tuple[Goal, TargetSnapshot, ReasoningRequest]:
 
 
 VALID_CONTENT = {
+    "intake-routing": {"adapter_id": "process-v1", "questions": []},
+    "goal-operationalization": {
+        "workflow": "improvement",
+        "metric_id": "latency",
+        "minimum_effect": 1.0,
+        "question": "Does batching reduce handoff latency?",
+        "questions": [],
+    },
     "reflection": {
         "summary": "Throughput is limited by a repeated handoff.",
         "observations": ["Queue depth rises before the handoff."],

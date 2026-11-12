@@ -12,6 +12,9 @@ def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="librsi-mcp")
     parser.add_argument("--data-dir", default=".librsi")
     parser.add_argument(
+        "--factory", help="Trusted module:callable configuring providers and intake adapters"
+    )
+    parser.add_argument(
         "--transport",
         choices=("stdio", "streamable-http"),
         default="stdio",
@@ -85,10 +88,13 @@ def main(argv: list[str] | None = None) -> int:
             required_scopes=["librsi"],
         )
         verifier = StaticTokenVerifier(token)
-    service = LibRSIService.local(
-        args.data_dir,
-        limits=ServiceLimits(max_request_bytes=args.max_request_bytes),
-    )
+    limits = ServiceLimits(max_request_bytes=args.max_request_bytes)
+    if args.factory:
+        from ..service.factory import load_service_factory
+
+        service = load_service_factory(args.factory, data_directory=args.data_dir, limits=limits)
+    else:
+        service = LibRSIService.local(args.data_dir, limits=limits)
     try:
         server = create_mcp_server(service, auth=auth, token_verifier=verifier)
         if args.transport == "stdio":

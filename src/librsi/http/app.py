@@ -13,6 +13,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from ..errors import RSICapabilityError
 from ..improvement import ImprovementRequest
+from ..intake import IntakeRequest
 from ..investigation import InvestigationRequest
 from ..protocol import TargetAdmission, error_document, response_document
 from ..records import TargetSnapshot
@@ -40,6 +41,13 @@ class CanonicalRecordBody(_StrictBody):
 class StartRunBody(_StrictBody):
     request: dict[str, Any]
     admission_id: str = Field(min_length=1)
+
+
+class IntakeBody(_StrictBody):
+    request_id: str = Field(min_length=1)
+    goal: str = Field(min_length=1)
+    context: dict[str, Any] = Field(default_factory=dict)
+    adapter_id: str | None = None
 
 
 class SubmitResultBody(_StrictBody):
@@ -186,6 +194,21 @@ def create_http_app(
         if type(record) is not TargetAdmission:
             raise TypeError("target submission requires a TargetAdmission")
         return service.submit_target(record)
+
+    @app.get("/v1/intake/adapters")
+    async def intake_adapters(request: Request) -> dict[str, Any]:
+        authorize(request, "read")
+        return service.intake_adapters()
+
+    @app.post("/v1/intake")
+    def intake(body: IntakeBody, request: Request) -> dict[str, Any]:
+        authorize(request, "mutate")
+        return service.intake(IntakeRequest(**body.model_dump()))
+
+    @app.get("/v1/intake/{request_id}")
+    def intake_status(request_id: str, request: Request) -> dict[str, Any]:
+        authorize(request, "read")
+        return service.intake_status(request_id)
 
     def start_operation(
         workflow: str,

@@ -11,6 +11,8 @@ include docs/migration-0.2.md
 include docs/providers.md
 include docs/release-gate.md
 include docs/service-protocol.md
+include docs/goal-intake.md
+recursive-include skills *.md
 include docs/search-benchmark.md
 include docs/llm-search-benchmark.md
 include docs/recursive-search-benchmark.md

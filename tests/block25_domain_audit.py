@@ -35,6 +35,7 @@ GENERIC_PACKAGES = (
     "comparison",
     "governance",
     "improvement",
+    "intake",
     "intent",
     "interventions",
     "investigation",

@@ -26,6 +26,15 @@ capability implementations and owns any such provider process exactly once.
 
 ## Service lifecycle
 
+For plain-language goals, configure the optional [goal intake agent](goal-intake.md).
+`POST /v1/intake` (or MCP `librsi_intake`) selects a registered target adapter,
+collects observations, establishes measurable criteria, generates competing
+hypotheses, and submits the canonical admission and workflow request. It returns
+either a durable run ID or specific questions. The HTTP/MCP executables accept
+`--factory module:callable` to configure intake and provider implementations once.
+Intake does not execute experiments or grant application authority; started runs
+continue through the lifecycle below.
+
 Every run begins from a canonical `TargetAdmission`, which binds its exact target
 snapshot, objective, evaluation contract, capability route and posture, application
 governance requirement, evidence baseline, and resource ceilings. A caller then:

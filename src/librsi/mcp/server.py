@@ -12,6 +12,7 @@ from mcp.server.auth.settings import AuthSettings
 from mcp.server.mcpserver.exceptions import ResourceError, ResourceNotFoundError, ToolError
 
 from ..improvement import ImprovementRequest
+from ..intake import IntakeRequest
 from ..investigation import InvestigationRequest
 from ..protocol import TargetAdmission, response_document, serialize_response
 from ..records import TargetSnapshot
@@ -148,6 +149,42 @@ def create_mcp_server(
             raise client_fault(f"{workflow} requires a canonical {expected.__name__}")
         require_admission(admission_id)
         return service.start(cast(Any, record), admission_id=admission_id)
+
+    if service.intake_enabled:
+
+        @server.tool(name="librsi_intake", structured_output=True)
+        @tool_errors
+        def intake(
+            request_id: str,
+            goal: str,
+            context: dict[str, Any] | None = None,
+            adapter_id: str | None = None,
+        ) -> dict[str, Any]:
+            """Submit a broad goal; return a durable run or specific clarification questions."""
+            values = {
+                "request_id": request_id,
+                "goal": goal,
+                "context": context or {},
+                "adapter_id": adapter_id,
+            }
+            bound(values, "intake request")
+            request = client_value(
+                lambda: IntakeRequest(request_id, goal, context or {}, adapter_id)
+            )
+            return service.intake(request)
+
+        @server.tool(name="librsi_intake_adapters", structured_output=True)
+        @tool_errors
+        def intake_adapters() -> dict[str, Any]:
+            """List registered target families, available workflows and limits."""
+            return service.intake_adapters()
+
+        @server.tool(name="librsi_intake_status", structured_output=True)
+        @tool_errors
+        def intake_status(request_id: str) -> dict[str, Any]:
+            """Read a durable intake receipt; use the returned run id for execution/status."""
+            bound({"request_id": request_id}, "intake status")
+            return service.intake_status(request_id)
 
     @server.tool(name="librsi_target_submit", structured_output=True)
     @tool_errors
