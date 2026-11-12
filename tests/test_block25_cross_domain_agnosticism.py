@@ -78,7 +78,7 @@ EXPECTED_ACTION_ROOTS = (
     "67e0951510ed281e291f88a77991bb6059c0f976526cc7d1e7c560e8ed8b5fd3",
     "30114d0c0aebbe4c9c059150f75aa34d2a0eb430a5701f93a7f80ef2834ecd93",
 )
-EXPECTED_GENERIC_SOURCE_ROOT = "eee5b5d032cbde28ace69b42f30a9a68646be7fe647c7d24a31c7657cd115749"
+EXPECTED_GENERIC_SOURCE_ROOT = "43ff988bfa68f72803b83a9bdc3642fd08c53bd4f4e1ca90744b7e25b485935c"
 
 
 def _run_fermenter_proof() -> CrossDomainProof:
@@ -228,7 +228,7 @@ def test_generic_semantic_tree_has_no_software_types_or_adapter_dependencies() -
     repository_root = Path(__file__).resolve().parents[1]
     audit = audit_generic_tree(repository_root / "src")
 
-    assert len(audit.paths) == 104
+    assert len(audit.paths) == 109
     assert audit.source_root == EXPECTED_GENERIC_SOURCE_ROOT
     assert audit.leaks == ()
 
