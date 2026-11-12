@@ -11,6 +11,9 @@ from typing import Any, NoReturn
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="librsi-http")
     parser.add_argument("--data-dir", default=".librsi")
+    parser.add_argument(
+        "--factory", help="Trusted module:callable configuring providers and intake adapters"
+    )
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--max-request-bytes", type=int, default=1_048_576)
@@ -69,10 +72,13 @@ def main(argv: list[str] | None = None) -> int:
     uvicorn, LibRSIService, ServiceLimits, create_http_app, HTTPTokenPolicy = _dependencies()
 
     policy = HTTPTokenPolicy.from_tokens(**tokens) if protected else None
-    service = LibRSIService.local(
-        args.data_dir,
-        limits=ServiceLimits(max_request_bytes=args.max_request_bytes),
-    )
+    limits = ServiceLimits(max_request_bytes=args.max_request_bytes)
+    if args.factory:
+        from ..service.factory import load_service_factory
+
+        service = load_service_factory(args.factory, data_directory=args.data_dir, limits=limits)
+    else:
+        service = LibRSIService.local(args.data_dir, limits=limits)
     try:
         app = create_http_app(service, token_policy=policy)
         uvicorn.run(app, host=args.host, port=args.port)

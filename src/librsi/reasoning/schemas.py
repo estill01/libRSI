@@ -16,6 +16,8 @@ REASONING_KINDS = frozenset(
         "intervention-generation",
         "problem-decomposition",
         "approach-revision",
+        "intake-routing",
+        "goal-operationalization",
     }
 )
 
@@ -23,6 +25,19 @@ REASONING_KINDS = frozenset(
 # do not replace validation or introduce a second provider-specific schema.
 REASONING_CONTENT_GUIDANCE: Mapping[str, str] = MappingProxyType(
     {
+        "intake-routing": (
+            'Object: "adapter_id" (registered adapter id or null), "questions" (array of text). '
+            "Choose exactly one registered adapter and no questions, or return null and specific "
+            "questions when no adapter can be chosen from the supplied context."
+        ),
+        "goal-operationalization": (
+            'Object: "workflow" ("improvement", "investigation", or null), '
+            '"metric_id" (registered metric id or null), "minimum_effect" (positive number or null), '
+            '"question" (testable research question or null), "questions" (array of text). '
+            "Use only supplied measurements, metrics, capabilities and constraints. When ready, "
+            "fill all four fields and return no questions. When information is missing, set all "
+            "four fields to null and return specific questions."
+        ),
         "reflection": (
             'Object: "summary" (text), "observations" (array of text), '
             '"open_questions" (array of text; may be empty).'
@@ -263,6 +278,39 @@ def _approach_revision(content: Mapping[str, Any]) -> None:
         _require_text(revision["rationale"], "revision rationale")
 
 
+def _intake_routing(content: Mapping[str, Any]) -> None:
+    item = _shape(content, label="intake routing", required=frozenset({"adapter_id", "questions"}))
+    questions = _texts(item["questions"], "intake questions", allow_empty=True)
+    for question in questions:
+        _require_text(question, "intake question")
+    if questions:
+        if item["adapter_id"] is not None:
+            raise ValueError("unresolved intake cannot select an adapter")
+    else:
+        _require_text(item["adapter_id"], "adapter id")
+
+
+def _goal_operationalization(content: Mapping[str, Any]) -> None:
+    fields = {"workflow", "metric_id", "minimum_effect", "question"}
+    item = _shape(
+        content, label="goal operationalization", required=frozenset(fields | {"questions"})
+    )
+    questions = _texts(item["questions"], "intake questions", allow_empty=True)
+    for question in questions:
+        _require_text(question, "intake question")
+    if questions:
+        if any(item[name] is not None for name in fields):
+            raise ValueError("unresolved intake cannot supply an evaluation plan")
+        return
+    if item["workflow"] not in {"improvement", "investigation"}:
+        raise ValueError("unsupported intake workflow")
+    _require_text(item["metric_id"], "metric id")
+    _require_text(item["question"], "research question")
+    effect = item["minimum_effect"]
+    if type(effect) not in {int, float} or not math.isfinite(effect) or effect <= 0:
+        raise ValueError("minimum effect must be positive and finite")
+
+
 REASONING_SCHEMA_VALIDATORS: Mapping[str, Callable[[Mapping[str, Any]], None]] = MappingProxyType(
     {
         "reflection": _reflection,
@@ -272,6 +320,8 @@ REASONING_SCHEMA_VALIDATORS: Mapping[str, Callable[[Mapping[str, Any]], None]] =
         "intervention-generation": _intervention_generation,
         "problem-decomposition": _problem_decomposition,
         "approach-revision": _approach_revision,
+        "intake-routing": _intake_routing,
+        "goal-operationalization": _goal_operationalization,
     }
 )
 

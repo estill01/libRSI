@@ -6,14 +6,16 @@ from collections.abc import Callable
 from dataclasses import replace
 from pathlib import Path
 from threading import RLock
-from typing import Any
+from typing import Any, cast
 
 from ..capabilities import CapabilityRegistry
 from ..improvement import ImprovementRequest
+from ..intake import IntakeAdapter, IntakeAgent, IntakeRequest, SQLiteIntakeStore
 from ..investigation import InvestigationRequest
 from ..knowledge import KnowledgeQuery
 from ..protocol import ExternalAgentController, TargetAdmission, response_document
-from ..records import TargetSnapshot
+from ..reasoning import ReasoningBackend
+from ..records import TargetSnapshot, record_from_dict
 from ..rsi import RSIRequest
 from ..runtime import ActionResult
 from ..validation import ValidationRequest
@@ -34,6 +36,7 @@ class LibRSIService:
         registry: CapabilityRegistry | None = None,
         limits: ServiceLimits | None = None,
         current_snapshot_resolver: Callable[[TargetSnapshot], TargetSnapshot] | None = None,
+        intake_agent: IntakeAgent | None = None,
     ) -> None:
         if type(controller) is not ExternalAgentController:
             raise TypeError("service requires an ExternalAgentController")
@@ -56,6 +59,9 @@ class LibRSIService:
         )
         self._closed = False
         self._lock = RLock()
+        if intake_agent is not None and type(intake_agent) is not IntakeAgent:
+            raise TypeError("service intake must be an IntakeAgent")
+        self._intake = intake_agent
 
     @classmethod
     def local(
@@ -65,13 +71,109 @@ class LibRSIService:
         registry: CapabilityRegistry | None = None,
         limits: ServiceLimits | None = None,
         current_snapshot_resolver: Callable[[TargetSnapshot], TargetSnapshot] | None = None,
+        intake_backend: ReasoningBackend | None = None,
+        intake_adapters: tuple[IntakeAdapter, ...] = (),
     ) -> LibRSIService:
-        return cls(
-            ExternalAgentController.local(data_directory),
-            registry=registry,
-            limits=limits,
-            current_snapshot_resolver=current_snapshot_resolver,
-        )
+        if (intake_backend is None) != (not intake_adapters):
+            raise ValueError("configure both an intake backend and adapters")
+        controller = ExternalAgentController.local(data_directory)
+        agent = None
+        store = None
+        try:
+            if intake_backend is not None:
+                store = SQLiteIntakeStore(Path(data_directory).expanduser() / "intake.sqlite3")
+                agent = IntakeAgent(intake_backend, intake_adapters, store)
+            return cls(
+                controller,
+                registry=registry,
+                limits=limits,
+                current_snapshot_resolver=current_snapshot_resolver,
+                intake_agent=agent,
+            )
+        except Exception:
+            controller.close()
+            if store is not None:
+                store.close()
+            raise
+
+    @property
+    def intake_enabled(self) -> bool:
+        return self._intake is not None
+
+    def intake_adapters(self) -> dict[str, Any]:
+        with self._lock:
+            self._ensure_open()
+            return response_document(
+                "intake.adapters",
+                data={
+                    "enabled": self.intake_enabled,
+                    "adapters": [] if self._intake is None else self._intake.catalog(),
+                },
+            )
+
+    def intake(self, request: IntakeRequest) -> dict[str, Any]:
+        """Translate a goal and submit one run, without executing or applying it."""
+        from ..errors import RSICapabilityError
+
+        with self._lock:
+            self._ensure_open()
+            if self._intake is None:
+                raise RSICapabilityError("no intake backend and adapters are configured")
+            if type(request) is not IntakeRequest:
+                raise TypeError("service intake requires an IntakeRequest")
+            self._require_request_size(request.to_dict(), "intake request")
+            receipt = self._intake.prepare(request)
+            if "result" not in receipt:
+                prepared = receipt["prepared"]
+                admission = record_from_dict(prepared["admission"])
+                workflow = record_from_dict(prepared["request"])
+                if type(admission) is not TargetAdmission or type(workflow) not in {
+                    ImprovementRequest,
+                    InvestigationRequest,
+                }:
+                    raise ValueError("invalid prepared intake checkpoint")
+                workflow = cast(ImprovementRequest | InvestigationRequest, workflow)
+                run_id = workflow.canonical_run().run_id
+                binding = self.controller.agent_store.load_run(run_id)
+                if binding is not None and (
+                    binding.request != workflow or binding.admission != admission
+                ):
+                    raise ValueError("intake run id already names different work")
+                if binding is None or self.controller.runtime_store.resume(run_id) is None:
+                    self._intake.require_current(request, receipt)
+                    self.submit_target(admission)
+                    self.start(workflow, admission_id=admission.admission_id)
+                receipt["result"] = {
+                    "request_id": request.request_id,
+                    "disposition": "started",
+                    "adapter_id": receipt["adapter_id"],
+                    "run_id": run_id,
+                    "workflow": "improvement"
+                    if type(workflow) is ImprovementRequest
+                    else "investigation",
+                    "questions": [],
+                    "criteria": admission.evaluation_contract.to_dict(),
+                    "hypotheses": [item.to_dict() for item in workflow.initial_hypotheses],
+                }
+                self._intake.store.save(request.request_id, receipt)
+            return response_document("intake.submit", data=receipt["result"])
+
+    def intake_status(self, request_id: str) -> dict[str, Any]:
+        with self._lock:
+            self._ensure_open()
+            receipt = None if self._intake is None else self._intake.store.load(request_id)
+            if receipt is None:
+                raise KeyError("unknown intake request id")
+            result = receipt.get(
+                "result",
+                {
+                    "request_id": request_id,
+                    "disposition": "pending",
+                    "questions": [],
+                    "run_id": None,
+                },
+            )
+            return response_document("intake.status", data=result)
 
     def _require_request_size(self, payload: object, label: str) -> None:
         require_json_size(payload, limit=self.limits.max_request_bytes, label=label)
@@ -250,6 +352,7 @@ class LibRSIService:
                         for route in self.registry.routes
                     ],
                     "application_execution_configured": "applier" in families,
+                    "intake_configured": self.intake_enabled,
                     "application_currentness_configured": (
                         self._current_snapshot_resolver is not None
                     ),
@@ -272,6 +375,8 @@ class LibRSIService:
         with self._lock:
             if not self._closed:
                 self.controller.close()
+                if self._intake is not None:
+                    self._intake.close()
                 self._closed = True
 
     def __enter__(self) -> LibRSIService:
