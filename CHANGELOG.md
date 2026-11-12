@@ -7,6 +7,10 @@ not been published or tagged by this tracker run.
 
 ### Added
 
+- An Astra-driven benchmark comparing the original scheduler, native libRSI
+  optimization, and optimization using the improver retained by a native meta
+  pass. It records model usage, durable outcomes, independent confirmation and
+  reproducible improvement/effort graphs.
 - Opt-in `ConcurrentAdaptiveLoop`, `ConcurrentLearningStore` and
   `LocalConcurrentLearningStore` for concurrent ordinary tasks with one learning
   owner. Durable task admissions preserve producing revisions across publication
@@ -30,6 +34,10 @@ not been published or tagged by this tracker run.
 
 ### Changed
 
+- New adaptive passes freeze evidence mapping version 3: exact ties are neutral,
+  effect magnitudes determine weights, and bounded total weight prevents
+  order-dependent confidence saturation. Previously frozen version-2 and
+  unversioned passes keep their original mapping when resumed.
 - The recommended entry surface is `LibRSI`; the deterministic policy kernel remains
   available under `librsi.expert` and through the retained top-level compatibility
   exports.

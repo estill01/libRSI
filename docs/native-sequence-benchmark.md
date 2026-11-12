@@ -123,6 +123,14 @@ If the host interrupts a worker, `python examples/resume_native_sequence.py
 durable stores and resumes pending native passes with the original samples.
 It verifies the original runtime and experiment source hashes and counts saved
 model responses once. An unfinished provider request stops recovery for diagnosis.
+After recovery, run the auditor, confirmation evaluator and plotter against the
+completed raw output, using fresh directories for their artifacts:
+
+```bash
+python examples/audit_native_sequence.py --source ./native-sequence-run/raw --output ./native-sequence-run/audit
+python examples/extend_native_confirmation.py --source ./native-sequence-run/raw --output ./native-sequence-run/confirmation
+python examples/plot_native_sequence.py --report ./native-sequence-run/confirmation/confirmed-report.json.gz --receipts ./native-sequence-run/raw/receipts.json --output ./native-sequence-run/plots
+```
 
 The earlier [candidate study](setup-sequence-benchmark.md) and
 [recursive scientific-search study](recursive-search-benchmark.md) remain
