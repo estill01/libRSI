@@ -183,8 +183,13 @@ class CodexSampler:
     The CLI exposes token usage, not a billed dollar amount or immutable model snapshot.
     """
 
-    def __init__(self, directory: Path, model: str, *, max_calls: int = 24) -> None:
+    def __init__(
+        self, directory: Path, model: str, *, max_calls: int = 24, reasoning_effort: str = "high"
+    ) -> None:
+        if reasoning_effort not in {"low", "medium", "high"}:
+            raise ValueError("unsupported reasoning effort")
         self.directory, self.model, self.max_calls = directory, model, max_calls
+        self.reasoning_effort = reasoning_effort
         directory.mkdir(parents=True, exist_ok=False)
         self.receipts: list[dict[str, Any]] = []
         self._lock = Lock()
@@ -250,7 +255,7 @@ class CodexSampler:
             "--cd",
             str(path),
             "-c",
-            'model_reasoning_effort="high"',
+            f'model_reasoning_effort="{self.reasoning_effort}"',
             "-c",
             "project_doc_max_bytes=0",
             "-c",
@@ -284,7 +289,7 @@ class CodexSampler:
                 "role": role,
                 "model": self.model,
                 "provider": "OpenAI via Codex CLI",
-                "reasoning_effort": "high",
+                "reasoning_effort": self.reasoning_effort,
                 "cli_version": self.version,
                 "prompt_sha256": digest(prompt),
                 "provider_cost_usd": None,
