@@ -35,9 +35,9 @@ def ordered_inputs(store: LearningStore) -> tuple[Observation, ...]:
             raise ValueError("learning history input belongs to another pass or profile")
         sequence = inputs.value.get("sequence")
         version = inputs.value.get("learning_version")
-        if version is not None and (type(version) is not int or version != 2):
+        if version is not None and (type(version) is not int or version not in (2, 3)):
             raise ValueError("unsupported learning history version")
-        if version == 2 or "sequence" in inputs.value:
+        if version in (2, 3) or "sequence" in inputs.value:
             if type(sequence) is not int or sequence <= 0 or sequence in sequences:
                 raise ValueError("learning history sequence is invalid or ambiguous")
             sequences.add(sequence)

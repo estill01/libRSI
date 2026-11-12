@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from math import fsum
 from statistics import fmean
 from typing import Literal
 
@@ -96,7 +97,7 @@ class LearningHost:
                 raise RuntimeError(cached.value["message"])
             TaskMeasurement(cached.value["output"], cached.value["value"])
             return cached
-        timed = self.inputs.value.get("learning_version") == 2
+        timed = self.inputs.value.get("learning_version") in (2, 3)
         started = clock()
         try:
             measured = self.adapter.evaluate(snapshot.state, case)
@@ -188,15 +189,29 @@ class LearningHost:
         request = investigation_experiment_request_from_action(action)
         hypothesis = request.branch.hypothesis
         candidate = self.store.snapshot(hypothesis.causal_model["configuration"])
-        evidence = []
+        observations = []
         for case in self.training:
             before = self.measure(self.baseline, case, "training")
             after = self.measure(candidate, case, "training")
             delta = after.value["value"] - before.value["value"]
             favorable = delta if self.policy.metric.direction == "increase" else -delta
+            observations.append((case, before, after, favorable))
+        # V3 bounds the entire batch's confidence movement to 0.5. Starting
+        # from 0.5, no evidence ordering can clip at either endpoint. Magnitudes
+        # matter, and exact ties are neutral. Frozen older passes retain their
+        # original evidence mapping, including on resume before this action.
+        normalized = self.inputs.value.get("learning_version") == 3
+        total = fsum(abs(row[3]) for row in observations)
+        evidence = []
+        for case, before, after, favorable in observations:
+            relationship = "support" if favorable > 0 else "counterexample"
+            weight = 1.0
+            if normalized:
+                relationship = relationship if favorable != 0 else "null"
+                weight = min(1.0, 2.5 * (abs(favorable) / total)) if total else 0.0
             evidence.append(
                 Evidence(
-                    evidence_type="support" if favorable > 0 else "counterexample",
+                    evidence_type=relationship,
                     data={
                         "case": case.case_id,
                         "baseline": before.value["value"],
@@ -206,7 +221,7 @@ class LearningHost:
                     source_refs=(request.experiment.ref,),
                     lineage=(request.experiment.ref, before.ref, after.ref),
                     target_snapshot=self.baseline,
-                    weight=1,
+                    weight=weight,
                 )
             )
         return make_investigation_experiment_result(
