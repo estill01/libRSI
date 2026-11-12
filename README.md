@@ -2,94 +2,74 @@
 
 # libRSI
 
-**Give your application an improvement loop—and improve the loop itself.**
+**Describe what should improve. Test competing ideas. Keep changes that earn adoption.**
 
-libRSI turns proposed changes into measured experiments. An LLM suggests a better
-search formula, prompt, or strategy; your workload measures it. libRSI compares
-candidates and manages review, adoption, verification, and recovery. The next task
-uses the accepted revision.
+libRSI supports **declarative, experiment-driven optimization**. You provide an
+outcome and constraints; a connected model proposes a measurable interpretation,
+baseline and competing experiments. Your application executes them. libRSI records
+evidence and manages comparison, review, adoption, verification and recovery.
 
-The same workflow can improve **the improver**: change its proposal instructions,
-measure whether they produce better candidates, and use accepted instructions on
-subsequent work. Repeat that idea on the process that writes those instructions
-for higher-level recursive self-improvement.
+The same workflow can improve **the improver**: revise its instructions, measure
+whether they produce better candidates, and use accepted instructions on later
+work. Repeat at higher levels for recursive improvement.
 
 **Python 3.11+ · Dependency-free core · Typed API · MIT**
 
-## A real LLM-driven example
+## A measured example
 
-Search **5,183 scientific abstracts**, then improve the search and its improvers:
+Start with **“Reduce changeover downtime while keeping planning inexpensive.”**
+Astra translates this into setup-cost reduction, a 2% worthwhile-effect threshold,
+and competing search strategies. It assembles programs for repeating 14-job
+production schedules; the host enforces **256 cost evaluations per program**.
 
-- **Ordinary:** the LLM writes two scoring formulas from training feedback.
-- **Meta:** optimize the instructions given to that formula proposer.
-- **Meta-meta:** optimize the instructions that rewrite the proposer's instructions.
-- **Meta-meta-meta:** go one level higher if meta-meta finds no supported change.
+**Every reasoning role uses OpenAI `gpt-6-astra`, high reasoning, via Codex CLI:**
+goal interpretation, program proposals, meta revisions and subsequent proposals.
+The planner, scoring and reviewer use **no model**. libRSI has no default model;
+your backend specifies one.
 
-Every higher-level instruction is propagated through actual model calls down to
-search formulas. The experiment uses **five separate samples per policy**, with
-matched two-formula budgets, separate generation/evaluation data, and the same
-300 official SciFact test queries. All five outcomes are retained.
+![Candidate gains, adjusted uncertainty and effort; all reasoning uses OpenAI gpt-6-astra high](docs/assets/setup-sequence-improvement.png)
 
-libRSI evaluates and governs the instruction changes. Inner formula trials use
-a smaller scoring proxy; the [first example](docs/llm-search-benchmark.md) also
-measures a complete native formula-adoption loop.
+| Proposal policy scored | Model | Mean setup cost saved | Model calls |
+| --- | --- | ---: | ---: |
+| Starting planner | None | 0% | 0 |
+| Original improver | `gpt-6-astra`, high | 5.02% | 32 |
+| Revised improver | `gpt-6-astra`, high | 5.71% | 97 development + 32 reuse |
+| Original improver, same total calls | `gpt-6-astra`, high | 4.27% | 129 |
 
-**Every reasoning role uses OpenAI `gpt-6-astra`, reasoning `high`, via Codex CLI.**
-The search engine itself makes no LLM calls. Scoring uses relevance judgments;
-review and libRSI's decisions use deterministic Python. libRSI has no built-in
-model choice: your backend specifies it.
+Each arm has **32 proposal draws on 128 unseen synthetic workloads**. The revision
+adds **0.69 percentage points** over ordinary use, adjusted interval **−0.02 to
++1.54**; against the same-call control, **+1.44 points [0.13, 2.76]**. Neither
+establishes the prespecified two-point worthwhile gain.
 
-![Recursive search quality, five-sample variation, and effort; every reasoning role uses OpenAI gpt-6-astra high](docs/assets/recursive-search-improvement.png)
+**These are candidate scores, not adopted improvements.** Native governance kept
+the original instructions; subsequent native use rejected its program at the
+shadow check. Separately, we found a facade limitation: ties count against
+proposals, and evidence order can change early decisions.
+[Diagnosis and controlled reproduction](docs/meta-diagnosis.md).
 
-| Pipeline | Model driving proposals | MRR@5 × 100, mean ± SD | Meta policy adopted? |
-| --- | --- | ---: | --- |
-| Original term counts | None | 6.3 (fixed) | — |
-| Ordinary LLM proposals | `gpt-6-astra`, high | 62.3 ± 0.69 | — |
-| Meta | `gpt-6-astra`, high | 62.3 ± 0.69 | No |
-| Meta-meta | `gpt-6-astra`, high | 61.5 ± 1.16 | No |
-| Meta-meta-meta | `gpt-6-astra`, high | 61.9 ± 0.12 | No |
-
-MRR@5 rewards placing relevant results near the top; 100 means every first result
-is relevant. For context, the [first experiment's plain BM25-equivalent formula](docs/llm-search-benchmark.md)
-scored **62.2** on these queries. The large gain over raw term counts does not
-establish a new state of the art.
-
-**No learned meta policy earned adoption in this run.** Rows without adoption use
-the default pipeline at that depth; identical policies share frozen samples.
-Meta-meta gained 1.29 points during development but lost 2.05 on separate shadow
-queries, so libRSI rejected it. Extra rewriting did not establish a meta improvement.
-
-The complete follow-up used **123 model turns**, **1,352,863 reported input/output
-tokens**, and **28.4 minutes** with up to three concurrent inference
-calls. Dollar billing is unavailable through subscription credentials, not zero.
-This is one corpus with five model samples, not a general performance guarantee.
-[Protocol, same-depth controls, rejected changes, costs and raw evidence](docs/recursive-search-benchmark.md).
+Total: **261 Astra calls · 3,560,773 reported input/output tokens · 35.0 minutes**.
+Dollar billing is unavailable. Call budgets share samples; tokens and time are
+not matched. [Full protocol, uncertainty, costs and replayable evidence](docs/setup-sequence-benchmark.md).
+The earlier [scientific-search study](docs/recursive-search-benchmark.md) also
+runs meta, meta-meta and meta-meta-meta; none of those revisions generalized.
 
 ## Run it
 
-From a source checkout, install the benchmark dependencies and authenticate the
-public Codex CLI with access to the model you name:
+From a source checkout, authenticate Codex CLI with Astra access. The exact
+reference solver requires a C++17 compiler.
 
 ```bash
 python -m pip install . numpy matplotlib
-python examples/scifact_data.py --download ./scifact.zip
-python examples/benchmark_recursive_search.py \
-  --dataset ./scifact.zip --output ./recursive-run --model gpt-6-astra
-python examples/plot_recursive_search.py \
-  --report ./recursive-run/report.json --output ./recursive-run/improvement
+python examples/benchmark_setup_sequence.py --output ./sequence-run --model gpt-6-astra
+python examples/plot_setup_sequence.py --report ./sequence-run/report.json --output ./sequence-run/improvement
 ```
 
-Use a fresh output directory. This consumes model quota, with a hard ceiling of
-160 turns and no automatic retries. For a smaller run, see the
-[first LLM example](docs/llm-search-benchmark.md). The
-[deterministic companion](docs/search-benchmark.md) needs no model access and
-chooses among prewritten configurations and portfolios.
+Use a fresh output directory: 300-call ceiling, no automatic retries.
+[Smaller LLM example](docs/llm-search-benchmark.md) · [No-model companion](docs/search-benchmark.md).
 
-## Use it in your application
+## Connect your application
 
-Supply an **adapter** that executes and measures a configuration, a **proposer**
-using your chosen model, and a **reviewer** that checks experimental evidence.
-Once those components, a store and a metric policy are supplied:
+Supply a measuring adapter, model-backed proposer, reviewer, store and metric policy:
 
 ```python
 from librsi import AdaptiveLoop, LearningCase
@@ -105,18 +85,17 @@ result = loop.learn(
 )
 ```
 
-For meta use, make the configuration the proposer's instructions, and make its
-adapter measure the usefulness of generated candidates. The
-[complete recursive example](examples/benchmark_recursive_search.py) runs native
-root-policy experiments and checks that later tasks consume the saved decisions.
+The intent layer accepts a proposed evaluation contract; low-level `improve()`
+requires completed operationalization and initial competing hypotheses. The
+[goal interpreter](examples/sequence_intent.py) and
+[complete runner](examples/benchmark_setup_sequence.py) connect those interfaces.
+Your application supplies meaningful measurements, representative data and execution
+isolation; installing libRSI alone does not supply a universal autonomous optimizer.
 
 ## Guides
 
 - [Adaptive integration](docs/adaptive-operation.md) · [API](docs/api.md) · [Concurrent serving](docs/concurrent-adaptive-operation.md)
 - [Model providers](docs/providers.md) · [External agents](docs/external-agent-protocol.md) · [HTTP/MCP](docs/service-protocol.md)
 - [Consumer integration](docs/consumer-integration.md) · [Testing](docs/testing.md) · [Migration](docs/migration-0.2.md)
-
-Your application owns metric quality, execution isolation and effects. libRSI owns
-the experiment and decision records; proposals still have to earn adoption.
 
 libRSI-owned material is [MIT licensed](LICENSE). [Separate upstream license boundaries](docs/license-decision.md).
