@@ -1,5 +1,10 @@
 # From a broad goal to measured experiments
 
+This is the earlier candidate-quality study. The subsequent
+[native three-case benchmark](native-sequence-benchmark.md) evaluates actual
+retained systems with the versioned facade correction and a different baseline.
+The two experiments' percentages are not directly comparable.
+
 This example starts with a caller's goal:
 
 > Reduce downtime from changeovers in our repeating production schedules, while keeping planning inexpensive and covering every job exactly once.

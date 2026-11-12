@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import gzip
 import json
 from collections import Counter
@@ -98,6 +99,55 @@ def summarize(report, workloads, receipts):
     }
 
 
+def export_run_csv(report, output):
+    """One row per independent optimizer draw, plus the unchanged reference."""
+    fields = [
+        "case",
+        "optimization_model",
+        "reasoning_effort",
+        "meta_model",
+        "meta_revision_adopted",
+        "optimization_run",
+        "native_disposition",
+        "scheduler_adopted",
+        "test_workloads",
+        "mean_cost_reduction_percent",
+    ]
+    with output.open("w", newline="") as stream:
+        writer = csv.DictWriter(stream, fieldnames=fields)
+        writer.writeheader()
+        writer.writerow(
+            {
+                "case": "base",
+                "optimization_model": "none",
+                "reasoning_effort": "none",
+                "meta_model": "none",
+                "native_disposition": "original",
+                "test_workloads": len(report["test_baseline_costs"]),
+                "mean_cost_reduction_percent": 0,
+            }
+        )
+        for arm, grid in report["scores"].items():
+            rows = [row for row in report["runs"] if row["label"].startswith(arm + "-")]
+            for row, scores in zip(rows, grid, strict=True):
+                writer.writerow(
+                    {
+                        "case": arm,
+                        "optimization_model": "gpt-6-astra",
+                        "reasoning_effort": "high",
+                        "meta_model": "none" if arm == "ordinary" else "gpt-6-astra (high)",
+                        "meta_revision_adopted": ""
+                        if arm == "ordinary"
+                        else report["meta"]["adopted"],
+                        "optimization_run": row["label"],
+                        "native_disposition": row["disposition"],
+                        "scheduler_adopted": row["adopted"],
+                        "test_workloads": len(scores),
+                        "mean_cost_reduction_percent": float(np.mean(scores) * 100),
+                    }
+                )
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data", type=Path, required=True)
@@ -111,4 +161,5 @@ if __name__ == "__main__":
     (args.data / "descriptive-diagnostics.json").write_text(
         json.dumps(result, indent=2, sort_keys=True) + "\n"
     )
+    export_run_csv(report, args.data / "run-scores.csv")
     print(json.dumps(result, indent=2))

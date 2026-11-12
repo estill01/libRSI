@@ -47,6 +47,10 @@ comparison, forward-shadow evaluation, review, adoption and verification. It
 reopens the durable store and checks the active strategy. Rejected, invalid or
 rolled-back proposals leave the original system in the reported outcome.
 
+The two proposals come from one model call. The 32 final runs per arm are
+independent repetitions to measure variability, not 32 successive improvement
+steps on one scheduler. Meta development is an additional upfront expense.
+
 Training, shadow and verification each contain 32 distinct workloads, grouped
 into two native cases of 16. Each group is balanced across the four families.
 The inner minimum effect is **0.02**: two percentage points of setup-cost
@@ -66,6 +70,12 @@ using separate training, shadow and verification draws. That is **73 development
 calls**: 24 original-improver draws, one instruction-revision call, and 48
 revised-improver draws. Neither model nor evaluator receives the final test set
 as proposal feedback.
+
+The meta prompt requested instructions no longer than 2,400 characters; the
+existing host validator permits up to 3,000. Astra returned 2,601- and
+2,841-character instructions. Both passed the frozen host validator and were
+used unchanged. This prompt-length shortfall is retained in the transcripts;
+neither response was shortened or regenerated.
 
 After the active improver is frozen and reopened, each primary optimization arm
 receives **32 independent model draws** on fresh inner training/shadow/verification
@@ -88,6 +98,11 @@ shared workload indices resampled within family. It is conditional on one meta
 training run; it does not estimate variability across repeated meta training.
 The protocol does not stop early after a favorable outcome or add samples until
 significance. There is no equal-total-compute control in this study.
+
+Effort totals cover this experiment's recorded provider calls. Coding and review
+work are not metered in those totals, and earlier experiments retain their own
+cost ledgers. Dollar billing is unavailable; reported input tokens include cached
+input. Setup failures are itemized separately from the main comparison.
 
 ## Library correction
 
