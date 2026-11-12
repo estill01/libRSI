@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import shutil
+from pathlib import Path
+from typing import Any
 
 from llm_search import CodexSampler
 
@@ -14,7 +16,7 @@ class RecordedCodexSampler(CodexSampler):
     def __init__(self, directory, model, *, reuse=None, **kwargs):
         super().__init__(directory, model, **kwargs)
         self.reuse = reuse
-        self.replays = {}
+        self.replays: dict[str, tuple[Path, dict[str, Any]]] = {}
         if reuse is not None:
             for path in sorted((reuse / "model-calls").glob("*/receipt.json")):
                 receipt = json.loads(path.read_text())
