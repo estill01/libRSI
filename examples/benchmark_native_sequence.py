@@ -13,7 +13,7 @@ import hashlib
 import json
 import random
 import statistics
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from datetime import UTC, datetime
 from pathlib import Path
 from time import perf_counter
@@ -21,7 +21,7 @@ from time import perf_counter
 import numpy as np
 from benchmark_document_search import MeasuredReviewer, provenance, write_json
 from benchmark_llm_search import usage_total
-from benchmark_setup_sequence import bounded_parallel, hypotheses, interval
+from benchmark_setup_sequence import hypotheses, interval
 from llm_search import CodexSampler, validate_instructions
 from sequence_program import (
     BASE_INSTRUCTIONS,
@@ -245,7 +245,13 @@ class Study:
         return (self.output, label, choices, instruction, self.problems, phase)
 
     def run_jobs(self, specs):
-        generated = bounded_parallel(specs, self.generate)
+        generated = []
+        with ThreadPoolExecutor(max_workers=2) as model_pool:
+            # At most two in flight; a failed pair prevents any later submission.
+            for start in range(0, len(specs), 2):
+                generated.extend(
+                    model_pool.map(lambda job: self.generate(*job), specs[start : start + 2])
+                )
         with ProcessPoolExecutor(max_workers=NATIVE_WORKERS) as pool:
             rows = list(pool.map(scheduler_run, generated))
         return sorted(rows, key=lambda r: r["label"])
@@ -415,6 +421,9 @@ def run(output):
         "test_workloads": 128,
         "runtime_cost_evaluations": BUDGET,
         "model_call_limit": 169,
+        "model_concurrency": 2,
+        "model_timeout_seconds": 600,
+        "transport_setup": "Prior 180-second, six-concurrent attempt stopped after provider timeouts before any native evaluation. Receipts retained separately. Same fixed protocol, workloads and sample counts; no outcome-based restart.",
         "final_policy": "Use the reopened ACTIVE improver after the native meta pass. If meta is rejected, retain the original instruction. Never force a proposed revision into the primary third arm.",
         "diagnostic": "If meta is rejected, additionally run 32 full inner native optimizations with the better training-scoring proposed instruction. Label as forced instruction diagnostic, not actual meta adoption.",
         "analysis": "Primary contrast: after-meta minus ordinary. 10000 crossed bootstrap draws over independent model draws and paired workload samples stratified by family; 95% interval. Conditional on one meta-development run, not uncertainty over repeated meta training. No optional stopping or replacing failures.",
@@ -435,7 +444,9 @@ def run(output):
     write_json(output / "workloads.json", data)
     oracle = build_oracle(output / "oracle")
     problems = {split: [fresh_problem(row, oracle) for row in rows] for split, rows in data.items()}
-    sampler = CodexSampler(output / "model-calls", MODEL, max_calls=169, reasoning_effort="high")
+    sampler = CodexSampler(
+        output / "model-calls", MODEL, max_calls=169, reasoning_effort="high", timeout_seconds=600
+    )
     study = Study(output, problems, sampler)
     try:
         meta = meta_run(study)

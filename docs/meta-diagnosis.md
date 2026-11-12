@@ -192,3 +192,28 @@ the search runs and scheduling confirmation. The
 [pilot ledger](benchmarks/meta-diagnosis/pilot-ledger.json) retains unsuccessful
 and saturated tasks as well as useful ones. Luna appears only in that discarded
 calibration, not in the main study.
+
+## Follow-up: versioned facade correction
+
+New adaptive passes now freeze `learning_version: 3`. Their investigation
+mapping treats exact ties as neutral evidence with zero weight. Nonzero evidence
+uses `min(1, 2.5 * abs(delta) / sum(abs(delta)))`, where delta is favorable change
+in the configured metric. This preserves effect magnitude and limits the entire
+batch's confidence movement to 0.5 from its initial 0.5. Consequently, the
+sequential aggregator cannot saturate midway through a batch and discard earlier
+evidence. Its canonical thresholds and policies remain unchanged.
+
+This is a bounded heuristic screening rule, not a statistical confidence level.
+The subsequent native comparison, minimum-effect requirement, forward shadow,
+review, adoption, verification and rollback still run. A supported investigation
+alone does not authorize adoption. The screen can still reject noisy mixed
+improvements, and a single nonzero observation cannot establish support by itself.
+
+Previously frozen version-2 and unversioned passes retain their original evidence
+mapping when resumed, including an unfinished pass whose experiment has not yet
+run. Existing cached results remain unchanged. Regression coverage checks sparse
+gains, ties, mixed effect magnitudes, evidence permutations, reopening and replay;
+the affected native adoption and rollback tests also run.
+
+The new end-to-end experiment uses this versioned correction. The earlier
+published studies retain their original source snapshots and results.
