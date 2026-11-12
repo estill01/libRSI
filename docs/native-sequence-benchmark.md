@@ -113,10 +113,16 @@ retry with the identical prompt, schema, instructions, model (`gpt-6-astra`, hig
 and timeout. That retry completed in 49.2 seconds. The original failed receipt
 remains unchanged; no completed sample was discarded or replaced.
 
-This exceeds the original 169-attempt ceiling by one: **170 attempts, 169 completed
-calls, one timeout with unknown token usage**. The after-meta budget includes that
-extra attempt. Token totals are known usage, not a complete bill. The recovery
-code requires an explicit recorded mapping and never retries automatically.
+The last outstanding request, 169 (`ordinary-12`), subsequently had the same
+failure: session-start events only, then a 600-second timeout. A second recorded
+amendment allowed one identical-request retry before any final systems or test
+evaluation. Both failed originals are retained.
+
+This exceeds the original 169-attempt ceiling by two: **171 attempts, 169 completed
+calls, two timeouts with unknown token usage**. Each primary optimization arm
+includes one extra attempt. Token totals are known usage, not a complete bill.
+The recovery code requires an explicit recorded mapping and never retries
+automatically.
 
 ## Additional transfer diagnostic
 

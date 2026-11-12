@@ -188,15 +188,20 @@ def audit(source, output):
             assert hashlib.sha256(script.read_bytes()).hexdigest() == recovery["source_sha256"]
         shutil.copytree(source / "recovery", output / "recovery")
     if retry_count:
-        plan = json.loads((source / "transport-recovery.json").read_text())
-        assert retry_count == len(plan["retries"]) <= plan["extra_attempt_limit"]
         from datetime import datetime
 
-        assert (
-            datetime.fromisoformat(plan["registered_at"]).timestamp()
-            < (source / "frozen-final-systems.json").stat().st_mtime
-        )
-        shutil.copyfile(source / "transport-recovery.json", output / "transport-recovery.json")
+        registered: set[str] = set()
+        for plan_path in sorted(source.glob("transport-recovery*.json")):
+            plan = json.loads(plan_path.read_text())
+            assert len(plan["retries"]) <= plan["extra_attempt_limit"]
+            assert not registered.intersection(plan["retries"])
+            registered.update(plan["retries"])
+            assert (
+                datetime.fromisoformat(plan["registered_at"]).timestamp()
+                < (source / "frozen-final-systems.json").stat().st_mtime
+            )
+            shutil.copyfile(plan_path, output / plan_path.name)
+        assert retry_count == len(registered)
     validation = {
         "all_reasoning": f"{MODEL}, high",
         "verified_model_calls": len(receipts) + retry_count,

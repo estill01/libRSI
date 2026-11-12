@@ -107,10 +107,11 @@ def render(report, receipts, output):
     effort_ax.set_axisbelow(True)
     for i, value in enumerate(calls):
         effort_ax.text(i, value + 4, str(value), ha="center", weight="bold", fontsize=13)
-    retry_count = report["effort"].get("unknown_usage_timeout_calls", 0)
+    ordinary_retries = attempts(ordinary) - len(ordinary)
+    meta_retries = attempts(meta_rows) - len(meta_rows)
     effort_ax.set_title(
-        f"Meta includes 73 development calls + {retry_count} retry"
-        if retry_count
+        f"Meta includes 73 development calls + {meta_retries} retry"
+        if meta_retries
         else "Meta includes 73 development calls",
         fontsize=10,
         pad=12,
@@ -196,7 +197,7 @@ def render(report, receipts, output):
     fig.text(
         0.09,
         0.21,
-        f"Ordinary: 32 native optimizations. Meta: 73 development calls + 32 native optimizations + {retry_count} timeout retry.",
+        f"32 native optimizations per arm; meta adds 73 development calls. Timeout retries: ordinary {ordinary_retries}, meta {meta_retries}.",
         fontsize=10,
     )
     fig.text(

@@ -37,13 +37,18 @@ def resolve_transport_recovery(source, path, receipt):
     """Use only an explicitly registered, already completed transport retry."""
     if receipt.get("returncode") == 0 and len(receipt.get("usage", [])) == 1:
         return path, receipt
-    plan_path = source / "transport-recovery.json"
-    if not plan_path.exists():
+    plans = [json.loads(p.read_text()) for p in sorted(source.glob("transport-recovery*.json"))]
+    if not plans:
         raise ValueError(f"unfinished provider call {path}; diagnose before resuming")
-    plan = json.loads(plan_path.read_text())
-    entry = plan["retries"].get(str(receipt["number"]))
-    if entry is None:
+    entries = [
+        plan["retries"][str(receipt["number"])]
+        for plan in plans
+        if str(receipt["number"]) in plan["retries"]
+    ]
+    if not entries:
         raise ValueError(f"unfinished provider call {path}; no registered recovery")
+    assert len(entries) == 1
+    entry = entries[0]
     assert receipt.get("status") == "timeout" and not receipt.get("usage")
     assert not (path / "response.json").exists()
     assert (
