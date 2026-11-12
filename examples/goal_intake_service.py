@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import os
 from collections.abc import Mapping
+from importlib import import_module
 from statistics import fmean
 
 from librsi import CapabilityBinding, Metric, TargetRef, TargetSnapshot
@@ -86,13 +87,12 @@ def _collect(request, *, kind):
 
 
 def create_service(*, data_directory, limits):
-    from openai import OpenAI
-
     model = os.environ.get("LIBRSI_INTAKE_MODEL")
     if not model:
         raise ValueError("set LIBRSI_INTAKE_MODEL explicitly")
     backend = OpenAIResponsesBackend(
-        OpenAIResponsesConfig(model=model), client=OpenAI(timeout=60, max_retries=0)
+        OpenAIResponsesConfig(model=model),
+        client=import_module("openai").OpenAI(timeout=60, max_retries=0),
     )
     bindings = (
         CapabilityBinding(action_kind="improvement-cycle", family="reasoner", posture="external"),
