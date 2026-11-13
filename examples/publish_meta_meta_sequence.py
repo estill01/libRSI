@@ -21,6 +21,7 @@ from audit_native_sequence import export_native
 from benchmark_document_search import write_json
 from benchmark_meta_meta_sequence import interval
 from benchmark_native_sequence import BASE_PROGRAM, fresh_problem
+from compact_benchmark_store import verify_archive
 from plot_native_sequence import bootstrap_mean
 from sequence_program import BASE_INSTRUCTIONS, execute
 from setup_sequence import build_oracle
@@ -84,9 +85,14 @@ def audit(source, output):
     assert len({r["label"] for r in all_rows}) == len(all_rows)
     native_dir = output / "native"
     native_dir.mkdir()
+    archive_manifests = output / "store-archive-manifests"
+    archive_manifests.mkdir()
     for path in disk_rows:
         row = json.loads(path.read_text())
         assert row in all_rows
+        archive = path.parent.parent / "store-archives" / f"{row['label']}.tar.gz"
+        verified = verify_archive(archive)
+        write_json(archive_manifests / f"{row['label']}.json", verified)
         evidence_path = path.parent.parent / "native" / f"{row['label']}.json.gz"
         evidence = read_gz(evidence_path)
         active = record_from_dict(evidence["active"])
@@ -234,6 +240,7 @@ def audit(source, output):
             "development_and_final_scores_replayed": True,
             "primary_bootstrap_replayed": True,
             "source_hashes_verified": True,
+            "complete_store_archive_hashes_verified": len(disk_rows),
             "downward_active_instruction_bindings_verified": True,
         },
     )

@@ -74,11 +74,23 @@ prompts, responses, source hashes, stage adoption records, original roots, costs
 and run-level final scores. Validate completed checkpoints before resuming an
 interruption. Two model requests and two native workers may run concurrently.
 
-Reserve **20 GiB of new working space above the host's hard reserve**, based on
-the previous run's roughly 31 MiB per durable inner workflow plus conservative
-overhead. Check capacity before model calls and between batches. This capacity
-requirement does not authorize deleting or compressing retained evidence or
-increasing a paid disk without approval.
+Reserve **3 GiB of new working space above the host's hard reserve**. After an
+inner store closes and its outcome is saved, archive every
+file with gzip, verify every SHA-256, durably publish the archive and manifest,
+then remove the expanded working copy. Archives retain complete stores, including
+SQLite history and all artifact records. Checkpoint recovery restores one store
+temporarily and reopens it through the unchanged native API before reuse.
+
+The original 20 GiB estimate kept all completed stores expanded. A pre-launch
+pilot on copies of three prior stores measured 79,074,686 bytes expanded versus
+4,124,681 bytes compressed (94.8% smaller), with every file hash verified. The
+ordinary-workflow restoration check verifies native active state, cached result
+and input roots. Restoration uses the original absolute path because native
+artifact references include that path. Earlier study directories remain unchanged.
+The revised reserve allows 4 MiB per remaining inner archive plus 1 GiB for two active workers,
+upper-level stores, model transcripts, source snapshots, audits and publication.
+Check capacity before model calls and between batches. This changes storage only:
+sample counts, workloads, evidence, models and adoption rules stay fixed.
 
 ## Run and audit
 
@@ -93,7 +105,7 @@ export UV_CACHE_DIR=/srv/patent-studio/private/cache/uv
   --output /srv/patent-studio/private/librsi-benchmarks/astra-meta-meta-20261113-run1
 ```
 
-The runner also checks its 20 GiB requirement before the first model call.
+The runner also checks its 3 GiB requirement before the first model call.
 Rerunning the same command resumes validated checkpoints without replacing
 completed samples. A failed provider request other than the registered timeout
 retry requires diagnosis; a completed report must be audited instead of rerun.

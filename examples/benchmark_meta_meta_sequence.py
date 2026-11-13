@@ -19,6 +19,7 @@ import numpy as np
 from benchmark_document_search import write_json
 from benchmark_llm_search import usage_total
 from checkpoint_codex_sampler import CheckpointSampler
+from compact_benchmark_store import pack_store, unpacked_store
 from llm_search import validate_instructions
 from resume_native_sequence import completed_row
 from sequence_program import BASE_INSTRUCTIONS, execute
@@ -30,7 +31,7 @@ from librsi.identity import canonical_json, digest
 MAX_INNER = 512
 MAX_LOGICAL_CALLS = 518
 GIB = 1024**3
-NEW_SPACE = 20 * GIB
+NEW_SPACE = 3 * GIB
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -43,8 +44,10 @@ def capacity(output, *, initial=False):
     )
     fs = os.statvfs(output.parent)
     available = fs.f_bavail * fs.f_frsize
-    completed = 0 if initial else len(list(output.glob("phases/*/runs/*.json")))
-    needed = max(GIB, NEW_SPACE - completed * 36 * 1024**2)
+    completed = 0 if initial else len(list(output.glob("phases/*/store-archives/*.tar.gz.json")))
+    # Four MiB per remaining compressed run plus one GiB for active stores,
+    # model transcripts, upper gates, source snapshots, and publication work.
+    needed = max(GIB, NEW_SPACE - completed * 4 * 1024**2)
     if available - 8 * GIB < needed:
         raise RuntimeError(
             f"Insufficient study capacity: available={available}, hard_reserve={8 * GIB}, "
@@ -178,7 +181,7 @@ class Phase(native.Study):
                 )
         rows, pending = [], []
         for job in generated:
-            row = completed_row(job)
+            row = compact_completed_row(job)
             if row is None:
                 pending.append(job)
             else:
@@ -189,8 +192,42 @@ class Phase(native.Study):
         with ProcessPoolExecutor(max_workers=2) as pool:
             for start in range(0, len(pending), 2):
                 capacity(self.root)
-                rows.extend(pool.map(native.scheduler_run, pending[start : start + 2]))
+                rows.extend(pool.map(compact_scheduler_run, pending[start : start + 2]))
         return sorted(rows, key=lambda r: r["label"])
+
+
+def compact_scheduler_run(job):
+    row = native.scheduler_run(job)
+    output, label = job[:2]
+    pack_store(output / "stores" / label, output / "store-archives" / f"{label}.tar.gz")
+    return row
+
+
+def compact_completed_row(job):
+    output, label = job[:2]
+    archive = output / "store-archives" / f"{label}.tar.gz"
+    if not archive.exists():
+        row = completed_row(job)
+        if row is not None:
+            pack_store(output / "stores" / label, archive)
+        return row
+    # Finish an interrupted archive commit/removal before opening a temporary copy.
+    pack_store(output / "stores" / label, archive)
+    with unpacked_store(archive, output / "stores" / label) as restored:
+        row = json.loads((output / "runs" / f"{label}.json").read_text())
+        assert row["choices"] == job[2] and row["instruction"] == job[3] and row["phase"] == job[5]
+        evidence = json.loads(
+            gzip.decompress((output / "native" / f"{label}.json.gz").read_bytes())
+        )
+        with LocalLearningStore(restored, profile_id=label) as store:
+            assert store.pending_pass is None and store.active.root == row["active_root"]
+            assert dict(store.active.state) == row["configuration"]
+            result, inputs = store.cached("optimize", "result"), store.pass_input("optimize")
+            assert result is not None and result.root == row["native_root"]
+            assert inputs is not None and inputs.root == evidence["inputs"]["root"]
+        assert evidence["active"]["root"] == row["active_root"]
+        assert evidence["native"]["root"] == row["native_root"]
+        return row
 
 
 class CascadeAdapter:
@@ -356,6 +393,11 @@ def run(output, prior_directory):
             "maximum_native_inner_runs": MAX_INNER,
             "maximum_logical_calls": MAX_LOGICAL_CALLS,
             "extra_timeout_attempts": 8,
+            "storage": {
+                "required_initial_bytes_above_reserve": NEW_SPACE,
+                "closed_inner_stores": "Lossless tar.gz with per-file SHA-256 and verified restoration; full records retained",
+                "working_copy_removal": "Only after archive verification and durable receipt; original earlier studies unchanged",
+            },
             "timeout_seconds": 600,
             "seed_bases": {
                 "development": 900000,
@@ -507,6 +549,18 @@ def run(output, prior_directory):
             arm: interval(scores, "ordinary", arm, families, seed=2026111310 + i)
             for i, arm in enumerate(instructions)
             if arm != "ordinary"
+        }
+        archives = [
+            json.loads(path.read_text())
+            for path in output.glob("phases/*/store-archives/*.tar.gz.json")
+        ]
+        assert len(archives) == report["effort"]["native_inner_runs"]
+        report["storage"] = {
+            "complete_inner_store_archives": len(archives),
+            "uncompressed_bytes": sum(row["uncompressed_bytes"] for row in archives),
+            "archive_bytes": sum(row["archive_bytes"] for row in archives),
+            "all_records_retained": True,
+            "initial_working_space_requirement_bytes": NEW_SPACE,
         }
         native.dump_gz(output / "report.json.gz", report)
         write_json(
