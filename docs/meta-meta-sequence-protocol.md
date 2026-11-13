@@ -1,7 +1,8 @@
 # Native meta-meta cascade experiment
 
-**Status: prepared, not run.** This protocol does not contain measured meta-meta
-results. The existing README results describe the preceding meta experiment.
+**Status: launched November 13, 2026; results pending.** This protocol does not
+contain measured meta-meta results. The existing README results describe the
+preceding meta experiment.
 
 This follow-up tests whether improving the **meta optimizer** improves the
 ordinary optimizer and, ultimately, the original scheduler. All model calls use
