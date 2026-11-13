@@ -1,0 +1,73 @@
+{
+  "outside_main_study": {
+    "model": "gpt-6-astra",
+    "reasoning_effort": "high",
+    "attempted_calls": 13,
+    "completed_calls": 7,
+    "unknown_usage_timeouts": 6,
+    "reported_input_output_tokens": 86656,
+    "aborted_attempt": {
+      "status": "aborted_before_native_evaluation",
+      "reason": "six 180-second provider timeouts after five completed proposals; zero native runs or scoring results",
+      "attempted_calls": 11,
+      "completed_calls": 5,
+      "unknown_usage_calls": 6,
+      "model": "gpt-6-astra",
+      "reasoning_effort": "high",
+      "reported_input_output_tokens": 64701,
+      "retention": "All prompts, returned outputs, receipts and raw provider event streams retained privately. No outcome-based restart."
+    },
+    "transport_probes": [
+      {
+        "candidate_count": 1,
+        "cli_version": "codex-cli 0.166.0",
+        "model": "gpt-6-astra",
+        "number": 1,
+        "prompt_sha256": "d4b3bb09289664df08df872514d269dd02722be84cba9c424d817ecf853b9b4f",
+        "provider": "OpenAI via Codex CLI",
+        "provider_cost_usd": null,
+        "reasoning_effort": "high",
+        "returncode": 0,
+        "role": "transport-probe",
+        "timeout_seconds": 120,
+        "tool_items": 0,
+        "usage": [
+          {
+            "cache_write_input_tokens": 0,
+            "cached_input_tokens": 0,
+            "input_tokens": 8976,
+            "output_tokens": 28,
+            "reasoning_output_tokens": 0
+          }
+        ],
+        "wall_seconds": 8.832702971063554
+      },
+      {
+        "candidate_count": 2,
+        "cli_version": "codex-cli 0.166.0",
+        "model": "gpt-6-astra",
+        "number": 1,
+        "prompt_sha256": "4aae1c1750d78f189f57381a5e22b7f436617d770c0b00de1f3301b4f6cd081e",
+        "provider": "OpenAI via Codex CLI",
+        "provider_cost_usd": null,
+        "reasoning_effort": "high",
+        "returncode": 0,
+        "role": "unique-prompt-transport-probe",
+        "timeout_seconds": 240,
+        "tool_items": 0,
+        "usage": [
+          {
+            "cache_write_input_tokens": 0,
+            "cached_input_tokens": 0,
+            "input_tokens": 12131,
+            "output_tokens": 820,
+            "reasoning_output_tokens": 413
+          }
+        ],
+        "wall_seconds": 30.893525656778365
+      }
+    ]
+  },
+  "recovery": "The 24 completed proposal calls from the worker-handoff failure are included exactly once in the main study, with exact-response replay receipts. Sixteen completed native outcomes were retained after an external process interruption and validated against their durable stores; pending native passes resumed through the native recovery API. Each model response and native outcome is counted once.",
+  "native_smoke": "One additional native integration check reused the first recorded proposal; it is excluded from study samples and adds no model calls."
+}

@@ -219,3 +219,24 @@ the affected native adoption and rollback tests also run.
 
 The new end-to-end experiment uses this versioned correction. The earlier
 published studies retain their original source snapshots and results.
+
+## Completed native follow-up
+
+With **`gpt-6-astra`, high reasoning, at both optimization levels**, all 168 inner
+scheduler changes were adopted and verified. On 512 unseen workloads, ordinary
+libRSI achieved **15.94%** cost reduction. The meta pass rejected both instruction
+revisions; using the retained original improver achieved **15.99%**. The difference
+was **+0.05 pp [−0.32, +0.42]** (95% interval), not a learned meta gain.
+
+Forcing the training-selected revision into 32 fresh native runs achieved
+**15.52%**, an exploratory **−0.41 pp [−0.82, −0.02]** versus the ordinary improver.
+An additional transfer check of all 24 development systems per instruction also
+found both revisions worse than the original on unseen workloads. The current
+meta rejection therefore has measured quality support. The earlier evidence gate
+defect was real, but correcting it did not make these meta instructions helpful.
+
+The exact solver's 33.26% average reduction shows remaining task headroom, though
+that unrestricted oracle does not prove what is reachable within the fixed
+256-evaluation budget. The revised instruction narrowed program variation while
+reducing mean quality; which instruction clauses caused the loss remains untested.
+See the [complete results, intervals, costs and graphs](native-sequence-benchmark.md).

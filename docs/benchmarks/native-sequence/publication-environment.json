@@ -1,0 +1,17 @@
+{
+  "python": "3.14.7",
+  "numpy": "2.5.4",
+  "matplotlib": "3.11.2",
+  "logical_cpus": 2,
+  "compiler": "c++ (Debian 14.2.0-19) 14.2.0",
+  "analysis_sha256": {
+    "examples/audit_native_sequence.py": "fc399623ec2ebfcb21583d5091f2a3f38b190bdca2928ad7a33c70fe1ce392cf",
+    "examples/check_native_development_transfer.py": "1c373c2db4381566bc0af7c10bc9c20b99242ed4eede24ba0203644ff6dd0086",
+    "examples/extend_native_confirmation.py": "2c3381546ce8794a7f7c686809695e85dae1df306fdb836ced9dbd89163d4b09",
+    "examples/plot_native_sequence.py": "c067e72656a791a2b05d4055e9f6155a32f8fb7124a9e4bf1d3e2647c4354f99",
+    "examples/recorded_codex_sampler.py": "268ef466bcbe2b880cc8172440cf1c060b92ce2c8a850cb85e14d0775f93a882",
+    "examples/resume_native_sequence.py": "168548b602d050c5b0ba7e231212d59859bfa9b1390aa5fe94a263716c271ab9",
+    "examples/run_native_sequence_study.py": "7930c350a2604cc770661536d837008f205c7fa0fabb70f709cc45c3d9df8a9f",
+    "examples/summarize_native_sequence.py": "4563774a1258bb3cf5da06c3471b845be019a1299d4ab6ce5217ebdc88c4f90c"
+  }
+}

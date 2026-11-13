@@ -1,0 +1,15 @@
+{
+  "registered_at": "2026-11-12T07:54:15.500801+00:00",
+  "reason": "Final missing request 169 timed out after 600 seconds with no response or usage. As for request 128, allow one manual identical-request retry before any final native systems or test scores. Preserve all completed samples and the failed original unchanged.",
+  "extra_attempt_limit": 1,
+  "retries": {
+    "169": {
+      "role": "ordinary-12",
+      "original_receipt_sha256": "dea38140ebe64bac03d7420c17f3eaab025beb50a776b71e93204180099ae401",
+      "replacement": "transport-retries/169/001"
+    }
+  },
+  "native_runs_completed": 72,
+  "model_completed_calls": 168,
+  "final_systems_frozen": false
+}

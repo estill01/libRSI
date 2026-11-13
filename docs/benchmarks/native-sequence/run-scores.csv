@@ -1,0 +1,98 @@
+case,optimization_model,reasoning_effort,meta_model,meta_revision_adopted,optimization_run,native_disposition,scheduler_adopted,test_workloads,mean_cost_reduction_percent
+base,none,none,none,,,original,,512,0
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-00,verified,True,512,16.8988592109531
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-01,verified,True,512,15.94160778578112
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-02,verified,True,512,16.756058826223594
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-03,verified,True,512,15.56994544344359
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-04,verified,True,512,15.486524088028192
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-05,verified,True,512,16.44305343688133
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-06,verified,True,512,16.049275290115084
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-07,verified,True,512,15.749391196903566
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-08,verified,True,512,16.43339055364929
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-09,verified,True,512,15.452095539188115
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-10,verified,True,512,15.338487501320197
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-11,verified,True,512,16.539261407606325
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-12,verified,True,512,14.675049371895227
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-13,verified,True,512,15.53783461720647
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-14,verified,True,512,16.034577612413365
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-15,verified,True,512,15.802776934404466
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-16,verified,True,512,16.193648349391257
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-17,verified,True,512,17.27329652278417
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-18,verified,True,512,16.146150348383888
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-19,verified,True,512,13.981407054561299
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-20,verified,True,512,15.976882918603918
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-21,verified,True,512,16.54765166606838
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-22,verified,True,512,15.27354333782739
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-23,verified,True,512,15.68366681686074
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-24,verified,True,512,16.786105325025716
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-25,verified,True,512,16.40966387250393
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-26,verified,True,512,16.01707476314727
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-27,verified,True,512,16.451498421493362
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-28,verified,True,512,15.760269840327018
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-29,verified,True,512,16.73629570689054
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-30,verified,True,512,15.97377256354878
+after_meta,gpt-6-astra,high,gpt-6-astra (high),False,after_meta-31,verified,True,512,15.638347403218447
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-00,verified,True,512,15.534804972684913
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-01,verified,True,512,15.389127505372253
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-02,verified,True,512,16.060228618685706
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-03,verified,True,512,15.376054556821467
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-04,verified,True,512,15.601303676353945
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-05,verified,True,512,15.387854302993892
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-06,verified,True,512,15.387854302993892
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-07,verified,True,512,15.368006027746468
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-08,verified,True,512,15.50916298728309
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-09,verified,True,512,15.31273604103136
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-10,verified,True,512,15.506576160295483
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-11,verified,True,512,15.925442505120008
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-12,verified,True,512,15.387854302993892
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-13,verified,True,512,15.479863429267434
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-14,verified,True,512,15.598013475443985
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-15,verified,True,512,15.957973962022498
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-16,verified,True,512,15.368006027746468
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-17,verified,True,512,15.479863429267434
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-18,verified,True,512,15.58070334668455
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-19,verified,True,512,15.778540172913655
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-20,verified,True,512,15.365936441823619
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-21,verified,True,512,15.559964373642678
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-22,verified,True,512,15.331866555275726
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-23,verified,True,512,15.365936441823619
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-24,verified,True,512,15.603627056309364
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-25,verified,True,512,15.769461159606504
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-26,verified,True,512,15.733549793027862
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-27,verified,True,512,15.368006027746468
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-28,verified,True,512,15.368006027746468
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-29,verified,True,512,15.426037441664494
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-30,verified,True,512,15.479863429267434
+forced_revision_diagnostic,gpt-6-astra,high,gpt-6-astra (high),False,forced_revision_diagnostic-31,verified,True,512,15.368006027746468
+ordinary,gpt-6-astra,high,none,,ordinary-00,verified,True,512,15.698377611038481
+ordinary,gpt-6-astra,high,none,,ordinary-01,verified,True,512,17.02964824277206
+ordinary,gpt-6-astra,high,none,,ordinary-02,verified,True,512,15.502284671965775
+ordinary,gpt-6-astra,high,none,,ordinary-03,verified,True,512,15.483759384400592
+ordinary,gpt-6-astra,high,none,,ordinary-04,verified,True,512,16.68071080773975
+ordinary,gpt-6-astra,high,none,,ordinary-05,verified,True,512,16.61196343662306
+ordinary,gpt-6-astra,high,none,,ordinary-06,verified,True,512,15.464933852025723
+ordinary,gpt-6-astra,high,none,,ordinary-07,verified,True,512,14.902862054821526
+ordinary,gpt-6-astra,high,none,,ordinary-08,verified,True,512,16.566733277339665
+ordinary,gpt-6-astra,high,none,,ordinary-09,verified,True,512,15.34030258896204
+ordinary,gpt-6-astra,high,none,,ordinary-10,verified,True,512,14.856882152246726
+ordinary,gpt-6-astra,high,none,,ordinary-11,verified,True,512,15.698241777064178
+ordinary,gpt-6-astra,high,none,,ordinary-12,verified,True,512,14.54661130098614
+ordinary,gpt-6-astra,high,none,,ordinary-13,verified,True,512,16.44305343688133
+ordinary,gpt-6-astra,high,none,,ordinary-14,verified,True,512,15.91598619334022
+ordinary,gpt-6-astra,high,none,,ordinary-15,verified,True,512,15.705669435633645
+ordinary,gpt-6-astra,high,none,,ordinary-16,verified,True,512,16.190274906746723
+ordinary,gpt-6-astra,high,none,,ordinary-17,verified,True,512,15.628519779222733
+ordinary,gpt-6-astra,high,none,,ordinary-18,verified,True,512,16.54751614994835
+ordinary,gpt-6-astra,high,none,,ordinary-19,verified,True,512,15.721878198293677
+ordinary,gpt-6-astra,high,none,,ordinary-20,verified,True,512,17.06877033482186
+ordinary,gpt-6-astra,high,none,,ordinary-21,verified,True,512,15.93109419787287
+ordinary,gpt-6-astra,high,none,,ordinary-22,verified,True,512,15.739730951099945
+ordinary,gpt-6-astra,high,none,,ordinary-23,verified,True,512,17.13704536263948
+ordinary,gpt-6-astra,high,none,,ordinary-24,verified,True,512,15.7862950254619
+ordinary,gpt-6-astra,high,none,,ordinary-25,verified,True,512,15.178403754112916
+ordinary,gpt-6-astra,high,none,,ordinary-26,verified,True,512,15.98683157025868
+ordinary,gpt-6-astra,high,none,,ordinary-27,verified,True,512,15.628519779222733
+ordinary,gpt-6-astra,high,none,,ordinary-28,verified,True,512,17.008535743385014
+ordinary,gpt-6-astra,high,none,,ordinary-29,verified,True,512,15.51124759876021
+ordinary,gpt-6-astra,high,none,,ordinary-30,verified,True,512,16.729775804700402
+ordinary,gpt-6-astra,high,none,,ordinary-31,verified,True,512,15.76736833896642

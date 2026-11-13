@@ -1,0 +1,23 @@
+{
+  "analysis_source_sha256": "1c373c2db4381566bc0af7c10bc9c20b99242ed4eede24ba0203644ff6dd0086",
+  "bootstrap_resamples": 10000,
+  "bootstrap_seeds": [
+    2026111215,
+    2026111216
+  ],
+  "extra_model_calls": 0,
+  "extra_native_optimizations": 0,
+  "final_systems_frozen_at_registration": false,
+  "interval": "97.5% crossed-bootstrap percentile intervals per contrast (Bonferroni for two exploratory comparisons)",
+  "limitation": "Development programs used earlier native training cases and sequential model-generation batches. The primary final arms use fresh native cases and interleaved model requests.",
+  "native_runs_per_policy": 24,
+  "policies": [
+    "original",
+    "revision_1",
+    "revision_2"
+  ],
+  "reason": "Both revisions lost on training, while revision 2 had mixed positive shadow and verification effects. Score ALL three existing development pools on the unseen test panel, including the revision that lost the training-only diagnostic selection.",
+  "registered_at": "2026-11-12T06:54:38.892672+00:00",
+  "scope": "Exploratory, recorded after meta development and before final test evaluation. Does not replace the registered primary comparison.",
+  "test_workloads": 512
+}

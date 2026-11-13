@@ -45,19 +45,24 @@ def render(report, receipts, output):
     )
     arms = ["ordinary", "after_meta"]
     test_count = len(report["test_baseline_costs"])
-    started = report["protocol"]["created_at"][:10]
     means = [0, *[report["means"][arm] * 100 for arm in arms]]
     bounds = [
         [0, 0],
         *[bootstrap_mean(report["scores"][arm], 2026111211 + i) for i, arm in enumerate(arms)],
     ]
-    labels = ["Base\nscheduler", "libRSI\noptimization", "Meta → libRSI\noptimization"]
+    labels = [
+        "Base\nscheduler",
+        "libRSI\noptimization",
+        "After meta pass\n(original retained)"
+        if not report["meta"]["adopted"]
+        else "Meta → libRSI\noptimization",
+    ]
     fig, (ax, effort_ax) = plt.subplots(
         1, 2, figsize=(13, 6.9), gridspec_kw={"width_ratios": [1.7, 1]}
     )
     fig.subplots_adjust(left=0.10, right=0.97, bottom=0.28, top=0.78, wspace=0.35)
     fig.suptitle(
-        "What did the system actually retain?",
+        "Base vs. libRSI vs. libRSI after a meta pass",
         fontsize=19,
         x=0.10,
         ha="left",
@@ -67,7 +72,7 @@ def render(report, receipts, output):
     fig.text(
         0.10,
         0.90,
-        f"gpt-6-astra · high reasoning · scheduler AND meta proposals · started {started}",
+        "gpt-6-astra · high reasoning · scheduler AND meta proposals",
         fontsize=11,
     )
     fig.text(
@@ -156,7 +161,7 @@ def render(report, receipts, output):
     fig, axes = plt.subplots(1, 2, figsize=(11.5, 6.4))
     fig.subplots_adjust(left=0.09, right=0.97, bottom=0.30, top=0.76, wspace=0.35)
     fig.suptitle(
-        "How much model effort bought that outcome?",
+        "Model effort for each comparison",
         fontsize=19,
         x=0.09,
         ha="left",
@@ -166,7 +171,7 @@ def render(report, receipts, output):
     fig.text(
         0.09,
         0.89,
-        f"gpt-6-astra · high reasoning · all reasoning roles · started {started}",
+        "gpt-6-astra · high reasoning · all reasoning roles",
         fontsize=11,
     )
     short = ["Base", "libRSI", "Meta → libRSI"]
@@ -218,6 +223,78 @@ def render(report, receipts, output):
     for suffix in ("png", "svg"):
         fig.savefig(output / f"native-sequence-effort.{suffix}", dpi=180, facecolor="white")
     plt.close(fig)
+    if "exploratory_forced_contrast" in report:
+        fig, ax = plt.subplots(figsize=(11.5, 5.6))
+        fig.subplots_adjust(left=0.29, right=0.96, bottom=0.30, top=0.70)
+        fig.suptitle(
+            "Using the proposed meta revision anyway",
+            x=0.06,
+            y=0.95,
+            ha="left",
+            fontsize=18,
+            weight="bold",
+        )
+        fig.text(
+            0.06,
+            0.86,
+            "gpt-6-astra · high reasoning · both optimizer and meta optimizer",
+            fontsize=11,
+        )
+        fig.text(
+            0.06,
+            0.80,
+            f"32 native runs per arm · {test_count} unseen synthetic workloads · 95% crossed-bootstrap intervals",
+            fontsize=10,
+        )
+        contrasts = [report["primary_contrast"], report["exploratory_forced_contrast"]]
+        for y, contrast in zip([1, 0], contrasts, strict=True):
+            mean = contrast["mean_effect"] * 100
+            low, high = np.asarray(contrast["bootstrap_95_percentile"]) * 100
+            ax.errorbar(
+                mean,
+                y,
+                xerr=[[mean - low], [high - mean]],
+                fmt="o",
+                capsize=6,
+                markersize=8,
+                color=COLORS[2] if y else "#b95735",
+            )
+            ax.annotate(
+                f"{mean:+.2f} pp  [{low:+.2f}, {high:+.2f}]",
+                (mean, y),
+                xytext=(0, 16),
+                textcoords="offset points",
+                ha="center",
+                fontsize=11,
+            )
+        ax.axvline(0, color="#687180", linewidth=1, linestyle="--")
+        ax.set_yticks(
+            [1, 0],
+            [
+                "After meta pass\n(original retained)",
+                "Use proposed instruction\n(forced diagnostic)",
+            ],
+        )
+        ax.set_ylim(-0.55, 1.65)
+        low_edge = min(0, *[c["bootstrap_95_percentile"][0] * 100 for c in contrasts])
+        high_edge = max(0, *[c["bootstrap_95_percentile"][1] * 100 for c in contrasts])
+        margin = max(0.2, (high_edge - low_edge) * 0.18)
+        ax.set_xlim(low_edge - margin, high_edge + margin)
+        ax.set_xlabel("Additional setup-cost reduction vs. ordinary libRSI (percentage points)")
+        ax.grid(axis="x", alpha=0.18)
+        fig.text(
+            0.06,
+            0.13,
+            "The meta pass rejected both revisions. The forced diagnostic uses the training-selected revision anyway.\n"
+            "That diagnostic is exploratory; it does not represent native meta adoption. Both arms start from the same base.",
+            fontsize=10,
+            color="#4c5564",
+        )
+        for suffix in ("png", "svg"):
+            fig.savefig(
+                output / f"native-sequence-meta-diagnostic.{suffix}", dpi=180, facecolor="white"
+            )
+        plt.close(fig)
     return {
         "means_percent": means,
         "intervals_percent": [list(x) for x in bounds],

@@ -1,0 +1,16 @@
+{
+  "registered_at": "2026-11-12T07:18:29.339738+00:00",
+  "reason": "Call 128 timed out after 600 seconds with only thread.started and turn.started events, no response or usage. Preserve the failed request and manually repeat only this missing logical sample with identical prompt, schema, model, reasoning and timeout. This is a disclosed deviation from the original 169-attempt ceiling, made before final systems or test evaluation.",
+  "extra_attempt_limit": 1,
+  "retries": {
+    "128": {
+      "role": "after_meta-21",
+      "original_receipt_sha256": "352d95cf51d6681c292ff80ddbf762721998022e750e5db556b1ab9cf8937866",
+      "replacement": "transport-retries/128/001"
+    }
+  },
+  "native_runs_completed": 72,
+  "model_completed_calls": 128,
+  "final_systems_frozen": false,
+  "outcome_selection": "No response or score exists for the failed slot; no completed sample is replaced."
+}

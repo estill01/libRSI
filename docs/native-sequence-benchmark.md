@@ -13,6 +13,130 @@ The three primary cases are:
 Case 3 never starts from case 2's optimized scheduler. If the outer meta pass
 rejects its proposed revision, case 3 uses the retained original improver.
 
+## Measured results
+
+The completed experiment contains **168 native scheduler-optimization runs and
+one native meta pass**. All 168 scheduler changes were adopted, verified and
+reopened successfully. The meta pass rejected both proposed instruction
+revisions and retained the original improver. Every optimization and meta proposal
+used **OpenAI `gpt-6-astra`, high reasoning**; scoring, review and scheduler
+execution used no LLM.
+
+The primary panel has **512 unseen workloads** and **32 independent optimization
+runs per arm**. Cost reductions are measured against the same original scheduler.
+
+| Case | Model driving optimization | Mean cost reduction | 95% interval for mean | Model request attempts |
+| --- | --- | ---: | ---: | ---: |
+| Original base | None | 0% | Reference | 0 |
+| libRSI optimizes base | `gpt-6-astra`, high | 15.94% | [14.94%, 16.93%] | 33 |
+| After meta pass, original improver retained | `gpt-6-astra`, high at both levels | 15.99% | [15.01%, 16.97%] | 106 |
+
+![Actual retained-system results and model attempts; gpt-6-astra high](assets/native-sequence-results.png)
+
+After-meta minus ordinary is **+0.048 percentage points**, with a 95% interval of
+**[−0.322, +0.415]**. This is not evidence of a learned meta improvement: both arms
+used the same retained instruction and differ in their independent model samples.
+The interval for their difference is narrower than the individual mean intervals
+because both arms are evaluated on the same workloads.
+
+The original 128-workload panel is retained as a sensitivity check: ordinary
+libRSI achieved **15.10%**, versus **14.99%** after meta, a difference of
+**−0.105 pp [−0.579, +0.375]** (95% interval; `gpt-6-astra`, high at both levels).
+Neither panel establishes an additional meta benefit. The 512-workload expansion
+was registered before meta and final-system freezes, not selected after seeing
+these outcomes.
+
+### Using a rejected revision anyway
+
+The registered diagnostic used revision 1, selected by its higher training mean,
+for 32 new native optimizations. All 32 scheduler changes passed the inner gates.
+They achieved **15.52%** mean cost reduction on the same 512 workloads, versus
+**15.94%** for the ordinary improver: **−0.415 pp [−0.822, −0.016]**, an exploratory
+95% interval. **`gpt-6-astra`, high**, generated both this instruction and its
+scheduler proposals. This is an actual test of the proposed instruction, but
+does not represent an accepted native meta update.
+
+![Effect of retained vs forced revised instructions; gpt-6-astra high](assets/native-sequence-meta-diagnostic.png)
+
+The additional transfer check evaluated all 24 retained development systems from
+each instruction on those same 512 unseen workloads. It made no new model calls.
+
+| Development pool | Proposal and meta model | Mean cost reduction | Difference from original | Exploratory 97.5% interval |
+| --- | --- | ---: | ---: | ---: |
+| Original instruction | `gpt-6-astra`, high | 16.55% | Reference | — |
+| Revision 1 | `gpt-6-astra`, high at both levels | 15.51% | −1.04 pp | [−1.67, −0.43] |
+| Revision 2 | `gpt-6-astra`, high at both levels | 16.00% | −0.55 pp | [−1.05, −0.03] |
+
+These two intervals account for two exploratory comparisons. These development
+pools used different native training cases and sequential request batches, so
+their means must not be pooled with or substituted for the primary final arms.
+They independently support the narrower conclusion that neither proposed
+instruction improved this benchmark in this meta round.
+
+### Why the meta pass did not help
+
+Both revisions already lost on the training comparison used by the outer pass.
+The stage means below use eight independent model draws per instruction per
+stage; they are development evidence, not final-test results.
+
+| Outer scoring stage | Proposal and meta model | Original instruction | Revision 1 | Revision 2 |
+| --- | --- | ---: | ---: | ---: |
+| Training | `gpt-6-astra`, high | 16.13% | 15.76% | 15.71% |
+| Shadow | `gpt-6-astra`, high | 16.81% | 16.70% | 17.54% |
+| Verification | `gpt-6-astra`, high | 16.99% | 15.81% | 17.06% |
+
+Revision 2's positive shadow mean did not persist in the unseen transfer panel.
+The forced revision-1 experiment also lost on fresh optimization draws. Together
+with successful adoption of every inner scheduler change, these results indicate
+that the current meta rejection was supported by candidate quality, rather than
+the earlier library gate defect silently blocking useful scheduler changes.
+
+The task still had headroom: the unrestricted exact solver could reduce costs
+by **33.26%** on average, compared with ordinary libRSI's **15.94%**. That solver
+is an audit reference, not a competitor limited to 256 evaluations; its gap does
+not prove that the current search primitives and budget can recover all of it.
+
+One plausible explanation is that the revised instructions overconstrained the
+search. The forced revision produced 24 distinct program JSONs across 32 runs,
+averaging 5.81 stages, compared with 32 distinct JSONs and 3.28 stages for the
+original instruction. Its run-mean standard deviation fell from 0.68 to 0.20 pp,
+but its mean got worse. This describes reduced variation, not demonstrated causal
+evidence about which instruction clause hurt performance. A single meta round
+with two proposed instructions cannot establish a general limit on meta learning.
+
+### Effort and retained evidence
+
+| Phase | Model | Completed calls | Timeouts | Known input + output tokens |
+| --- | --- | ---: | ---: | ---: |
+| Ordinary final arm | `gpt-6-astra`, high | 32 | 1 | 413,659 |
+| Meta development | `gpt-6-astra`, high at both levels | 73 | 0 | 983,617 |
+| After-meta final arm | `gpt-6-astra`, high | 32 | 1 | 413,758 |
+| Forced-revision diagnostic | `gpt-6-astra`, high | 32 | 0 | 434,913 |
+| Full measured study | `gpt-6-astra`, high | 169 | 2 | 2,245,947 |
+| Earlier setup attempts and transport probes, outside study | `gpt-6-astra`, high | 7 | 6 | 86,656 |
+
+![Model effort and known token usage; gpt-6-astra high](assets/native-sequence-effort.png)
+
+The main experiment recorded **6.35 hours** of phase wall time, including reused
+proposal-generation time, interruptions and recovery pauses. This is not model
+latency or total engineering effort; offline audit, confirmation, plotting and
+coding work are outside that timing. Reported input includes **941,440 cached
+tokens**; reasoning-output tokens are already included in output and are not
+added again. Timeout usage and dollar billing are unknown.
+
+The 24 proposals recovered from an earlier worker-handoff failure are counted
+once. Sixteen completed native runs survived a later interruption and were
+checked against their durable stores. Subsequent transport recoveries rechecked
+all 72 development outcomes. No outcome-based sample substitution occurred.
+
+The [run-level CSV](benchmarks/native-sequence/run-scores.csv) contains one base
+reference and 96 final outcomes, with model labels and native adoption status.
+[Full evidence](benchmarks/native-sequence/) includes model prompts and outputs,
+receipts, compressed native records, source snapshots, registered amendments,
+the original 128-workload result, the 512-workload result, and transfer diagnostics.
+The offline audit replayed every development score and original test score;
+confirmation reproduced all original 128 scores exactly before adding workloads.
+
 ## Model and task
 
 **OpenAI `gpt-6-astra`, high reasoning, via Codex CLI** generates both scheduler

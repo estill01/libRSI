@@ -1,0 +1,137 @@
+{
+  "comparisons": {
+    "revision_1": {
+      "bootstrap_97_5_percentile": [
+        -0.016652063051280242,
+        -0.00429176426246606
+      ],
+      "mean_effect": -0.010370794038366549,
+      "model_draws_per_policy": 24,
+      "workloads": 512
+    },
+    "revision_2": {
+      "bootstrap_97_5_percentile": [
+        -0.010546583826161913,
+        -0.0003018464609990011
+      ],
+      "mean_effect": -0.005491763586153664,
+      "model_draws_per_policy": 24,
+      "workloads": 512
+    }
+  },
+  "extra_model_calls": 0,
+  "extra_native_optimizations": 0,
+  "final_systems_frozen_at": "2026-11-12T10:16:33.848486+00:00",
+  "means": {
+    "original": 0.1654639888812546,
+    "revision_1": 0.15509319484288805,
+    "revision_2": 0.15997222529510094
+  },
+  "model": "gpt-6-astra",
+  "model_roles": "scheduler proposals and meta-instruction proposals",
+  "native_run_labels": {
+    "original": [
+      "dev-e052daa83e0f-00",
+      "dev-e052daa83e0f-01",
+      "dev-e052daa83e0f-02",
+      "dev-e052daa83e0f-03",
+      "dev-e052daa83e0f-04",
+      "dev-e052daa83e0f-05",
+      "dev-e052daa83e0f-06",
+      "dev-e052daa83e0f-07",
+      "dev-e052daa83e0f-08",
+      "dev-e052daa83e0f-09",
+      "dev-e052daa83e0f-10",
+      "dev-e052daa83e0f-11",
+      "dev-e052daa83e0f-12",
+      "dev-e052daa83e0f-13",
+      "dev-e052daa83e0f-14",
+      "dev-e052daa83e0f-15",
+      "dev-e052daa83e0f-16",
+      "dev-e052daa83e0f-17",
+      "dev-e052daa83e0f-18",
+      "dev-e052daa83e0f-19",
+      "dev-e052daa83e0f-20",
+      "dev-e052daa83e0f-21",
+      "dev-e052daa83e0f-22",
+      "dev-e052daa83e0f-23"
+    ],
+    "revision_1": [
+      "dev-316c38c471f3-00",
+      "dev-316c38c471f3-01",
+      "dev-316c38c471f3-02",
+      "dev-316c38c471f3-03",
+      "dev-316c38c471f3-04",
+      "dev-316c38c471f3-05",
+      "dev-316c38c471f3-06",
+      "dev-316c38c471f3-07",
+      "dev-316c38c471f3-08",
+      "dev-316c38c471f3-09",
+      "dev-316c38c471f3-10",
+      "dev-316c38c471f3-11",
+      "dev-316c38c471f3-12",
+      "dev-316c38c471f3-13",
+      "dev-316c38c471f3-14",
+      "dev-316c38c471f3-15",
+      "dev-316c38c471f3-16",
+      "dev-316c38c471f3-17",
+      "dev-316c38c471f3-18",
+      "dev-316c38c471f3-19",
+      "dev-316c38c471f3-20",
+      "dev-316c38c471f3-21",
+      "dev-316c38c471f3-22",
+      "dev-316c38c471f3-23"
+    ],
+    "revision_2": [
+      "dev-6eae2276299c-00",
+      "dev-6eae2276299c-01",
+      "dev-6eae2276299c-02",
+      "dev-6eae2276299c-03",
+      "dev-6eae2276299c-04",
+      "dev-6eae2276299c-05",
+      "dev-6eae2276299c-06",
+      "dev-6eae2276299c-07",
+      "dev-6eae2276299c-08",
+      "dev-6eae2276299c-09",
+      "dev-6eae2276299c-10",
+      "dev-6eae2276299c-11",
+      "dev-6eae2276299c-12",
+      "dev-6eae2276299c-13",
+      "dev-6eae2276299c-14",
+      "dev-6eae2276299c-15",
+      "dev-6eae2276299c-16",
+      "dev-6eae2276299c-17",
+      "dev-6eae2276299c-18",
+      "dev-6eae2276299c-19",
+      "dev-6eae2276299c-20",
+      "dev-6eae2276299c-21",
+      "dev-6eae2276299c-22",
+      "dev-6eae2276299c-23"
+    ]
+  },
+  "plan": {
+    "analysis_source_sha256": "1c373c2db4381566bc0af7c10bc9c20b99242ed4eede24ba0203644ff6dd0086",
+    "bootstrap_resamples": 10000,
+    "bootstrap_seeds": [
+      2026111215,
+      2026111216
+    ],
+    "extra_model_calls": 0,
+    "extra_native_optimizations": 0,
+    "final_systems_frozen_at_registration": false,
+    "interval": "97.5% crossed-bootstrap percentile intervals per contrast (Bonferroni for two exploratory comparisons)",
+    "limitation": "Development programs used earlier native training cases and sequential model-generation batches. The primary final arms use fresh native cases and interleaved model requests.",
+    "native_runs_per_policy": 24,
+    "policies": [
+      "original",
+      "revision_1",
+      "revision_2"
+    ],
+    "reason": "Both revisions lost on training, while revision 2 had mixed positive shadow and verification effects. Score ALL three existing development pools on the unseen test panel, including the revision that lost the training-only diagnostic selection.",
+    "registered_at": "2026-11-12T06:54:38.892672+00:00",
+    "scope": "Exploratory, recorded after meta development and before final test evaluation. Does not replace the registered primary comparison.",
+    "test_workloads": 512
+  },
+  "reasoning_effort": "high",
+  "registered_before_final_freeze": true
+}

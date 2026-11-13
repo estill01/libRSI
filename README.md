@@ -2,108 +2,93 @@
 
 # libRSI
 
-**Describe what should improve. Test competing ideas. Keep changes that earn adoption.**
+**Turn a model's improvement ideas into measured, recoverable changes.**
 
-libRSI supports **declarative, experiment-driven optimization**. You provide an
-outcome and constraints; a connected model proposes a measurable interpretation,
-baseline and competing experiments. Your application executes them. libRSI records
-evidence and manages comparison, review, adoption, verification and recovery.
+Define what good means, connect a model and supply an adapter that runs your
+system. libRSI records experiments, compares alternatives, checks held-out cases,
+and manages review, adoption, verification and rollback.
 
-The same workflow can improve **the improver**: revise its instructions, measure
-whether they produce better candidates, and use accepted instructions on later
-work. Repeat at higher levels for recursive improvement.
+The same loop can improve **the improver**: revise its instructions, measure
+whether it produces better systems, and use accepted instructions on future work.
 
 **Python 3.11+ · Dependency-free core · Typed API · MIT**
 
-## Base → LLM optimization → meta optimization
+## Base → libRSI optimization → meta optimization
 
-Start with **“Reduce changeover downtime while keeping planning inexpensive.”**
-Astra translates this into setup-cost reduction, a 2% worthwhile-effect threshold,
-and competing search strategies. It assembles programs for repeating 14-job
-production schedules; the host enforces **256 cost evaluations per program**.
+A runnable example reduces setup costs in repeating **14-job production
+schedules**. One Astra call proposes two search programs; the host executes them with a fixed
+**256 cost evaluations per workload**. Scheduler execution uses no LLM.
 
-Compare three cases:
+Each optimization arm has **32 independent, complete libRSI runs**, evaluated on
+**512 unseen synthetic workloads**. Both start from the same original scheduler.
+The meta arm first optimizes the improver's instruction, then uses the retained
+improver to optimize a fresh copy of that original scheduler.
 
-1. **Base:** run the existing planner without optimization.
-2. **libRSI optimizes the base:** Astra proposes and libRSI evaluates changes to
-   that planner, using the original improver.
-3. **Meta optimization, then optimize the base:** Astra proposes changes to the
-   improver itself. Test the revised improver on the **same starting planner**.
-   This measures whether improving the improver produces a better final system.
+![Actual retained-system improvements and model effort; gpt-6-astra high at both optimization levels](docs/assets/native-sequence-results.png)
 
-Cases 2 and 3 both start from the base. Case 3 does not start from case 2's output.
-
-**Every reasoning role uses OpenAI `gpt-6-astra`, high reasoning, via Codex CLI:**
-goal interpretation, program proposals, meta revisions and subsequent proposals.
-The planner, scoring and reviewer use **no model**. libRSI has no default model;
-your backend specifies one.
-
-![Base, LLM-driven libRSI, and meta-optimized libRSI; candidate gains with Astra high, not adopted changes](docs/assets/setup-sequence-overview.png)
-
-| Comparison | Optimization model | Candidate cost saved vs base | Native adoption |
+| Case | Model driving optimization | Retained setup-cost reduction | Model request attempts for this arm |
 | --- | --- | ---: | ---: |
-| 1. Base | None | 0% | Starting state |
-| 2. libRSI optimization of base | `gpt-6-astra`, high | 5.02% | No |
-| 3. Meta → libRSI optimization of base | `gpt-6-astra`, high at both levels | 5.71% | No |
+| Base scheduler | None | 0% | 0 |
+| libRSI optimizes the base | `gpt-6-astra`, high reasoning | 15.94% | 32 + 1 timeout retry |
+| Meta → libRSI (original improver retained) | `gpt-6-astra`, high reasoning at **both levels** | 15.99% | 73 development + 32 final + 1 timeout retry |
 
-Each optimization case has **32 proposal draws on 128 unseen synthetic workloads**.
-The proposed meta improver adds **0.69 percentage points** over the original
-improver, adjusted interval **−0.02 to +1.54**. That does not establish the
-prespecified two-point worthwhile gain. Extra-budget controls are in the
-[full results](docs/setup-sequence-benchmark.md).
+The meta pass **rejected both revisions and kept the original improver**. The
+third case uses the same instruction as ordinary optimization; its difference
+reflects independent model samples, not a learned meta improvement.
 
-**The requested end-to-end adoption chain did not succeed in this run.** The
-recorded native passes kept the base planner and original improver. The 5.02% and
-5.71% figures score generated candidates separately; the proposed meta revision
-was tested despite its rejection. They must not be read as deployed libRSI gains.
-We also found a facade limitation: ties count against proposals, and evidence
-order can change early decisions.
-[Diagnosis and controlled reproduction](docs/meta-diagnosis.md).
+After-meta minus ordinary: **+0.05 percentage points**, with a crossed-bootstrap
+95% interval of **[-0.32, +0.42]**. This interval accounts for model-draw and
+workload variation, conditional on one meta-development run. The study compares
+outcomes with different development budgets; it does not establish compute efficiency.
 
-Total: **261 Astra calls · 3,560,773 reported input/output tokens · 35.0 minutes**.
-Dollar billing is unavailable. Call budgets share samples; tokens and time are
-not matched. [Full protocol, uncertainty, costs and replayable evidence](docs/setup-sequence-benchmark.md).
-The earlier [scientific-search study](docs/recursive-search-benchmark.md) also
-runs meta, meta-meta and meta-meta-meta; none of those revisions generalized.
+**Using the proposed meta revision anyway did worse:** a separate 32-run diagnostic
+achieved **15.52%**, or **−0.41 percentage points** versus ordinary libRSI
+(exploratory 95% interval **[−0.82, −0.02]**). This result uses the revised
+instruction, but it is not an accepted libRSI meta update.
+
+Both reasoning levels use **OpenAI `gpt-6-astra`, high, via Codex CLI**. Scoring
+and review use no model. libRSI has no default model; your backend chooses it.
+
+Full study: **171 Astra request attempts (169 completed) · 2,245,947 known input/output tokens**.
+Two requests timed out and were each retried once after diagnosis; their token usage is unknown.
+Timing, setup attempts and the forced-revision diagnostic are itemized in the
+[methods, costs and results](docs/native-sequence-benchmark.md).
+[Run-level CSV](docs/benchmarks/native-sequence/run-scores.csv) · [Full data](docs/benchmarks/native-sequence/) · [Effort graph](docs/assets/native-sequence-effort.png).
+
+<details>
+<summary>Model effort and the forced meta-revision diagnostic</summary>
+
+![Model request attempts and known token usage; gpt-6-astra high](docs/assets/native-sequence-effort.png)
+
+![Retained original vs forced revised improver; gpt-6-astra high at both levels](docs/assets/native-sequence-meta-diagnostic.png)
+
+</details>
+
+The investigation also found and corrected a library gate that counted ties
+against useful changes. [Diagnosis, historical results and replay-safe correction](docs/meta-diagnosis.md).
+These measurements concern synthetic setup costs, not measured factory throughput.
 
 ## Run it
 
-From a source checkout, authenticate Codex CLI with Astra access. The exact
-reference solver requires a C++17 compiler.
+From a source checkout, with an authenticated Codex CLI that can access Astra and
+a C++17 compiler for the exact reference solver:
 
 ```bash
 python -m pip install . numpy matplotlib
-python examples/benchmark_setup_sequence.py --output ./sequence-run --model gpt-6-astra
-python examples/plot_setup_sequence_overview.py --report ./sequence-run/report.json --output ./sequence-run/overview
+python examples/run_native_sequence_study.py --output ./native-sequence-run
 ```
 
-Use a fresh output directory: 300-call ceiling, no automatic retries.
+This runs the experiment, audits its saved evidence, and generates the graphs.
+Use a fresh directory; the model-call ceiling is 169, with no automatic retries.
 [Smaller LLM example](docs/llm-search-benchmark.md) · [No-model companion](docs/search-benchmark.md).
 
 ## Connect your application
 
-Supply a measuring adapter, model-backed proposer, reviewer, store and metric policy:
-
-```python
-from librsi import AdaptiveLoop, LearningCase
-
-loop = AdaptiveLoop(
-    store, adapter=adapter, proposer=proposer, proposer_id="my-model-proposer",
-    reviewer=reviewer, reviewer_id="my-reviewer", policy=policy,
-)
-loop.run_task(LearningCase("task-1", task_input))
-result = loop.learn(
-    "round-1", shadow_cases=held_out_tasks,
-    verification_cases=verification_tasks, activate=True,
-)
-```
-
-The intent layer accepts a proposed evaluation contract; low-level `improve()`
-requires completed operationalization and initial competing hypotheses. The
-[goal interpreter](examples/sequence_intent.py) and
-[complete runner](examples/benchmark_setup_sequence.py) connect those interfaces.
-Your application supplies meaningful measurements, representative data and execution
-isolation; installing libRSI alone does not supply a universal autonomous optimizer.
+Supply a measuring adapter, model-backed proposer, reviewer, store and metric policy.
+The [complete benchmark](examples/benchmark_native_sequence.py) implements these
+components. Your application supplies meaningful measurements, representative data
+and execution isolation. The [intent layer](examples/sequence_intent.py) also
+supports proposing a measurable contract from a broad goal.
 
 ## Guides
 
