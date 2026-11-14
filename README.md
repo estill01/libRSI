@@ -15,6 +15,10 @@ whether it produces better systems, and use accepted instructions on future work
 
 ## Base → libRSI optimization → meta optimization
 
+**The four-case meta-meta follow-up is running.** Its results are pending;
+the completed measurements below are from the preceding meta-only experiment.
+[Follow-up protocol](docs/meta-meta-sequence-protocol.md).
+
 A runnable example reduces setup costs in repeating **14-job production
 schedules**. One Astra call proposes two search programs; the host executes them with a fixed
 **256 cost evaluations per workload**. Scheduler execution uses no LLM.
