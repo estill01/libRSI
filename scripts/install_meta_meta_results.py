@@ -74,6 +74,23 @@ def load_publication(source):
 def adoption_text(report):
     if report["meta_meta"]["adopted"]:
         top = "The meta-meta pass **adopted a revised meta optimizer**."
+    elif report["meta_meta"].get("disposition") == "failed":
+        lengths = [
+            len(choice["configuration"]["instruction"].strip())
+            for choice in report["meta_meta"].get("choices", [])
+            if isinstance(choice.get("configuration", {}).get("instruction"), str)
+        ]
+        reason = (
+            f" All {len(lengths)} proposed meta instructions exceeded the 3,000-character limit "
+            f"(lengths: {', '.join(map(str, lengths))})."
+            if lengths and all(length > 3000 for length in lengths)
+            else " See the native failure record in the audited data."
+        )
+        top = (
+            "The meta-meta pass **failed and retained the original meta optimizer**."
+            + reason
+            + " The fourth case measures the fallback pipeline; it does not evaluate a valid revised meta optimizer."
+        )
     else:
         top = (
             "The meta-meta pass **retained the original meta optimizer**. "

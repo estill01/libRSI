@@ -111,6 +111,18 @@ def test_publication_refuses_tampered_evidence(tmp_path):
         publication.load_publication(tmp_path)
 
 
+def test_failed_overlength_meta_proposals_are_reported_as_fallback(tmp_path):
+    report = fixture(tmp_path)
+    report["meta_meta"].update(
+        disposition="failed",
+        choices=[{"configuration": {"instruction": "x" * length}} for length in (3044, 3337)],
+    )
+    text = publication.adoption_text(report)
+    assert "failed and retained the original meta optimizer" in text
+    assert "3,000-character limit" in text and "3044, 3337" in text
+    assert "does not evaluate a valid revised meta optimizer" in text
+
+
 def test_publication_refuses_incomplete_samples_even_with_updated_file_hash(tmp_path):
     report = fixture(tmp_path)
     report["scores"]["after_meta_meta"] = report["scores"]["after_meta_meta"][:4]
